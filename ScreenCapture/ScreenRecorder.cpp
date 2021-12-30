@@ -59,9 +59,24 @@ int ScreenRecorder::openCamera()
 
     
     /* current below is for screen recording. To connect with camera use v4l2 as a input parameter for av_find_input_format */
-    //pAVInputFormat = av_find_input_format("x11grab");//Errore: x11grab non da problemi su Linux (o, perlomeno, non dovrebbe dare problemi), ma su Windows 11 sì
-    pAVInputFormat = av_find_input_format("gdigrab");
-    //av_find_input_format trova  un AVInputFormat in base al nome breve del formato di input.
+    /*
+        #TODO: vedi QTglobal library e anche come input: 
+            - https://cpp.hotexamples.com/examples/-/-/av_find_input_format/cpp-av_find_input_format-function-examples.html
+            - q_os_linux
+                - https://stackoverflow.com/questions/45794885/add-conditional-macro-depending-on-qt-version
+                - https://doc.qt.io/qt-5/qtglobal.html
+                - https://stackoverflow.com/questions/34165675/determine-operating-system-during-compile-time
+    */
+    
+    //av_find_input_format trova un AVInputFormat in base al nome breve del formato di input.
+    // #ifdef LINUX 
+        //pAVInputFormat = av_find_input_format("x11grab");//Errore: x11grab non da problemi su Linux (o, perlomeno, non dovrebbe dare problemi), ma su Windows 11 sì
+    // #endif
+
+    // #ifdef WIN
+        pAVInputFormat = av_find_input_format("gdigrab");
+    // #endif
+
     //cout << "\npAVInputFormat->codec_tag: " << pAVInputFormat->codec_tag;
     //value = avformat_open_input(&pAVFormatContext, ":0.0+10,250", pAVInputFormat, NULL);
     
