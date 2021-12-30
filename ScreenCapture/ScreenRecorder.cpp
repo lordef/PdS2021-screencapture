@@ -6,20 +6,22 @@ using namespace std;
 ScreenRecorder::ScreenRecorder()
 {
 
-    //av_register_all(); //Funzione di inzizializzazione deprecata. Può essere tranquillamente omessa.
+    //av_register_all(); //Funzione di inizializzazione deprecata. Può essere tranquillamente omessa.
     //avcodec_register_all(); //Funzione di inzizializzazione deprecata. Può essere tranquillamente omessa.
     avdevice_register_all(); //Inizializza libavdevice e registra tutti i dispositivi di input e output.
     cout<<"\nAll required functions are registered successfully";
 }
+
+
 //Definiamo il distruttore
 /* uninitialize the resources */
 ScreenRecorder::~ScreenRecorder()
 {
 
-    avformat_close_input(&pAVFormatContext); //Chiude un input AVFormatContext aperto: libera tutto e mette  a NULL il contenuto del parametro ricevuto
+    avformat_close_input(&pAVFormatContext); //Chiude un input AVFormatContext aperto: libera tutto e mette a NULL il contenuto del parametro ricevuto
     if( !pAVFormatContext ) //Verifichiamo che avformat_close_input abbia dato i suoi frutti
     {
-        cout<<"\nFile closed sucessfully";
+        cout<<"\nFile closed successfully";
     }
     else
     {
@@ -39,6 +41,7 @@ ScreenRecorder::~ScreenRecorder()
     }
 
 }
+
 
 /* establishing the connection between camera or screen through its respective folder */
 int ScreenRecorder::openCamera()
