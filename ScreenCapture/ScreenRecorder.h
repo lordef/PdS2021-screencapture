@@ -1,7 +1,7 @@
 #ifndef SCREENRECORDER_H
 #define SCREENRECORDER_H
 
-#include "ffmpeg.h" // TODO: potrebbe non servire poichè include dopo - riga 17
+#include "ffmpeg.h" // #TODO: potrebbe non servire poichè include dopo - riga 17
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>

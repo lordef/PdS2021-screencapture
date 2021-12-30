@@ -70,7 +70,7 @@ int ScreenRecorder::openCamera()
     
     //av_find_input_format trova un AVInputFormat in base al nome breve del formato di input.
     // #ifdef LINUX 
-        //pAVInputFormat = av_find_input_format("x11grab");//Errore: x11grab non da problemi su Linux (o, perlomeno, non dovrebbe dare problemi), ma su Windows 11 sì
+        //pAVInputFormat = av_find_input_format("x11grab");
     // #endif
 
     // #ifdef WIN
@@ -78,31 +78,38 @@ int ScreenRecorder::openCamera()
     // #endif
 
     //cout << "\npAVInputFormat->codec_tag: " << pAVInputFormat->codec_tag;
-    //value = avformat_open_input(&pAVFormatContext, ":0.0+10,250", pAVInputFormat, NULL);
+
+    //value = avformat_open_input(&pAVFormatContext, ":0.0+10,250", pAVInputFormat, NULL);  //#TODO: perchè commentata? Non deprecata
     
+
     /* 
     * Con av_dict_set passo determinati parametri a options che mi servirà, dopo, per settare alcuni parametri di 
-    * pAVFormatContext con avformat_open_input. av_dict_set ritorna un alore maggiore di zero in caso di successo
+    * pAVFormatContext con avformat_open_input. 
+    * av_dict_set ritorna un alore maggiore di zero in caso di successo,
     * minore di zero in caso di fallimento.
     */
+
     value = av_dict_set( &options,"framerate","30",0 );
     if(value < 0) //Controllo che non ci siano stati errori con av_dict_set
     {
         cout<<"\nError in setting dictionary value";
         exit(1);
     }
+
     value = av_dict_set( &options, "preset", "medium", 0 );
     if(value < 0)
     {
         cout<<"\nError in setting preset values";
         exit(1);
     }
+
     value = av_dict_set(&options, "video_size", "1920x1080", 0);
     if (value < 0)
     {
         cout << "\nError in setting preset values";
         exit(1);
     }
+
     value = av_dict_set(&options, "probesize", "20M", 0);
     if (value < 0)
     {
@@ -110,7 +117,7 @@ int ScreenRecorder::openCamera()
         exit(1);
     }
     
-    pAVFormatContext = avformat_alloc_context();//Allocate an AVFormatContext
+    pAVFormatContext = avformat_alloc_context(); //Allocate an AVFormatContext
 
     value = avformat_open_input(&pAVFormatContext, "desktop", pAVInputFormat, &options);
     if (value != 0) //Controllo che non ci siano stati errori con avformat_open_input
@@ -199,6 +206,7 @@ int ScreenRecorder::openCamera()
     //cout << "\npAVCodecContext->width: "<< pAVCodecContext->width;
     return 0;
 }
+
 
 /* initialize the video output file and its properties  */
 int ScreenRecorder::init_outputfile()
