@@ -213,7 +213,20 @@ int ScreenRecorder::init_outputfile()
 {
     outAVFormatContext = NULL;
     value = 0;
-    output_file = "../media/output.mp4"; //#TODO: inserire la data all'interno del nome del file, capire quale macro utilizzare
+    output_file = "../media/output.mp4";
+
+    /* //#FIXME: dovrebbe inserire la data all'interno del nome del file */
+    // string format_output_file = "../media/output_";
+
+    /* Setting name of the output file */ 
+    // declaring argument of time()
+        // time_t my_time = time(NULL);
+    // ctime() used to give the present time
+        // string current_time = ctime(&my_time);   
+        // format_output_file.append(current_time);
+        // format_output_file.append(".mp4");
+        // output_file = format_output_file; //ERRORE qui, potrebbe essere perchè non accetta una stringa essendo const char*
+
 
     avformat_alloc_output_context2(&outAVFormatContext, NULL, NULL, output_file);
     // Assegna un AVFormatContext per un formato di output.

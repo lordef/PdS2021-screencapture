@@ -10,6 +10,8 @@
 #include <math.h>
 #include <string.h>
 #include <thread>
+#include <time.h> 
+
 
 
 #define __STDC_CONSTANT_MACROS
