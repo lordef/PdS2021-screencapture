@@ -213,7 +213,7 @@ int ScreenRecorder::init_outputfile()
 {
     outAVFormatContext = NULL;
     value = 0;
-    output_file = "../media/output.mp4";
+    output_file = "../media/output.mp4"; //#TODO: inserire la data all'interno del nome del file, capire quale macro utilizzare
 
     avformat_alloc_output_context2(&outAVFormatContext, NULL, NULL, output_file);
     // Assegna un AVFormatContext per un formato di output.
