@@ -70,7 +70,15 @@ int ScreenRecorder::openCamera()
     // #endif
 
     // #ifdef WIN
-    pAVInputFormat = av_find_input_format("gdigrab");
+    pAVInputFormat = av_find_input_format("gdigrab"); //#FIXME: con la riga seguente
+    // Error: a value of type "const AVInputFormat *" cannot be assigned to an entity of type "AVInputFormat *"
+    // pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("gdigrab")); 
+
+
+    int i = 3;                 // i is not declared const
+    const int& rci = i; 
+    const_cast<int&>(rci) = 4; // OK: modifies i
+    std::cout << "i = " << i << '\n';
     // #endif
 
     // cout << "\npAVInputFormat->codec_tag: " << pAVInputFormat->codec_tag;
@@ -146,7 +154,10 @@ int ScreenRecorder::openCamera()
             // cout << "\nHeight: " << pAVFormatContext->streams[i]->codecpar->height;
             // cout << "\nWidth: " << pAVFormatContext->streams[i]->codecpar->width;
             // cout << "\npAVFormatContext->streams[i]->codecpar->codec_id: " << pAVFormatContext->streams[i]->codecpar->codec_id << "\n";
-            pAVCodec = avcodec_find_decoder(pAVFormatContext->streams[i]->codecpar->codec_id);
+            pAVCodec = avcodec_find_decoder(pAVFormatContext->streams[i]->codecpar->codec_id); //FIXME: con la riga seguente
+            // pAVCodec = const_cast<AVCodec*>(avcodec_find_decoder(pAVFormatContext->streams[i]->codecpar->codec_id)); 
+
+            
             // cout << "\npAVCodec->name: " << pAVCodec->name << "\n";
 
             break;
@@ -245,7 +256,9 @@ int ScreenRecorder::init_outputfile()
     che matcha meglio con i parametri forniti. 
     Se non c'è alcun match ritorna NULL
      */
-    output_format = av_guess_format(NULL, output_file, NULL);
+    output_format = av_guess_format(NULL, output_file, NULL); //FIXME: con la riga seguente
+    // output_format = const_cast<AVOutputFormat*>(av_guess_format(NULL, output_file, NULL)); 
+
     // cout << "\nav_guess_format: "<< av_guess_format<<"\n";
     
     if (!output_format) // Effettuo un check
@@ -257,7 +270,9 @@ int ScreenRecorder::init_outputfile()
 
     // Trova un codificatore (encoder) che matcha con l'ID_codec indicato.
     // Ritorna l'encoder in caso di successo, NULL in caso di errore
-    pLocalCodec = avcodec_find_encoder(AV_CODEC_ID_MPEG4);
+    pLocalCodec = avcodec_find_encoder(AV_CODEC_ID_MPEG4); //#FIXME: con la riga seguente 
+    // pLocalCodec = const_cast<AVCodec*>(avcodec_find_encoder(AV_CODEC_ID_MPEG4)); 
+
 
     if (pLocalCodec == NULL) // Eseguo check
     {
