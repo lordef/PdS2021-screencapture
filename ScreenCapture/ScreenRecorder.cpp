@@ -388,41 +388,52 @@ int ScreenRecorder::init_outputfile()
     return 0;
 }
 
-/* funzione per acquisire e memorizzare i dati in frame allocando la memoria richiesta e rilasciando automaticamente la memoria */
+/* 
+funzione per acquisire e memorizzare i dati in frame allocando la memoria richiesta 
+e rilasciando automaticamente la memoria 
+*/
 int ScreenRecorder::CaptureVideoFrames()
 {
     // int flag;
     // int frameFinished;
 
     /*Quando decodifichi un singolo pacchetto, non hai ancora informazioni sufficienti per avere un frame
-     * (a seconda del tipo di codec). Quando decodifichi un GRUPPO di pacchetti che rappresenta un frame,
+     * (a seconda del tipo di codec). 
+     * Quando decodifichi un GRUPPO di pacchetti che rappresenta un frame,
      * solo allora hai un'immagine! Ecco perché frameFinished ti farà sapere che hai decodificato abbastanza
      * per avere un frame.
      * */
 
     // int frame_index = 0;
     value = 0;
-    pAVPacket = av_packet_alloc();
+
     // av_packet_alloc alloca un AVPacket e imposta i suoi campi sui valori predefiniti.
+    pAVPacket = av_packet_alloc();
     if (!pAVPacket)
         exit(1);
     // cout<<""<<pAVPacket->
+    
     // Le successive 2 righe di codice son deprecate commentate perchè av_init_packet è stato deprecato
-    // pAVPacket = (AVPacket *)av_malloc(sizeof(AVPacket));
+    
     /*av_malloc alloca un blocco di dimenzione pari a "sizeof(AVPacket)" Byte e ritorna un puntatore al blocco
      * allocato oppure NULL se il blocco non può essere allocato.
      * NB: pAVPacket è di tipo AVPacket *. Non a caso si esegue un cast a "AVPacket *" del ritorno di av-malloc
      * Di fatto, pAVPacket è un puntatore ad un pacchetto.*/
-    // av_init_packet(pAVPacket);
+    
+    // pAVPacket = (AVPacket *)av_malloc(sizeof(AVPacket));
+    
     /*Inizializza i campi facoltativi di un pacchetto con valori predefiniti.
      *NB: questa funzione non tocca i membri "data" e "size", che devono essere inizializzati separatamente.*/
+    // av_init_packet(pAVPacket);
+    
 
-    pAVFrame = av_frame_alloc();
+
     /*av_frame_alloc() alloca un AVFrame e imposta i suoi campi sui valori predefiniti.
      *La struttura risultante deve essere liberata utilizzando av_frame_free().
      * Ritorna un AVFrame riempito con valori predefiniti o NULL in caso di errore.
      * NB: Alloca solo l'AVFrame e non il buffer di dati. Questo deve essere allocato con altri mezzi,
      * ad es. con av_frame_get_buffer() o manualmente.*/
+    pAVFrame = av_frame_alloc();
 
     if (!pAVFrame) // Verifichiamo che l'operazione svolta da "av_frame_alloc()" abbia avuto successo
     {
@@ -430,17 +441,21 @@ int ScreenRecorder::CaptureVideoFrames()
         exit(1);
     }
 
-    outFrame = av_frame_alloc();
+
+    outFrame = av_frame_alloc(); //#TODO: dovrebbe essere av_frame_free() ??? --> a cosa serve questa riga
     if (!outFrame)
     {
         cout << "\nUnable to release the avframe resources for outframe";
         exit(1);
     }
 
-    int video_outbuf_size;
-    int nbytes = av_image_get_buffer_size(outAVCodecContext->pix_fmt, outAVCodecContext->width, outAVCodecContext->height, 32);
+
+    int video_outbuf_size; //#FIXME: non viene utilizzata, deve essere inutile
+
     /*"av_image_get_buffer_size" restituisce il numero di byte necessari per memorizzare un'immagine.
      * NB: Le specifiche dell'immagine sono indicati tra parentesi*/
+    int nbytes = av_image_get_buffer_size(outAVCodecContext->pix_fmt, outAVCodecContext->width, outAVCodecContext->height, 32);
+    
     uint8_t *video_outbuf = (uint8_t *)av_malloc(nbytes);
     if (video_outbuf == NULL)
     {
@@ -448,11 +463,12 @@ int ScreenRecorder::CaptureVideoFrames()
         exit(1);
     }
 
-    // Setup the data pointers and linesizes based on the specified image parameters and the provided array.
-    value = av_image_fill_arrays(outFrame->data, outFrame->linesize, video_outbuf, AV_PIX_FMT_YUV420P, outAVCodecContext->width, outAVCodecContext->height, 1);
+
+    /* Setup the data pointers and linesizes based on the specified image parameters and the provided array. */
     /* Si effettua un setup dei data pointers e delle linesizes (??) in base alle specifiche dell'immagine e
      * ed all'array fornito.
      * La funzione ritorna la dimensione in byte richiesta per video_outbuf oppure un valore minore di zero in caso di errore.
+     * 
      * SIGNIFICATO PARAMETRI:
      * "outFrame->data" indica i data pointers da compilare
      * "outFrame->linesize" indica le linesize per l'immagine in outFrame->data da compilare
@@ -461,36 +477,42 @@ int ScreenRecorder::CaptureVideoFrames()
      * "outAVCodecContext->width" e "outAVCodecContext->height" indicano rispettivamente la larghezza e l'altezza dell'immagine in pixel
      * L'ultimo parametro indica il valore usato per allineare le linesizes
      */
+    value = av_image_fill_arrays(outFrame->data, outFrame->linesize, video_outbuf, AV_PIX_FMT_YUV420P, outAVCodecContext->width, outAVCodecContext->height, 1);
+    // #TODO: il terzo parametro dovrebbe esser preso da qui: outAVCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
+    
     if (value < 0) // Verifico che non ci siano errori
     {
         cout << "\nError in filling image array";
         exit(1);
     }
 
-    struct SwsContext *swsCtx_;
 
+    // Allocate and return swsContext.
+    // a pointer to an allocated context, or NULL in case of error
+    struct SwsContext *swsCtx_;
     if (!(swsCtx_ = sws_alloc_context()))
     {
         cout << "\nError nell'allocazione del SwsContext";
         exit(1);
     }
+    
 
-    // Allocate and return swsContext.
-    // a pointer to an allocated context, or NULL in case of error
-    // Deprecated : Use sws_getCachedContext() instead.
-    /*swsCtx_ = sws_getContext(pAVCodecContext->width,
+    /*La funzione sws_getContext alloca un SwsContext e ne ritorna il puntatore (o NULL in caso di errore).
+     * I primi 3 parametri sono riferiti all'immagine sorgente. // tra AVPAcket e AVCodec -> pAVCodecContext
+     * I secondi 3 parametri sono riferiti all'immagine di destinazione. // tra AVCodec e AVFrame -> outAVCodecContext
+     * Il settimo parametri specifica quale algoritmo utilizzare per ri-scalare
+     * I restanti parametri sono altri flag di cui non ci servono i particolari
+     */
+    // sws_getContext Deprecated : Use sws_getCachedContext() instead.
+    /*
+    swsCtx_ = sws_getContext(pAVCodecContext->width,
         pAVCodecContext->height,
         pAVCodecContext->pix_fmt,
         outAVCodecContext->width,
         outAVCodecContext->height,
         outAVCodecContext->pix_fmt,
-        SWS_BICUBIC, NULL, NULL, NULL );*/
-    /*La funzione sws_getContext alloca un SwsContext e ne ritorna il puntatore (o NULL in caso di errore).
-     *I primi 3 parametri sono riferiti all'immagine sorgente.
-     *I secondi 3 parametri sono riferiti all'immagine di destinazione.
-     * Il settimo parametri specifica quale algoritmo utilizzare per ri-scalare
-     * I restanti parametri sono flag di cui ce ne possiamo sbattere il cazzo
-     */
+        SWS_BICUBIC, NULL, NULL, NULL );
+    */
 
     value = sws_init_context(swsCtx_, NULL, NULL);
     if (value < 0)
@@ -510,6 +532,7 @@ int ScreenRecorder::CaptureVideoFrames()
 
     // cout << "\nswsCtx_: " << swsCtx_ <<"\n";
 
+
     int ii = 0;
     int no_frames = 100;
     cout << "\nEnter No. of frames to capture : ";
@@ -519,10 +542,8 @@ int ScreenRecorder::CaptureVideoFrames()
     int j = 0;
 
     int got_picture;
-    while (av_read_frame(pAVFormatContext, pAVPacket) >= 0)
-    {
-        // cout << "\npAVPacket->buf: " << pAVPacket->buf;
-        /*av_read_frame è una funzione che ad ogni chiamata trasmette un frame preso da uno stream.
+
+    /*av_read_frame è una funzione che ad ogni chiamata trasmette un frame preso da uno stream.
          * In caso di successo il paccheto sarà reference-counted (pAVPacket->buf viene settato) e sarà disponibile a tempo indeterminato.
          * Il pacchetto deve essere lberato con av_packet_unref() quando non è più utile.
          * Per il video, il pacchetto contiene esattamente un fotogramma.
@@ -534,7 +555,12 @@ int ScreenRecorder::CaptureVideoFrames()
          *  av_read_frame ritorna 0 se tutto è ok, un valore negativo in caso di errore o un EOF.
          *  In caso di errore, pAVPacket sarà vuoto (come se provenisse da av_packet_alloc()).
          *  NB:pAVPacket verrà inizializzato, quindi potrebbe essere necessario terminarlo anche se non contiene dati.
-         */
+    */
+    while (av_read_frame(pAVFormatContext, pAVPacket) >= 0)
+    {
+        // cout << "\npAVPacket->buf: " << pAVPacket->buf;
+
+        
         if (ii++ == no_frames)
         {
             // value = AVERROR_EOF;
@@ -667,11 +693,13 @@ int ScreenRecorder::CaptureVideoFrames()
         }
     } // End of while-loop
 
-    value = av_write_trailer(outAVFormatContext);
+
     /*
      * Scrive il trailer dello stream in un file multimediale di output e
      * libera i dati privati ​​del file. Se non ci sono stati errori, ritorna 0.
      */
+    value = av_write_trailer(outAVFormatContext);
+    
     if (value < 0)
     {
         cout << "\nError in writing av trailer";
