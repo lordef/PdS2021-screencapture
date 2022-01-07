@@ -459,7 +459,7 @@ int ScreenRecorder::CaptureVideoFrames()
     int video_outbuf_size; //#FIXME: non viene utilizzata, deve essere inutile
 
     /*"av_image_get_buffer_size" restituisce il numero di byte necessari per memorizzare un'immagine.
-     * NB: Le specifiche dell'immagine sono indicati tra parentesi*/
+     * NB: Le specifiche dell'immagine sono indicate tra parentesi*/
     int nbytes = av_image_get_buffer_size(outAVCodecContext->pix_fmt, outAVCodecContext->width, outAVCodecContext->height, 32);
     
     uint8_t *video_outbuf = (uint8_t *)av_malloc(nbytes);
@@ -540,7 +540,7 @@ int ScreenRecorder::CaptureVideoFrames()
 
 
     int ii = 0;
-    int no_frames = 100;
+    int no_frames = 100; //#TODO: dovrebbe essere dinamico?
     cout << "\nEnter No. of frames to capture : ";
     cin >> no_frames;
 
@@ -550,12 +550,13 @@ int ScreenRecorder::CaptureVideoFrames()
     int got_picture;
 
     /*av_read_frame è una funzione che ad ogni chiamata trasmette un frame preso da uno stream.
-         * In caso di successo il paccheto sarà reference-counted (pAVPacket->buf viene settato) e sarà disponibile a tempo indeterminato.
+         * In caso di successo il paccheto sarà reference-counted (pAVPacket->buf viene settato) 
+         * e sarà disponibile a tempo indeterminato.
          * Il pacchetto deve essere lberato con av_packet_unref() quando non è più utile.
          * Per il video, il pacchetto contiene esattamente un fotogramma.
          * Per l'audio, invece, dipende:
-         * - se ogni frame ha una dimensione nota (ad es. dati PCM o ADPCM), allora il pacchetto coterrà un numero intero di frame;
-         * - se ogni frame ha una dimensione variabile (ad es. audio MPEG), allora il pacchetto coterrà un solo frame.
+         * - se ogni frame ha una dimensione nota (ad es. dati PCM o ADPCM), allora il pacchetto conterrà un numero intero di frame;
+         * - se ogni frame ha una dimensione variabile (ad es. audio MPEG), allora il pacchetto conterrà un solo frame.
          *  pAVPacket->pts può valere AV_NOPTS_VALUE se il formato video contiene B-frame, quindi è meglio fare affidamento a
          *  pAVPacket->dts (pAVPacket->dts e pAVPacket->pts sono due timestamp).
          *  av_read_frame ritorna 0 se tutto è ok, un valore negativo in caso di errore o un EOF.
@@ -575,14 +576,17 @@ int ScreenRecorder::CaptureVideoFrames()
         if (pAVPacket->stream_index == VideoStreamIndx)
         {
             // char buf[1024];
+
             // FUNZIONE DEPRECATA
             // value = avcodec_decode_video2( pAVCodecContext , pAVFrame , &frameFinished , pAVPacket );
-            value = avcodec_send_packet(pAVCodecContext, pAVPacket);
+            
             /* avcodec_send_packet fornisce dati compressi grezzi in un AVPacket come input al decodificatore.
              * Internamente questa chiamata copierà i campi rilevanti di pAVCodecContext che possono influenzare
              * la decodifica per-packet e li applicherà quando il pacchetto verrà effettivamente decodificato.
              * Ritorna 0 in caso di successo, altrimenti ritorna un valore negativo.
              */
+            value = avcodec_send_packet(pAVCodecContext, pAVPacket);
+            
             if (value < 0) // Verifichiamo che non ci siano stati errori
             {
                 cout << "\nProblem with avcodec_send_packet";
@@ -596,11 +600,13 @@ int ScreenRecorder::CaptureVideoFrames()
             cout << "\npAVCodecContext->pix_fmt: " << pAVCodecContext->pix_fmt;
             cout << "\npAVCodecContext->codec->id: " << pAVCodecContext->codec->id;
             */
-            value = avcodec_receive_frame(pAVCodecContext, pAVFrame);
-            cout << "\nFrame: " << pAVCodecContext->frame_number << "\n";
+            
             /* avcodec_receive_frame restituisce i dati decodificati da un decodificatore.
              * Ritorna 0 in caso di successo.
              */
+            value = avcodec_receive_frame(pAVCodecContext, pAVFrame);
+            cout << "\nFrame: " << pAVCodecContext->frame_number << "\n";
+            
             // cout << "\npAVFrame->data[0]: " << pAVFrame->data[0];
             // cout << "\nvalue AVERROR_EOF: " << AVERROR_EOF;
             if (value == AVERROR(EAGAIN) || value == AVERROR_EOF)
@@ -617,16 +623,18 @@ int ScreenRecorder::CaptureVideoFrames()
             // snprintf(buf, sizeof(buf), "%s-%d", filename, dec_ctx->frame_number);
             // pgm_save(frame->data[0], frame->linesize[0], frame->width, frame->height, buf);
 
-            value = sws_scale(swsCtx_, pAVFrame->data, pAVFrame->linesize, 0, pAVCodecContext->height, outFrame->data, outFrame->linesize);
             /* Funzione utile per riscalare lo slice dell'immagine (presa da pAVFrame->data) e salvare il risultato in outFrame->data.
              * Ritorna l'altezza dell'immagine di output
              */
+            value = sws_scale(swsCtx_, pAVFrame->data, pAVFrame->linesize, 0, pAVCodecContext->height, outFrame->data, outFrame->linesize);
+            
             if (value < 0)
             {
                 cout << "\nProblem with sws_scale ";
                 // break;
                 exit(1);
             }
+
             // av_init_packet(&outPacket); funzione deprecata
             outPacket = av_packet_alloc();
             outPacket->data = nullptr; // i dati del pacchetto verranno allocati dall'encoder
@@ -678,21 +686,24 @@ int ScreenRecorder::CaptureVideoFrames()
                 // video_st->codec->time_base è stato deprecato.
 
                 printf("Write frame %3d (size= %2d)\n", j++, outPacket->size / 1000);
+                
+                /*
+                    * "av_write_frame" serve per scrivere un pacchetto (outpacket) in un file multimediale di output.
+                     * Ritorna 0 se tutto è ok, un valore <0 se ci sono errori, 1 se è stato flushato
+                */
                 if (av_write_frame(outAVFormatContext, outPacket) != 0)
                 {
                     cout << "\nError in writing video frame";
-                    /*
-                     * "av_write_frame" serve per scrivere un pacchetto (outpacket) in un file multimediale di output.
-                     * Ritorna 0 se tutto è ok, un valore <0 se ci sono errori, 1 se è stato flushato
-                     */
                 }
-                av_packet_free(&outPacket);
+                
                 // av_packet_unref(&outPacket);
                 /*
                  * Pulisce il pacchetto.
                  * Elimina il riferimento al buffer a cui fa riferimento il pacchetto e resetta
                  * i rimanenti campi del pacchetto ai loro valori predefiniti.
                  */
+                av_packet_free(&outPacket);
+                
             } // got_picture
             av_packet_free(&outPacket);
             // av_packet_unref(&outPacket);
@@ -714,10 +725,12 @@ int ScreenRecorder::CaptureVideoFrames()
 
     // THIS WAS ADDED LATER
     av_packet_free(&pAVPacket);
-    av_free(video_outbuf);
+    
     /*
      * Libera un blocco di memoria che è stato allocato con av_malloc (z) () o av_realloc ().
      * Riceve come parametro il puntatore al blocco di memoria che deve essere liberato.
      */
+    av_free(video_outbuf);
+    
     return 0;
 }
