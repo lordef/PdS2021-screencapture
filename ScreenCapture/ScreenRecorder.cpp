@@ -67,12 +67,15 @@ int ScreenRecorder::openCamera()
     // av_find_input_format trova un AVInputFormat in base al nome breve del formato di input.
     //  #ifdef LINUX
     // pAVInputFormat = av_find_input_format("x11grab");
+    pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); 
     // #endif
 
     // #ifdef WIN
     // pAVInputFormat = av_find_input_format("gdigrab"); //#FIXME: applicato a tutti gli errori simili in questo file
     // const_cast to solve -> Error: a value of type "const AVInputFormat *" cannot be assigned to an entity of type "AVInputFormat *"
-    pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("gdigrab")); 
+
+    //pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("gdigrab")); //commentato per provare su linux, decommentrare per windows
+
     // #endif
 
     // cout << "\npAVInputFormat->codec_tag: " << pAVInputFormat->codec_tag;
