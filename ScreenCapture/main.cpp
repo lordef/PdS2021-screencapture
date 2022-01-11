@@ -14,6 +14,24 @@ int main()
 	//screen_record.start();
 	//screen_record.stop();
 
+
+	/* Metodi per distinguere il SO */
+	/* Metodo 1 */
+	// #ifdef __linux__
+    // cout << "esiste MACRO __linux__" << endl;
+    // #endif
+    // #ifdef _WIN32
+    // cout << "esiste MACRO _WIN32" << endl;
+    // #endif
+
+	/* Metodo 2 */
+    // #ifdef __linux__
+    // cout << "esiste MACRO __linux__" << endl;
+    // #elif defined(_WIN32)
+    // cout << "esiste MACRO _WIN32" << endl;
+    // #endif
+	/*****/
+
 	cout << "\nprogram executed successfully\n";
 
 	return 0;
