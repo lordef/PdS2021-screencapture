@@ -67,7 +67,9 @@ int ScreenRecorder::openCamera()
     // av_find_input_format trova un AVInputFormat in base al nome breve del formato di input.
     //  #ifdef LINUX
     // pAVInputFormat = av_find_input_format("x11grab");
-    pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); 
+    // pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab"));
+    pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("xcbgrab"));
+
     // #endif
 
     // #ifdef WIN
@@ -85,7 +87,7 @@ int ScreenRecorder::openCamera()
     /*
      * Con av_dict_set passo determinati parametri a options che mi servirà, dopo, per settare alcuni parametri di
      * pAVFormatContext con avformat_open_input.
-     * av_dict_set ritorna un alore maggiore di zero in caso di successo,
+     * av_dict_set ritorna un valore >=0 in caso di successo,
      * minore di zero in caso di fallimento.
      */
 
