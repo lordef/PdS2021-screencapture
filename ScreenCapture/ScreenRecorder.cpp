@@ -69,8 +69,8 @@ int ScreenRecorder::openCamera()
     // av_find_input_format trova un AVInputFormat in base al nome breve del formato di input.
     //  #ifdef LINUX
     // pAVInputFormat = av_find_input_format("x11grab");
-    // pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab"));
-    pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("xcbgrab"));
+    pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); 
+    // pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("xcbgrab"));
 
     // #endif
 
