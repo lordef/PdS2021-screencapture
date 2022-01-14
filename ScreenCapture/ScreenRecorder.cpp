@@ -53,6 +53,8 @@ int ScreenRecorder::openCamera()
     // It will be automatically detected during configuration.
     // This device allows one to capture a region of an X11 display.
     // refer : https://www.ffmpeg.org/ffmpeg-devices.html#x11grab
+    // #TODO: test x11grab con --> ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0 output.mp4
+
 
     /* current below is for screen recording. To connect with camera use v4l2 as a input parameter for av_find_input_format */
     /*
