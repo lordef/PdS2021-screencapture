@@ -134,7 +134,7 @@ int ScreenRecorder::openCamera()
     // value = avformat_open_input(&pAVFormatContext, "desktop", pAVInputFormat, &options);
 
     // #ifdef LINUX
-    value = avformat_open_input(&pAVFormatContext, ":0.0", pAVInputFormat, &options);
+    value = avformat_open_input(&pAVFormatContext, ":0.0", pAVInputFormat, &options); //display -> :0.0 
 
     if (value != 0) // Controllo che non ci siano stati errori con avformat_open_input
     {
