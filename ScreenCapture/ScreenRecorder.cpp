@@ -331,7 +331,7 @@ int ScreenRecorder::init_outputfile()
     // video_st->time_base = { 1, 30 }; //spostata alla riga 325 circa
     // video_st->codecpar->codec_id = AV_CODEC_ID_MPEG4;
 
-    if (codec_id == AV_CODEC_ID_H264)
+    if (codec_id == AV_CODEC_ID_H264) // TODO: da testare, non provato
     {
         // This function set the field of obj with the given name to value.
         av_opt_set(outAVCodecContext->priv_data, "preset", "slow", 0);
