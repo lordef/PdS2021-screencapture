@@ -53,7 +53,10 @@ int ScreenRecorder::openCamera()
     // It will be automatically detected during configuration.
     // This device allows one to capture a region of an X11 display.
     // refer : https://www.ffmpeg.org/ffmpeg-devices.html#x11grab
-    // #TODO: test x11grab con --> ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0 output.mp4
+    /* TEST */ /*
+    #TODO: test x11grab con --> ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0 output.mp4
+    Funzionante: ffmpeg -f x11grab -i :0.0 output.mp4 -> registra tutto lo schermo, anche con monitor collegato
+    */
 
 
     /* current below is for screen recording. To connect with camera use v4l2 as a input parameter for av_find_input_format */
@@ -127,7 +130,12 @@ int ScreenRecorder::openCamera()
     // NB: I codec non vengono aperti. Lo stream, inoltre, deve essere chiuso con avformat_close_input().
     // Ritorna 0 in caso di successo, un valore <0 in caso di fallimento.
 
-    value = avformat_open_input(&pAVFormatContext, "desktop", pAVInputFormat, &options);
+    // #ifdef WIN
+    // value = avformat_open_input(&pAVFormatContext, "desktop", pAVInputFormat, &options);
+
+    // #ifdef LINUX
+    value = avformat_open_input(&pAVFormatContext, ":0.0", pAVInputFormat, &options);
+
     if (value != 0) // Controllo che non ci siano stati errori con avformat_open_input
     {
         cout << "\nError in opening input device\n";
