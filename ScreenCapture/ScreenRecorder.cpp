@@ -110,7 +110,7 @@ int ScreenRecorder::openCamera()
         exit(1);
     }
 
-    value = av_dict_set(&options, "video_size", "1920x1080", 0);
+    value = av_dict_set(&options, "video_size", "1920x1080", 0); //TODO: questo valore deve essere dinamico ed è collegato alla riga 302
     if (value < 0)
     {
         cout << "\nError in setting preset values";
@@ -232,7 +232,7 @@ int ScreenRecorder::init_outputfile()
 {
     outAVFormatContext = NULL;
     value = 0;
-    output_file = "../media/output.mp4";
+    output_file = "../media/output.mp4"; //TODO: Creare manualmente la cartella "media" altrimenti builda male
 
     /* //#FIXME: dovrebbe inserire la data all'interno del nome del file */
     // string format_output_file = "../media/output_";
@@ -299,7 +299,7 @@ int ScreenRecorder::init_outputfile()
     outAVCodecContext->codec_id = AV_CODEC_ID_MPEG4; // AV_CODEC_ID_MPEG4; // AV_CODEC_ID_H264 // AV_CODEC_ID_MPEG1VIDEO
     outAVCodecContext->codec_type = AVMEDIA_TYPE_VIDEO;
     outAVCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
-    outAVCodecContext->width = 1920;    //#TODO: questo parametro dovrebbe essere dinamico? Ovvero sceglierlo? Magari utile per registrare una porzione di schermo
+    outAVCodecContext->width = 1920;    //#TODO: questo parametro deve essere dinamico (su macchina virtuale funziona con 1280x800)
     outAVCodecContext->height = 1080;
     outAVCodecContext->gop_size = 3;
     outAVCodecContext->max_b_frames = 2;
