@@ -1,7 +1,7 @@
 /*  TODO: File da eliminare prima della consegna */
 #include <bits/stdc++.h>
 #include "ScreenRecorder.h"
-#include <X11/Xlib.h>
+#include <X11/Xlib.h> //useful lib installed: sudo apt install libx11-dev 
 #include<tuple>
 
 

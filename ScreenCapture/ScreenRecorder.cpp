@@ -4,7 +4,7 @@ using namespace std;
 
 /*Funzioni utili da spostare*/
 
-#include <X11/Xlib.h>
+#include <X11/Xlib.h> //useful lib installed: sudo apt install libx11-dev 
 #include<tuple>
 
 
