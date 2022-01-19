@@ -11,7 +11,7 @@ using namespace std;
 
 
 
-tuple<int, int> retrieveDisplayDimention()
+tuple<int, int> retrieveDisplayDimentionTest()
 {
 	Display* disp = XOpenDisplay(NULL);
 	Screen*  scrn = DefaultScreenOfDisplay(disp);
@@ -28,9 +28,13 @@ tuple<int, int> retrieveDisplayDimention()
 int main()
 {
 	int height, width;
-	tie(height, width)=retrieveDisplayDimention();
-	cout << "\nStampa dimensioni display\n";
-	cout << width<<"x"<< height;
+	tie(height, width)=retrieveDisplayDimentionTest();
+	//cout << "\nStampa dimensioni display\n";
+	//cout << width<<"x"<< height;
+
+	string newString=to_string(height)+"x"+to_string(width);
+	cout << newString;	
+
 	return 0;
 }
 

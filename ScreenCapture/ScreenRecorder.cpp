@@ -2,6 +2,28 @@
 
 using namespace std;
 
+/*Funzioni utili da spostare*/
+
+#include <X11/Xlib.h>
+#include<tuple>
+
+
+tuple<int, int> retrieveDisplayDimention()
+{
+	Display* disp = XOpenDisplay(NULL);
+	Screen*  scrn = DefaultScreenOfDisplay(disp);
+	int height = scrn->height;
+	int width  = scrn->width;
+	//cout << "\nStampa dimensioni display\n";
+	//cout << width<<"x"<< height;
+	
+	return make_tuple(height, width);
+	
+}
+
+
+/****************************/
+
 /* initialize the resources*/
 ScreenRecorder::ScreenRecorder()
 {
@@ -110,7 +132,14 @@ int ScreenRecorder::openCamera()
         exit(1);
     }
 
-    value = av_dict_set(&options, "video_size", "1920x1080", 0); //TODO: questo valore deve essere dinamico ed è collegato alla riga 302
+    int h, w; //height, width
+    tie(h, w)=retrieveDisplayDimention();
+    string resolutionS=to_string(w)+"x"+to_string(h);
+    char * resolutionC = new char[resolutionS.length() + 1];
+    std::strcpy(resolutionC,resolutionS.c_str());
+
+
+    value = av_dict_set(&options, "video_size", resolutionC, 0); //TODO: questo valore deve essere dinamico ed è collegato alla riga 302
     if (value < 0)
     {
         cout << "\nError in setting preset values";
@@ -295,12 +324,17 @@ int ScreenRecorder::init_outputfile()
         cout << "\nError in allocating the codec contexts";
         exit(1);
     }
-
+    
+    int h, w; //height, width
+    tie(h, w)=retrieveDisplayDimention();
+    
     outAVCodecContext->codec_id = AV_CODEC_ID_MPEG4; // AV_CODEC_ID_MPEG4; // AV_CODEC_ID_H264 // AV_CODEC_ID_MPEG1VIDEO
     outAVCodecContext->codec_type = AVMEDIA_TYPE_VIDEO;
     outAVCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
-    outAVCodecContext->width = 1920;    //#TODO: questo parametro deve essere dinamico (su macchina virtuale funziona con 1280x800)
-    outAVCodecContext->height = 1080;
+    //outAVCodecContext->width = 1920;    //#TODO: questo parametro deve essere dinamico (su macchina virtuale funziona con 1280x800)
+    //outAVCodecContext->height = 1080;
+    outAVCodecContext->width = w;    //#TODO: questo parametro deve essere dinamico (su macchina virtuale funziona con 1280x800)
+    outAVCodecContext->height = h;
     outAVCodecContext->gop_size = 3;
     outAVCodecContext->max_b_frames = 2;
     outAVCodecContext->time_base.num = 1;
