@@ -2,7 +2,7 @@
 
 using namespace std;
 
-/*Funzioni utili da spostare*/
+/*Funzioni utili da spostare #TODO*/
 
 #include <X11/Xlib.h> //useful lib installed: sudo apt install libx11-dev 
 #include<tuple>
@@ -131,6 +131,7 @@ int ScreenRecorder::openCamera()
         cout << "\nError in setting preset values";
         exit(1);
     }
+
 
     int h, w; //height, width
     tie(h, w)=retrieveDisplayDimention();
