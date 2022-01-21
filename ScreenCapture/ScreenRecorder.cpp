@@ -262,8 +262,11 @@ int ScreenRecorder::init_outputfile()
 {
     outAVFormatContext = NULL;
     value = 0;
-    // output_file = "../media/output.mp4"; //FIXME  TODO: Creare manualmente la cartella "media" altrimenti builda male
-    output_file = "output.mp4"; //TODO: Creare manualmente la cartella "media" altrimenti builda male
+
+    //  #ifdef WIN
+    // output_file = "../media/output.mp4"; //TODO: Creare manualmente la cartella "media" altrimenti builda male
+    //  #ifdef LINUX
+    output_file = "media/output.mp4"; //TODO: Creare manualmente la cartella "media" altrimenti builda male
 
 
     /* //#FIXME: dovrebbe inserire la data all'interno del nome del file */

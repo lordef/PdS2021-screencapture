@@ -32,7 +32,7 @@ int main()
     // #endif
 	/*****/
 
-	cout << "\nprogram executed successfully\n";
+	cout << "\nProgram executed successfully\n";
 
 	return 0;
 }
