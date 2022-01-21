@@ -12,7 +12,8 @@
 				"-o",
 				"${fileDirname}/${fileBasenameNoExtension}",
 				"${fileDirname}/ScreenRecorder.cpp", //per linkare ScreenRecorder.cpp
-				"`pkg-config --cflags --libs libavcodec libavdevice libavformat libavutil libswresample libswscale`" //TODO:importare solo i file .h che servono
+				"`pkg-config --cflags --libs libavcodec libavdevice libavformat libavutil libswresample libswscale xcb x11`" //TODO:importare solo i file .h che servono
+				// librerie: xcb x11 	utili per sfruttare X11
 
 			],
 			"options": {
