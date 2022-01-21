@@ -3,7 +3,7 @@
 using namespace std;
 
 /*Funzioni utili da spostare #TODO*/
-
+#ifdef __linux__
 #include <X11/Xlib.h> //useful lib installed: sudo apt install libx11-dev 
 #include<tuple>
 
@@ -21,7 +21,7 @@ tuple<int, int> retrieveDisplayDimention()
 	
 }
 
-
+#endif
 /****************************/
 
 /* initialize the resources*/
@@ -121,15 +121,19 @@ int ScreenRecorder::openCamera()
         exit(1);
     }
 
+    #ifdef __linux__
+        int h, w; //height, width
+        tie(h, w)=retrieveDisplayDimention();
+        string resolutionS=to_string(w)+"x"+to_string(h);
+        char * resolutionC = new char[resolutionS.length() + 1];
+        std::strcpy(resolutionC,resolutionS.c_str());
 
-    int h, w; //height, width
-    tie(h, w)=retrieveDisplayDimention();
-    string resolutionS=to_string(w)+"x"+to_string(h);
-    char * resolutionC = new char[resolutionS.length() + 1];
-    std::strcpy(resolutionC,resolutionS.c_str());
+        value = av_dict_set(&options, "video_size", resolutionC, 0); //TODO: questo valore deve essere dinamico ed è collegato alla riga 302
+                                                                    // ora su linux prende la risoluzione massima dello schermo
+    #elif defined(_WIN32)
+        value = av_dict_set(&options, "video_size", "1920x1080", 0); //TODO: questo valore deve essere dinamico ed è collegato alla riga 302
+    #endif
 
-
-    value = av_dict_set(&options, "video_size", resolutionC, 0); //TODO: questo valore deve essere dinamico ed è collegato alla riga 302
     if (value < 0)
     {
         cout << "\nError in setting preset values";
@@ -326,10 +330,13 @@ int ScreenRecorder::init_outputfile()
     outAVCodecContext->codec_id = AV_CODEC_ID_MPEG4; // AV_CODEC_ID_MPEG4; // AV_CODEC_ID_H264 // AV_CODEC_ID_MPEG1VIDEO
     outAVCodecContext->codec_type = AVMEDIA_TYPE_VIDEO;
     outAVCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
-    //outAVCodecContext->width = 1920;    //#TODO: questo parametro deve essere dinamico (su macchina virtuale funziona con 1280x800)
-    //outAVCodecContext->height = 1080;
-    outAVCodecContext->width = w;    //#TODO: questo parametro deve essere dinamico (su macchina virtuale funziona con 1280x800)
-    outAVCodecContext->height = h;
+    #ifdef __linux__
+        outAVCodecContext->width = w;    //#TODO: questo parametro deve essere dinamico (su macchina virtuale funziona con 1280x800)
+        outAVCodecContext->height = h;      // ora questi valori rappresentano la risoluzione massima dello schermo
+    #elif defined(_WIN32)
+        outAVCodecContext->width = 1920;    //#TODO: questo parametro deve essere dinamico
+        outAVCodecContext->height = 1080;
+    #endif
     outAVCodecContext->gop_size = 3;
     outAVCodecContext->max_b_frames = 2;
     outAVCodecContext->time_base.num = 1;
