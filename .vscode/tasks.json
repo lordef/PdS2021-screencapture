@@ -12,9 +12,10 @@
 				"-o",
 				"${fileDirname}/${fileBasenameNoExtension}",
 				"${fileDirname}/ScreenRecorder.cpp", //per linkare ScreenRecorder.cpp
-				"`pkg-config --cflags --libs libavcodec libavdevice libavformat libavutil libswresample libswscale xcb x11`" //TODO:importare solo i file .h che servono
+				"`pkg-config --cflags --libs libavcodec libavdevice libavformat libavutil libswresample libswscale xcb x11`" 
+				//per linkare le librerie di sistema, in questo caso quelle di ffmpeg				
 				// librerie: xcb x11 	utili per sfruttare X11
-
+				//#TODO: aggiugere altre librerie?
 			],
 			"options": {
 				"cwd": "${fileDirname}"

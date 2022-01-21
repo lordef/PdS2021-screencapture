@@ -92,24 +92,13 @@ int ScreenRecorder::openCamera()
     */
 
     // av_find_input_format trova un AVInputFormat in base al nome breve del formato di input.
-    //  #ifdef LINUX
-    // pAVInputFormat = av_find_input_format("x11grab");
-    pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); 
-    // pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("xcbgrab"));
-
-    // #endif
-
-    // #ifdef WIN
-    // pAVInputFormat = av_find_input_format("gdigrab"); //#FIXME: applicato a tutti gli errori simili in questo file
-    // const_cast to solve -> Error: a value of type "const AVInputFormat *" cannot be assigned to an entity of type "AVInputFormat *"
-
-    //pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("gdigrab")); //commentato per provare su linux, decommentrare per windows
-
-    // #endif
-
-    // cout << "\npAVInputFormat->codec_tag: " << pAVInputFormat->codec_tag;
-
-    // value = avformat_open_input(&pAVFormatContext, ":0.0+10,250", pAVInputFormat, NULL);  //#TODO: era una prova
+    #ifdef __linux__
+        // const_cast to solve -> Error: a value of type "const AVInputFormat *" cannot be assigned to an entity of type "AVInputFormat *"
+        // pAVInputFormat = av_find_input_format("x11grab");
+        pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
+    #elif defined(_WIN32)
+        pAVInputFormat = av_find_input_format("gdigrab"); //#FIXME: applicato a tutti gli errori simili in questo file
+    #endif
 
     /*
      * Con av_dict_set passo determinati parametri a options che mi servirà, dopo, per settare alcuni parametri di
@@ -160,11 +149,11 @@ int ScreenRecorder::openCamera()
     // NB: I codec non vengono aperti. Lo stream, inoltre, deve essere chiuso con avformat_close_input().
     // Ritorna 0 in caso di successo, un valore <0 in caso di fallimento.
 
-    // #ifdef WIN
-    // value = avformat_open_input(&pAVFormatContext, "desktop", pAVInputFormat, &options);
-
-    // #ifdef LINUX
-    value = avformat_open_input(&pAVFormatContext, ":0.0", pAVInputFormat, &options); //display -> :0.0 
+    #ifdef __linux__
+        value = avformat_open_input(&pAVFormatContext, ":0.0", pAVInputFormat, &options); //display -> :0.0 
+    #elif defined(_WIN32)
+        value = avformat_open_input(&pAVFormatContext, "desktop", pAVInputFormat, &options);
+    #endif
 
     if (value != 0) // Controllo che non ci siano stati errori con avformat_open_input
     {
@@ -263,13 +252,13 @@ int ScreenRecorder::init_outputfile()
     outAVFormatContext = NULL;
     value = 0;
 
-    //  #ifdef WIN
-    // output_file = "../media/output.mp4"; //TODO: Creare manualmente la cartella "media" altrimenti builda male
-    //  #ifdef LINUX
-    output_file = "media/output.mp4"; //TODO: Creare manualmente la cartella "media" altrimenti builda male
+    #ifdef __linux__
+        output_file = "media/output.mp4"; //TODO: Creare manualmente la cartella "media" altrimenti builda male
+    #elif defined(_WIN32)
+        output_file = "../media/output.mp4";
+    #endif
 
-
-    /* //#FIXME: dovrebbe inserire la data all'interno del nome del file */
+    /* FIXME: dovrebbe inserire la data all'interno del nome del file */
     // string format_output_file = "../media/output_";
 
     /* Setting name of the output file */ 
@@ -280,7 +269,7 @@ int ScreenRecorder::init_outputfile()
         // format_output_file.append(current_time);
         // format_output_file.append(".mp4");
         // output_file = format_output_file; //ERRORE qui, potrebbe essere perchè non accetta una stringa essendo const char*
-
+    /*************************END - FIXME*****************************/
 
     // Assegna un AVFormatContext per un formato di output.
     // Il primo parametro è settato sul format context creato o su NULL in caso di errore
