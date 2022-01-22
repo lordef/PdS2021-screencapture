@@ -3,9 +3,13 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ScreenRecorder.cpp" />
+    <ClCompile Include="AudioRecorder.cpp" />
+    <ClCompile Include="ListAVDevices.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ScreenRecorder.h" />
     <ClInclude Include="ffmpeg.h" />
+    <ClInclude Include="ListAVDevices.h" />
+    <ClInclude Include="AudioRecorder.h" />
   </ItemGroup>
 </Project>

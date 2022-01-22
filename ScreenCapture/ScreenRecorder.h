@@ -10,7 +10,7 @@
 #include <math.h>
 #include <string.h>
 #include <thread>
-#include <time.h> 
+#include <time.h> // #TODO: forse utile per dare al file il nome con all'interno la data 
 
 
 
@@ -25,7 +25,7 @@ extern "C"
 	#include "libavdevice/avdevice.h"
 
 	#include "libavfilter/avfilter.h"
-	//#include "libavfilter/avfiltergraph.h"
+	//#include "libavfilter/avfiltergraph.h" //#TODO: commentato perchè su linux non serve
 	#include "libavfilter/buffersink.h"
 	#include "libavfilter/buffersrc.h"
 

@@ -97,7 +97,7 @@ int ScreenRecorder::openCamera()
         // pAVInputFormat = av_find_input_format("x11grab");
         pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
     #elif defined(_WIN32)
-        pAVInputFormat = av_find_input_format("gdigrab"); //#FIXME: applicato a tutti gli errori simili in questo file
+        pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("gdigrab"));
     #endif
 
     /*
@@ -107,7 +107,7 @@ int ScreenRecorder::openCamera()
      * minore di zero in caso di fallimento.
      */
 
-    value = av_dict_set(&options, "framerate", "30", 0);
+    value = av_dict_set(&options, "framerate", "15", 0); // inizialmente era fissato a 30 su linux
     if (value < 0) // Controllo che non ci siano stati errori con av_dict_set
     {
         cout << "\nError in setting dictionary value";
@@ -147,6 +147,17 @@ int ScreenRecorder::openCamera()
         exit(1);
     }
 
+    #ifdef _WIN32
+        //La seguente opzione è utilizzata per dshow
+        /*
+        value = av_dict_set(&options, "rtbufsize", "2048M", 0);
+        if (value < 0)
+        {
+            cout << "\nError in setting preset values";
+            exit(1);
+        }*/
+    #endif
+
     pAVFormatContext = avformat_alloc_context(); // Allocate an AVFormatContext
 
     // avformat_open_input apre uno stream di input e legge l'header.
@@ -156,6 +167,8 @@ int ScreenRecorder::openCamera()
     #ifdef __linux__
         value = avformat_open_input(&pAVFormatContext, ":0.0", pAVInputFormat, &options); //display -> :0.0 
     #elif defined(_WIN32)
+        //La seuente riga è da utilizzare con dshow
+        //value = avformat_open_input(&pAVFormatContext, "video=screen-capture-recorder", pAVInputFormat, &options);
         value = avformat_open_input(&pAVFormatContext, "desktop", pAVInputFormat, &options);
     #endif
 
@@ -324,13 +337,12 @@ int ScreenRecorder::init_outputfile()
         exit(1);
     }
     
-    int h, w; //height, width
-    tie(h, w)=retrieveDisplayDimention();
-    
     outAVCodecContext->codec_id = AV_CODEC_ID_MPEG4; // AV_CODEC_ID_MPEG4; // AV_CODEC_ID_H264 // AV_CODEC_ID_MPEG1VIDEO
     outAVCodecContext->codec_type = AVMEDIA_TYPE_VIDEO;
     outAVCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
     #ifdef __linux__
+        int h, w; //height, width
+        tie(h, w)=retrieveDisplayDimention();
         outAVCodecContext->width = w;    //#TODO: questo parametro deve essere dinamico (su macchina virtuale funziona con 1280x800)
         outAVCodecContext->height = h;      // ora questi valori rappresentano la risoluzione massima dello schermo
     #elif defined(_WIN32)
@@ -340,7 +352,7 @@ int ScreenRecorder::init_outputfile()
     outAVCodecContext->gop_size = 3;
     outAVCodecContext->max_b_frames = 2;
     outAVCodecContext->time_base.num = 1;
-    outAVCodecContext->time_base.den = 30; // 15fps
+    outAVCodecContext->time_base.den = 15; // 15fps - inizialmente era settato a 30
 
 
     // Initialize the AVCodecContext to use the given AVCodec.
@@ -367,7 +379,7 @@ int ScreenRecorder::init_outputfile()
     // video_st->time_base = { 1, 30 }; //spostata alla riga 325 circa
     // video_st->codecpar->codec_id = AV_CODEC_ID_MPEG4;
 
-    if (codec_id == AV_CODEC_ID_H264) // TODO: da testare, non provato
+    if (codec_id == AV_CODEC_ID_H264) // TODO I e L: da testare, non provato
     {
         // This function set the field of obj with the given name to value.
         av_opt_set(outAVCodecContext->priv_data, "preset", "slow", 0);
@@ -597,7 +609,7 @@ int ScreenRecorder::CaptureVideoFrames()
 
     AVPacket *outPacket;
     int j = 0;
-
+    //outPacket = av_packet_alloc();
     int got_picture;
 
     /*av_read_frame è una funzione che ad ogni chiamata trasmette un frame preso da uno stream.
@@ -617,7 +629,8 @@ int ScreenRecorder::CaptureVideoFrames()
     while (av_read_frame(pAVFormatContext, pAVPacket) >= 0)
     {
         // cout << "\npAVPacket->buf: " << pAVPacket->buf;
-
+        // cout << "\npAVFrame->buf: " << pAVFrame->buf;
+        // cout << "\noutFrame->buf: " << outFrame->buf;
         
         if (ii++ == no_frames)
         {
@@ -736,7 +749,7 @@ int ScreenRecorder::CaptureVideoFrames()
                 // outPacket.dts = av_rescale_q(outPacket.dts, video_st->codec->time_base, video_st->time_base);
                 // video_st->codec->time_base è stato deprecato.
 
-                printf("Write frame %3d (size= %2d)\n", j++, outPacket->size / 1000);
+                printf("\nWrite frame %3d (size= %2d)\n", j++, outPacket->size / 1000);
                 
                 /*
                     * "av_write_frame" serve per scrivere un pacchetto (outpacket) in un file multimediale di output.
@@ -754,9 +767,40 @@ int ScreenRecorder::CaptureVideoFrames()
                  * i rimanenti campi del pacchetto ai loro valori predefiniti.
                  */
                 av_packet_free(&outPacket);
+                cout.flush();
                 
             } // got_picture
             av_packet_free(&outPacket);
+
+            /* #TODO: sezione non capita da I e L */
+            av_packet_free(&pAVPacket);
+
+            pAVPacket = av_packet_alloc();
+            if (!pAVPacket)
+                exit(1);
+
+            av_frame_free(&pAVFrame);
+            pAVFrame = av_frame_alloc();
+            if (!pAVFrame) // Verifichiamo che l'operazione svolta da "av_frame_alloc()" abbia avuto successo
+            {
+                cout << "\nUnable to release the avframe resources";
+                exit(1);
+            }
+
+            av_frame_free(&outFrame);
+            outFrame = av_frame_alloc(); 
+            if (!outFrame)
+            {
+                cout << "\nUnable to release the avframe resources for outframe";
+                exit(1);
+            }
+            value = av_image_fill_arrays(outFrame->data, outFrame->linesize, video_outbuf, AV_PIX_FMT_YUV420P, outAVCodecContext->width, outAVCodecContext->height, 1);
+            if (value < 0) // Verifico che non ci siano errori
+            {
+                cout << "\nError in filling image array";
+                exit(1);
+            }
+            /******Fine sezione non capita *********/
             // av_packet_unref(&outPacket);
         }
     } // End of while-loop
@@ -776,7 +820,13 @@ int ScreenRecorder::CaptureVideoFrames()
 
     // THIS WAS ADDED LATER
     av_packet_free(&pAVPacket);
-    
+    sws_freeContext(swsCtx_);
+    /* #TODO: sezione non capita da I e L */
+
+    av_frame_free(&pAVFrame);
+    av_frame_free(&outFrame);
+    /******Fine sezione non capita *********/
+
     /*
      * Libera un blocco di memoria che è stato allocato con av_malloc (z) () o av_realloc ().
      * Riceve come parametro il puntatore al blocco di memoria che deve essere liberato.
