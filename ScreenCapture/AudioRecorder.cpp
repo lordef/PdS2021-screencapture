@@ -31,11 +31,16 @@ void AudioRecorder::Open()
 #elif __linux__
     if (deviceName == "") deviceName = "default";
     // AVInputFormat* inputFormat = av_find_input_format("pulse");
-    AVInputFormat* inputFormat = const_cast<AVInputFormat*>(av_find_input_format("pulse"));
+    AVInputFormat* inputFormat = const_cast<AVInputFormat*>(av_find_input_format("pulse")); //FIXME: non trova pulse, magari reistallare ffmpeg
 
 #endif
 
-    ret = avformat_open_input(&audioInFormatCtx, deviceName.c_str(), inputFormat, &options);
+    #ifdef __linux__
+        ret = avformat_open_input(&audioInFormatCtx, deviceName.c_str(), inputFormat, &options);
+    #elif _WIN32
+        ret = avformat_open_input(&audioInFormatCtx, deviceName.c_str(), inputFormat, &options);
+    #endif
+
     if (ret != 0) {
         throw std::runtime_error("Couldn't open input audio stream.");
     }
