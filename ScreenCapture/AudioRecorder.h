@@ -1,17 +1,17 @@
 #ifndef AUDIORECORDER_AUDIORECORDER_H
 #define AUDIORECORDER_AUDIORECORDER_H
 
-#ifdef _WIN32
-#include "ListAVDevices.h"
+#ifdef __linux__
+    #include <atomic>
+    #include <thread>
+#elif defined(_WIN32)
+    #include "ListAVDevices.h"
 #endif
 
 #include "ffmpeg.h"
 #include <string>
 #include <cstdint>
-#ifdef __linux__
-#include <atomic>
-#include <thread>
-#endif
+
 
 using std::string;
 
@@ -21,6 +21,8 @@ private:
     string outfile;
     string deviceName;
     string failReason;
+    std::atomic_bool isRun;
+
 
     AVFormatContext* audioInFormatCtx;
     AVStream* audioInStream;
@@ -33,11 +35,9 @@ private:
     AVStream* audioOutStream;
     AVCodecContext* audioOutCodecCtx;
 
-    std::atomic_bool     isRun;
     std::thread* audioThread;
 
     void StartEncode();
-
 
 
 public:
