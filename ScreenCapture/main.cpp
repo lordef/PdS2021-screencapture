@@ -42,8 +42,28 @@ int main()
 
     puts("END");
 
-	cout << "\nProgram executed successfully\n";
+    /*  #TODO: a breve termine */
+    /* Situazione attuale runnando in DEBUG; TERMINAL OUTPUT:  */
+    /*
+    ==== Audio Recorder ====
+    Start record.
+    [aac @ 0x555557111080] Qavg: 55.663
+    [aac @ 0x555557111080] 2 frames left in the queue on closing
+    Stop record.
+    [ERROR] std::exception
+    [1] + Done                       "/usr/bin/gdb" --interpreter=mi --tty=${DbgTerm} 0<"/tmp/Microsoft-MIEngine-In-40xhisgm.x0q" 1>"/tmp/Microsoft-MIEngine-Out-gkxkoqxg.l1a"
+    
+    */
 
+    /* Situazione attuale runnando in RUN; TERMINAL OUTPUT:  */
+    /*
+    ==== Audio Recorder ====
+    [ERROR] Fail to open output file.
+    */
+	
+    
+    
+    cout << "\nProgram executed successfully\n";
 	return 0;
     
 }
