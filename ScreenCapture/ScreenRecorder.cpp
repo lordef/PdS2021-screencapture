@@ -96,7 +96,7 @@ int ScreenRecorder::openCamera()
         // const_cast to solve -> Error: a value of type "const AVInputFormat *" cannot be assigned to an entity of type "AVInputFormat *"
         // pAVInputFormat = av_find_input_format("x11grab");
         pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
-    #elif defined(_WIN32)
+    #elif _WIN32
         pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("gdigrab"));
     #endif
 
@@ -130,7 +130,7 @@ int ScreenRecorder::openCamera()
 
         value = av_dict_set(&options, "video_size", resolutionC, 0); //TODO: questo valore deve essere dinamico ed è collegato alla riga 302
                                                                     // ora su linux prende la risoluzione massima dello schermo
-    #elif defined(_WIN32)
+    #elif _WIN32
         value = av_dict_set(&options, "video_size", "1920x1080", 0); //TODO: questo valore deve essere dinamico ed è collegato alla riga 302
     #endif
 
@@ -166,7 +166,7 @@ int ScreenRecorder::openCamera()
 
     #ifdef __linux__
         value = avformat_open_input(&pAVFormatContext, ":0.0", pAVInputFormat, &options); //display -> :0.0 
-    #elif defined(_WIN32)
+    #elif _WIN32
         //La seuente riga è da utilizzare con dshow
         //value = avformat_open_input(&pAVFormatContext, "video=screen-capture-recorder", pAVInputFormat, &options);
         value = avformat_open_input(&pAVFormatContext, "desktop", pAVInputFormat, &options);
@@ -271,7 +271,7 @@ int ScreenRecorder::init_outputfile()
 
     #ifdef __linux__
         output_file = "media/output.mp4"; //TODO: Creare manualmente la cartella "media" altrimenti builda male
-    #elif defined(_WIN32)
+    #elif _WIN32
         output_file = "../media/output.mp4";
     #endif
 
@@ -345,7 +345,7 @@ int ScreenRecorder::init_outputfile()
         tie(h, w)=retrieveDisplayDimention();
         outAVCodecContext->width = w;    //#TODO: questo parametro deve essere dinamico (su macchina virtuale funziona con 1280x800)
         outAVCodecContext->height = h;      // ora questi valori rappresentano la risoluzione massima dello schermo
-    #elif defined(_WIN32)
+    #elif _WIN32
         outAVCodecContext->width = 1920;    //#TODO: questo parametro deve essere dinamico
         outAVCodecContext->height = 1080;
     #endif
