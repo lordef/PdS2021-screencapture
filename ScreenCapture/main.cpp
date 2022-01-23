@@ -21,7 +21,11 @@ int main()
 	puts("==== Audio Recorder ====");
     avdevice_register_all();
 
-    AudioRecorder recorder{ "../media/testAudio.aac","" };
+    #ifdef __linux__
+        AudioRecorder recorder{ "media/testAudio.aac","" }; //#TODO: Dovrebbe funzionare così
+    #elif _WIN32
+        AudioRecorder recorder{ "../media/testAudio.aac","" };
+    #endif
     try {
         recorder.Open();
         recorder.Start();
@@ -53,6 +57,7 @@ int main()
     [ERROR] std::exception
     [1] + Done                       "/usr/bin/gdb" --interpreter=mi --tty=${DbgTerm} 0<"/tmp/Microsoft-MIEngine-In-40xhisgm.x0q" 1>"/tmp/Microsoft-MIEngine-Out-gkxkoqxg.l1a"
     
+    
     Errori Isabella
     -------------------------
     Start record.
@@ -65,11 +70,13 @@ int main()
     Program executed successfully
     -------------------------
     */
-
-    /* Situazione attuale runnando in RUN; TERMINAL OUTPUT:  */
+    /*************************************************************/
+    /* Situazione attuale runnando in RUN; TERMINAL OUTPUT: */
     /*
     ==== Audio Recorder ====
     [ERROR] Fail to open output file.
+
+    Forse risolto, ma controllare riga 25
     */
 	
     
