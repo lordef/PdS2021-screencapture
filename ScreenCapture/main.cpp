@@ -47,7 +47,7 @@ int main()
     puts("END");
 
     /*  #TODO: a breve termine */
-    /* Situazione attuale in RUN; TERMINAL OUTPUT:  */
+    /* Situazione attuale in RUN; TERMINAL OUTPUT:  */ //N.B.: A VOLTE AD ISABELLA NON COMPARE
     /*
     ==== Audio Recorder ====
     Start record.
