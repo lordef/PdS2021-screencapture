@@ -22,7 +22,7 @@ int main()
     avdevice_register_all();
 
     #ifdef __linux__
-        AudioRecorder recorder{ "media/testAudio.aac","" }; //#TODO: Dovrebbe funzionare così
+        AudioRecorder recorder{ "../media/testAudio.aac","" }; //#TODO: Dovrebbe funzionare così
     #elif _WIN32
         AudioRecorder recorder{ "../media/testAudio.aac","" };
     #endif
