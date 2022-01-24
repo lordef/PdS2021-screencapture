@@ -47,7 +47,7 @@ int main()
     puts("END");
 
     /*  #TODO: a breve termine */
-    /* Situazione attuale runnando in DEBUG; TERMINAL OUTPUT:  */
+    /* Situazione attuale in RUN; TERMINAL OUTPUT:  */
     /*
     ==== Audio Recorder ====
     Start record.
@@ -57,21 +57,9 @@ int main()
     [ERROR] std::exception
     [1] + Done                       "/usr/bin/gdb" --interpreter=mi --tty=${DbgTerm} 0<"/tmp/Microsoft-MIEngine-In-40xhisgm.x0q" 1>"/tmp/Microsoft-MIEngine-Out-gkxkoqxg.l1a"
     
-    
-    Errori Isabella
-    -------------------------
-    Start record.
-    encode 558 audio packets in total.
-    [aac @ 0xaaaaac3589a0] Qavg: 65424.730
-    [aac @ 0xaaaaac3589a0] 2 frames left in the queue on closing
-    Stop record.
-    END
-
-    Program executed successfully
-    -------------------------
     */
     /*************************************************************/
-    /* Situazione attuale runnando in RUN; TERMINAL OUTPUT: */
+    /* Situazione attuale in DEBUG; TERMINAL OUTPUT: */
     /*
     ==== Audio Recorder ====
     [ERROR] Fail to open output file.
