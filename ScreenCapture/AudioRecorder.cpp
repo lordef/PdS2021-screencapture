@@ -220,7 +220,9 @@ void AudioRecorder::StartEncode()
             throw std::runtime_error("Fail to swr_convert.");
         }
 
-        if (av_audio_fifo_space(audioFifo) < inputFrame->nb_samples) throw std::runtime_error("audio buffer is too small.");
+        if (av_audio_fifo_space(audioFifo) < inputFrame->nb_samples){
+            throw std::runtime_error("audio buffer is too small.");
+        }
 
         ret = av_audio_fifo_write(audioFifo, (void**)cSamples, inputFrame->nb_samples);
         if (ret < 0) {

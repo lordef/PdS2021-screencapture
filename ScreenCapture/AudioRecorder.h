@@ -53,7 +53,9 @@ public:
         Stop();
     }
 
-    std::string GetLastError() { return failReason; }
+    std::string GetLastError() { 
+        return failReason; 
+    }
 };
 #endif //AUDIORECORDER_AUDIORECORDER_H
 
