@@ -66,7 +66,9 @@ void AudioRecorder::Open()
     audioInCodecCtx = avcodec_alloc_context3(audioInCodec);
     avcodec_parameters_to_context(audioInCodecCtx, audioInStream->codecpar);
 
-    if (avcodec_open2(audioInCodecCtx, audioInCodec, nullptr) < 0) throw std::runtime_error("Could not open video codec.");
+    if (avcodec_open2(audioInCodecCtx, audioInCodec, nullptr) < 0){ 
+        throw std::runtime_error("Could not open video codec.");
+    }
 
     // audio converter, convert other fmt to requireAudioFmt
     audioConverter = swr_alloc_set_opts(nullptr,
@@ -102,7 +104,9 @@ void AudioRecorder::Open()
     AVCodec* audioOutCodec = const_cast<AVCodec*>(avcodec_find_encoder(AV_CODEC_ID_AAC));
 
 
-    if (!audioOutCodec) throw std::runtime_error("Fail to find aac encoder. Please check your DLL.");
+    if (!audioOutCodec){
+        throw std::runtime_error("Fail to find aac encoder. Please check your DLL.");
+    }
 
     audioOutCodecCtx = avcodec_alloc_context3(audioOutCodec);
     audioOutCodecCtx->channels = audioInStream->codecpar->channels;
