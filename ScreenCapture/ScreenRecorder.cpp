@@ -1,8 +1,30 @@
 ﻿#include "ScreenRecorder.h"
 #include <cassert> //Nuovo
 
-using namespace std; //Nuovo
+using namespace std;
 static int64_t last_pts = AV_NOPTS_VALUE; //Nuovo
+
+/*Funzioni utili da spostare #TODO*/
+#ifdef __linux__
+#include <X11/Xlib.h> //useful lib installed: sudo apt install libx11-dev 
+#include<tuple>
+
+
+tuple<int, int> retrieveDisplayDimention()
+{
+	Display* disp = XOpenDisplay(NULL);
+	Screen*  scrn = DefaultScreenOfDisplay(disp);
+	int height = scrn->height;
+	int width  = scrn->width;
+	//cout << "\nStampa dimensioni display\n";
+	//cout << width<<"x"<< height;
+	
+	return make_tuple(height, width);
+	
+}
+
+#endif
+/****************************/
 
 /* initialize the resources*/
 ScreenRecorder::ScreenRecorder() : pauseCapture(false), stopCapture(false), started(false), activeMenu(true), //Aggiornato
@@ -25,6 +47,7 @@ ScreenRecorder::~ScreenRecorder() //Aggiornato
             cerr << "Error in writing av trailer" << endl;
             exit(-1);
         }*/
+
         // ---------------Audio-----------------
         avformat_close_input(&inAudioFormatContext); 
         if (inAudioFormatContext == nullptr) {
@@ -43,6 +66,7 @@ ScreenRecorder::~ScreenRecorder() //Aggiornato
             cerr << "Error: unable to free AudioFormatContext" << endl;
             exit(-1);
         }
+
         // ---------------Video-----------------
         avformat_close_input(&pAVFormatContext); // Chiude un input AVFormatContext aperto: libera tutto e mette a NULL il contenuto del parametro ricevuto
         if (pAVFormatContext == nullptr) {
@@ -65,6 +89,7 @@ ScreenRecorder::~ScreenRecorder() //Aggiornato
     }
     
 }
+
 /*==================================== VIDEO ==============================*/
 
 /* establishing the connection between camera or screen through its respective folder */
@@ -163,7 +188,7 @@ int ScreenRecorder::openCamera() throw()
         exit(-1);
     }
 
-#elif defined linux
+#elif __linux__
 
     int offset_x = 0, offset_y = 0;
     string url = ":0.0+" + to_string(offset_x) + "," + to_string(offset_y);  //custom string to set the start point of the screen section
@@ -221,24 +246,13 @@ int ScreenRecorder::openCamera() throw()
     */
 
     // av_find_input_format trova un AVInputFormat in base al nome breve del formato di input.
-    //  #ifdef LINUX
-    // pAVInputFormat = av_find_input_format("x11grab");
-    // pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); 
-    // pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("xcbgrab"));
-
+    // #ifdef __linux__
+    //     // const_cast to solve -> Error: a value of type "const AVInputFormat *" cannot be assigned to an entity of type "AVInputFormat *"
+    //     // pAVInputFormat = av_find_input_format("x11grab");
+    //     pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
+    // #elif _WIN32
+    //     pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("gdigrab"));
     // #endif
-
-    // #ifdef WIN
-    // pAVInputFormat = av_find_input_format("gdigrab"); //#FIXME: applicato a tutti gli errori simili in questo file
-    // const_cast to solve -> Error: a value of type "const AVInputFormat *" cannot be assigned to an entity of type "AVInputFormat *"
-   // pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("dshow"));
-    //pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("gdigrab")); //commentato per provare su linux, decommentrare per windows
-
-    // #endif
-
-    // cout << "\npAVInputFormat->codec_tag: " << pAVInputFormat->codec_tag;
-
-    // value = avformat_open_input(&pAVFormatContext, ":0.0+10,250", pAVInputFormat, NULL);  //#TODO: era una prova
 
     /*
      * Con av_dict_set passo determinati parametri a options che mi servirà, dopo, per settare alcuni parametri di
@@ -247,7 +261,8 @@ int ScreenRecorder::openCamera() throw()
      * minore di zero in caso di fallimento.
      */
     /*
-    value = av_dict_set(&options, "framerate", "15", 0);
+
+    value = av_dict_set(&options, "framerate", "15", 0); // inizialmente era fissato a 30 su linux
     if (value < 0) // Controllo che non ci siano stati errori con av_dict_set
     {
         cout << "\nError in setting dictionary value";
@@ -261,7 +276,18 @@ int ScreenRecorder::openCamera() throw()
         exit(1);
     }
 
-    value = av_dict_set(&options, "video_size", "1920x1080", 0);
+    #ifdef __linux__
+        int h, w; //height, width
+        tie(h, w)=retrieveDisplayDimention();
+        string resolutionS=to_string(w)+"x"+to_string(h);
+        char * resolutionC = new char[resolutionS.length() + 1];
+        std::strcpy(resolutionC,resolutionS.c_str());
+
+        value = av_dict_set(&options, "video_size", resolutionC, 0); //TODO: questo valore deve essere dinamico ed è collegato alla riga 302
+                                                                    // ora su linux prende la risoluzione massima dello schermo
+    #elif _WIN32
+        value = av_dict_set(&options, "video_size", "1920x1080", 0); //TODO: questo valore deve essere dinamico ed è collegato alla riga 302
+    #endif
     if (value < 0)
     {
         cout << "\nError in setting preset values";
@@ -287,8 +313,13 @@ int ScreenRecorder::openCamera() throw()
     // Ritorna 0 in caso di successo, un valore <0 in caso di fallimento.
     //AGGIORNATA la avformat
     /*
-    value = avformat_open_input(&pAVFormatContext, "desktop", pAVInputFormat, &options);
-    if (value != 0) // Controllo che non ci siano stati errori con avformat_open_input
+    #ifdef __linux__
+        value = avformat_open_input(&pAVFormatContext, ":0.0", pAVInputFormat, &options); //display -> :0.0 
+    #elif _WIN32
+        //La seuente riga è da utilizzare con dshow
+        //value = avformat_open_input(&pAVFormatContext, "video=screen-capture-recorder", pAVInputFormat, &options);
+        value = avformat_open_input(&pAVFormatContext, "desktop", pAVInputFormat, &options);
+    #endif    if (value != 0) // Controllo che non ci siano stati errori con avformat_open_input
     {
         cout << "\nError in opening input device\n";
         exit(1);
@@ -322,7 +353,9 @@ int ScreenRecorder::openCamera() throw()
         exit(1);
     }
     pCodecParameters = pAVFormatContext->streams[VideoStreamIndx]->codecpar;
-    pAVCodec = avcodec_find_decoder(pAVFormatContext->streams[VideoStreamIndx]->codecpar->codec_id);
+    // pAVCodec = avcodec_find_decoder(pAVFormatContext->streams[VideoStreamIndx]->codecpar->codec_id);
+    pAVCodec = const_cast<AVCodec*>(avcodec_find_decoder(pAVFormatContext->streams[VideoStreamIndx]->codecpar->codec_id)); 
+
 
     if (pAVCodec == nullptr)
     {
@@ -393,16 +426,15 @@ int ScreenRecorder::openAudioDevice() {
         exit(-1);
     }
 
-#if defined linux
-    audioInputFormat = av_find_input_format("alsa");
+#ifdef __linux__
+    audioInputFormat = av_find_input_format("alsa"); // #TODO: capire se utilizzare 'pulse' invece di alsa
     value = avformat_open_input(&inAudioFormatContext, "hw:0", audioInputFormat, &audioOptions);
     if (value != 0) {
         cerr << "Error in opening input device (audio)" << endl;
         exit(-1);
     }
-#endif
 
-#if defined _WIN32
+#elif _WIN32
     audioInputFormat = av_find_input_format("dshow");
     //value = avformat_open_input(&inAudioFormatContext, "audio=Microfono (Realtek(R) Audio)", audioInputFormat, &audioOptions);
     value = avformat_open_input(&inAudioFormatContext, "audio=Microphone Array (Realtek(R) Audio)", audioInputFormat, &audioOptions);
@@ -435,18 +467,19 @@ int ScreenRecorder::initOutputFile() {
     value = 0;
 
     outAVFormatContext = nullptr;
+    /* #TODO: confrontare con funzione implementata da I ed L */
     time_t result = time(nullptr);
     stringstream ss;
     ss << time;
     timestamp = ss.str();
-    string nomeOutput = timestamp + " output.mp4";
-    outputAVFormat = av_guess_format(nullptr, nomeOutput.c_str(), nullptr);
+    string outputName = timestamp + " output.mp4";
+    outputAVFormat = av_guess_format(nullptr, outputName.c_str(), nullptr);
     if (outputAVFormat == nullptr) {
         cerr << "Error in guessing the video format, try with correct format" << endl;
         exit(-5);
     }
-    string nomeCompleto = "..\\media\\" + nomeOutput;
-    avformat_alloc_output_context2(&outAVFormatContext, outputAVFormat, outputAVFormat->name, nomeCompleto.c_str());
+    string completeName = "..\\media\\" + outputName;
+    avformat_alloc_output_context2(&outAVFormatContext, outputAVFormat, outputAVFormat->name, completeName.c_str());
     if (outAVFormatContext == nullptr) {
         cerr << "Error in allocating outAVFormatContext" << endl;
         exit(-4);
@@ -460,7 +493,7 @@ int ScreenRecorder::initOutputFile() {
 #endif 
     //create an empty video file
     if (!(outAVFormatContext->flags & AVFMT_NOFILE)) {
-        if (avio_open2(&outAVFormatContext->pb, nomeCompleto.c_str(), AVIO_FLAG_WRITE, nullptr, nullptr) < 0) {
+        if (avio_open2(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE, nullptr, nullptr) < 0) {
             cerr << "Error in creating the video file" << endl;
             exit(-10);
         }
@@ -523,9 +556,16 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     outAVCodecContext->codec_type = AVMEDIA_TYPE_VIDEO;
     outAVCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
     outAVCodecContext->bit_rate = 10000000;//Nuovo
-    outAVCodecContext->width = 1920;    //#TODO: questo parametro dovrebbe essere dinamico? Ovvero sceglierlo? Magari utile per registrare una porzione di schermo
-    outAVCodecContext->height = 1080;
-    outAVCodecContext->gop_size = 10; //aggiornato
+    #ifdef __linux__
+        int he, wi; //height, width
+        tie(he, wi)=retrieveDisplayDimention();
+        outAVCodecContext->width = wi;    //#TODO: questo parametro deve essere dinamico (su macchina virtuale funziona con 1280x800)
+        outAVCodecContext->height = he;      // ora questi valori rappresentano la risoluzione massima dello schermo
+    #elif _WIN32
+        outAVCodecContext->width = 1920;    //#TODO: questo parametro deve essere dinamico
+        outAVCodecContext->height = 1080;
+    #endif
+    outAVCodecContext->gop_size = 10; //aggiornato -> era 3
     outAVCodecContext->global_quality = 500; //Nuovo
     outAVCodecContext->max_b_frames = 2;
     outAVCodecContext->time_base.num = 1;
@@ -837,9 +877,11 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
         cerr << "Could not open codec" << endl;
         exit(-1);
     }
-    /*
+
+    /* 
+    //#TODO: non più frame => dovrebbe essere inutile questa sezione, poiché ora scegliamo il tempo di registrazione
     int ii = 0;
-    int no_frames = 100; //#TODO: dovrebbe essere dinamico?
+    int no_frames = 100; 
     cout << "\nEnter No. of frames to capture : ";
     cin >> no_frames;
     */
@@ -894,14 +936,15 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
         
         //A qui
         
-        /*
+        /* 
+        //#TODO: non più frame
         if (ii++ == no_frames)
         {
             // value = AVERROR_EOF;
             break;
         }
         */
-        if (av_read_frame(pAVFormatContext, pAVPacket) >= 0&& pAVPacket->stream_index == VideoStreamIndx)//Aggiornata
+        if (av_read_frame(pAVFormatContext, pAVPacket) >= 0 && pAVPacket->stream_index == VideoStreamIndx)//Aggiornata
         {
             // char buf[1024];
 
@@ -934,6 +977,8 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
              * Ritorna 0 in caso di successo.
              */
             value = avcodec_receive_frame(pAVCodecContext, pAVFrame);
+
+            //#TODO: non più frame da scegliere
             //cout << "\nFrame: " << pAVCodecContext->frame_number << "\n";
             
             // cout << "\npAVFrame->data[0]: " << pAVFrame->data[0];
@@ -1063,6 +1108,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
 
             // av_packet_unref(&outPacket);
             av_packet_free(&outPacket);
+            /* #TODO: sezione non capita da I e L */
             av_packet_free(&pAVPacket);
             pAVPacket = av_packet_alloc();
             if (!pAVPacket)
@@ -1089,6 +1135,8 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 cout << "\nError in filling image array";
                 exit(1);
             }
+            /******Fine sezione non capita *********/
+
         }
         
     } // End of while-loop
@@ -1112,8 +1160,11 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     
     av_packet_free(&pAVPacket);
     sws_freeContext(swsCtx_);
+    /* #TODO: sezione non capita da I e L */
+
     av_frame_free(&pAVFrame);
     av_frame_free(&outFrame);
+    /******Fine sezione non capita *********/
     /*
      * Libera un blocco di memoria che è stato allocato con av_malloc (z) () o av_realloc ().
      * Riceve come parametro il puntatore al blocco di memoria che deve essere liberato.
@@ -1127,7 +1178,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
 
 void ScreenRecorder::generateAudioStream() {
     AVCodecParameters* params = inAudioFormatContext->streams[audioStreamIndx]->codecpar;
-    inAudioCodec = avcodec_find_decoder(params->codec_id);
+    inAudioCodec = avcodec_find_decoder(params->codec_id); //FIXME: const_cast?
     if (inAudioCodec == nullptr) {
         cerr << "Error: cannot find the audio decoder" << endl;
         exit(-1);
