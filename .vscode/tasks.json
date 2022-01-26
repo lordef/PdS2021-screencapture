@@ -1,0 +1,34 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "cppbuild",
+			"label": "C/C++: g++ build active file",
+			"command": "/usr/bin/g++",
+			"args": [
+				"-fdiagnostics-color=always",
+				"-g",
+				"${file}",
+				"-o",
+				"${fileDirname}/${fileBasenameNoExtension}",
+				"${fileDirname}/ScreenRecorder.cpp", //per linkare ScreenRecorder.cpp
+				"${fileDirname}/AudioRecorder.cpp", //per linkare AudioRecorder.cpp
+				"`pkg-config --cflags --libs libavcodec libavdevice libavformat libavutil libswresample libswscale xcb x11`" 
+				//per linkare le librerie di sistema, in questo caso quelle di ffmpeg				
+				// librerie: xcb x11 	utili per sfruttare X11
+				//#TODO: aggiugere altre librerie?
+			],
+			"options": {
+				"cwd": "${fileDirname}"
+			},
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"detail": "compiler: /usr/bin/g++"
+		}
+	]
+}
