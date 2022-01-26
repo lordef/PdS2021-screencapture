@@ -9,8 +9,9 @@ int main()
 	ScreenRecorder screen_record;
 
 	screen_record.openCamera();
-	screen_record.init_outputfile();
-	screen_record.CaptureVideoFrames();
+	screen_record.openAudioDevice();
+	screen_record.initOutputFile();
+	screen_record.CreateThreads();
 	//screen_record.start();
 	//screen_record.stop();
 

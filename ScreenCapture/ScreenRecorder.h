@@ -1,6 +1,6 @@
 #ifndef SCREENRECORDER_H
 #define SCREENRECORDER_H
-
+#define AUDIO 1 //Nuovo
 #include "ffmpeg.h"
 #include <iostream>
 #include <cstdio>
@@ -8,9 +8,14 @@
 #include <fstream>
 #include <cstring>
 #include <math.h>
-#include <string.h>
-#include <thread>
-
+#include <string>//Aggiornato
+#include <thread>//Nuovo
+#include <mutex>//Nuovo
+#include <iomanip>//Nuovo
+#include <Windows.h>//Nuovo
+#include <WinUser.h>//Nuovo
+#include <ctime>//Nuovo
+#include <sstream>//Nuovo
 
 #define __STDC_CONSTANT_MACROS
 
@@ -56,36 +61,54 @@ class ScreenRecorder
 private:
 	AVInputFormat* pAVInputFormat;
 	AVOutputFormat* output_format;
-
+	AVInputFormat* audioInputFormat; //Nuovo
+	
 	AVCodecContext* pAVCodecContext;
-
+	AVCodecContext* inAudioCodecContext; //Nuovo
+	AVCodecContext* outAudioCodecContext; //Nuovo
 	AVFormatContext* pAVFormatContext;
 
 	AVFrame* pAVFrame;
 	AVFrame* outFrame;
 
+	AVCodec* outVideoCodec; //Nuovo
 	AVCodec* pAVCodec;
 	AVCodec* outAVCodec;
 	AVCodec* pLocalCodec;
+	AVCodec* inAudioCodec; //Nuovo
+	AVCodec* outAudioCodec; //Nuovo
 	AVCodecParameters* pCodecParameters;
+	AVCodecParameters* pAVCodecParameters; //Nuovo
 
 	AVPacket* pAVPacket;
 	AVPacket* packet;
 
 	AVDictionary* options;
-
-	AVOutputFormat* outAVOutputFormat;
+	AVDictionary* audioOptions; //Nuovo
+	AVOutputFormat* outputAVFormat; //Aggiornato
 	AVFormatContext* outAVFormatContext;
+	AVFormatContext* inAudioFormatContext; //Nuovo
 	AVCodecContext* outAVCodecContext;
-	AVCodecContext* outCodecContext;
+	AVCodecContext* outCodecContext;//Non usato?
+	//AVCodecContext* outVideoCodecContext; //Nuovo
+	AVAudioFifo* fifo;//Nuovo
 
 	AVStream* video_st;
 	AVFrame* outAVFrame;
 
+	std::mutex mu; //Nuovo
+	std::mutex write_lock; //Nuovo
+	std::condition_variable cv; //Nuovo
 	const char* dev_name;
 	const char* output_file;
 
 	double video_pts;
+
+	int magicNumber;//Nuovo
+	int cropX; //Nuovo
+	int cropY; //Nuovo
+	int cropH; //Nuovo
+	int cropW; //Nuovo
 
 	int out_size;
 	int codec_id;
@@ -93,11 +116,21 @@ private:
 	int value2;
 	int value3;
 	int VideoStreamIndx;
-	bool threading;
+	int audioStreamIndx; //Nuovo
+	int outVideoStreamIndex; //Nuovo
+	int outAudioStreamIndex; //Nuovo
+	bool threading; //Nuovo
 	std::thread* demux;
 	std::thread* rescale;
 	std::thread* mux;
-
+	
+	bool pauseCapture; //Nuovo
+	bool stopCapture; //Nuovo
+	bool started; //Nuovo
+	bool activeMenu; //Nuovo
+	int width, height; //Nuovo
+	int w, h; //Nuovo
+	std::string timestamp;//Nuovo
 
 
 
@@ -107,15 +140,20 @@ public:
 	~ScreenRecorder();
 
 	/* function to initiate communication with display library */
-	int init_outputfile();
-	int CaptureVideoFrames();
+	int initOutputFile(); //Aggiornato
+	int captureVideoFrames();
 	int openCamera();
-	//int start();
-	//int stop();
-	//int initVideoThreads();
-	//void demuxVideoStream(AVCodecContext* codecContext, AVFormatContext* formatContext, int streamIndex);
-	//void rescaleVideoStream(AVCodecContext* inCodecContext, AVCodecContext* outCodecContext);
-	//void encodeVideoStream(AVCodecContext* codecContext);
+	int openVideoDevice(); //Nuovo
+	int openAudioDevice(); //Nuovo
+	void generateVideoStream(); //Nuovo
+	void generateAudioStream(); //Nuovo
+	int init_fifo(); //Nuovo
+	int add_samples_to_fifo(uint8_t** converted_input_samples, const int frame_size); //Nuovo
+	int initConvertedSamples(uint8_t*** converted_input_samples, AVCodecContext* output_codec_context, int frame_size); //Nuovo
+	void captureAudio(); //Nuovo
+	void CreateThreads(); //Nuovo
+	AVFrame* crop_frame(const AVFrame* in, int width, int height, int x, int y); //Nuovo
+	static void SetUpScreenRecorder(); //Nuovo
 
 };
 
