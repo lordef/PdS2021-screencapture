@@ -461,6 +461,9 @@ int ScreenRecorder::openAudioDevice() {
         cerr << "Error: unable to find audio stream index" << endl;
         exit(-2);
     }
+    
+    return 0; 
+
 }
 
 int ScreenRecorder::initOutputFile() {
