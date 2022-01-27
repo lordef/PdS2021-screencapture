@@ -12,7 +12,9 @@ int main()
 
 	screen_record.openCamera();
 	screen_record.openAudioDevice();
+
 	screen_record.initOutputFile();
+    
 	screen_record.CreateThreads();
 	//screen_record.start();	// #TODO: implementata?
 	//screen_record.stop();		// #TODO: implementata?

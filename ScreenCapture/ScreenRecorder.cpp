@@ -192,7 +192,7 @@ int ScreenRecorder::openCamera() throw()
 
     int offset_x = 0, offset_y = 0;
     string url = ":0.0+" + to_string(offset_x) + "," + to_string(offset_y);  //custom string to set the start point of the screen section
-    pAVInputFormat = av_find_input_format("x11grab");
+    pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
     value = avformat_open_input(&pAVFormatContext, url.c_str(), pAVInputFormat, &options);
 
     if (value != 0) {
@@ -353,7 +353,6 @@ int ScreenRecorder::openCamera() throw()
         exit(1);
     }
     pCodecParameters = pAVFormatContext->streams[VideoStreamIndx]->codecpar;
-    // pAVCodec = avcodec_find_decoder(pAVFormatContext->streams[VideoStreamIndx]->codecpar->codec_id);
     pAVCodec = const_cast<AVCodec*>(avcodec_find_decoder(pAVFormatContext->streams[VideoStreamIndx]->codecpar->codec_id)); 
 
 
@@ -427,7 +426,8 @@ int ScreenRecorder::openAudioDevice() {
     }
 
 #ifdef __linux__
-    audioInputFormat = av_find_input_format("alsa"); // #TODO: capire se utilizzare 'pulse' invece di alsa
+    // audioInputFormat = av_find_input_format("alsa"); // #TODO: capire se utilizzare 'pulse' invece di alsa
+    audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("alsa")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
     value = avformat_open_input(&inAudioFormatContext, "hw:0", audioInputFormat, &audioOptions);
     if (value != 0) {
         cerr << "Error in opening input device (audio)" << endl;
@@ -473,7 +473,8 @@ int ScreenRecorder::initOutputFile() {
     ss << time;
     timestamp = ss.str();
     string outputName = timestamp + " output.mp4";
-    outputAVFormat = av_guess_format(nullptr, outputName.c_str(), nullptr);
+    outputAVFormat = const_cast<AVOutputFormat*>(av_guess_format(nullptr, outputName.c_str(), nullptr));
+
     if (outputAVFormat == nullptr) {
         cerr << "Error in guessing the video format, try with correct format" << endl;
         exit(-5);
@@ -1178,7 +1179,8 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
 
 void ScreenRecorder::generateAudioStream() {
     AVCodecParameters* params = inAudioFormatContext->streams[audioStreamIndx]->codecpar;
-    inAudioCodec = avcodec_find_decoder(params->codec_id); //FIXME: const_cast?
+    inAudioCodec = const_cast<AVCodec*>(avcodec_find_decoder(params->codec_id));
+    
     if (inAudioCodec == nullptr) {
         cerr << "Error: cannot find the audio decoder" << endl;
         exit(-1);
@@ -1206,7 +1208,7 @@ void ScreenRecorder::generateAudioStream() {
         exit(1);
     }
 
-    outAudioCodec = avcodec_find_encoder(AV_CODEC_ID_AAC);
+    outAudioCodec = const_cast<AVCodec*>(avcodec_find_encoder(AV_CODEC_ID_AAC));
     if (outAudioCodec == nullptr) {
         cerr << "Error: cannot find requested encoder" << endl;
         exit(1);
