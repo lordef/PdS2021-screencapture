@@ -93,7 +93,8 @@ ScreenRecorder::~ScreenRecorder() //Aggiornato
 /*==================================== VIDEO ==============================*/
 
 /* establishing the connection between camera or screen through its respective folder */
-int ScreenRecorder::openCamera() throw()
+//int ScreenRecorder::openCamera() throw() //#FIXME
+int ScreenRecorder::openCamera()
 {
 
     value = 0; // valore di ritorno per valutare esito delle operazioni
