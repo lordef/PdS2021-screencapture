@@ -28,7 +28,7 @@ tuple<int, int> retrieveDisplayDimention()
 
 /* initialize the resources*/
 ScreenRecorder::ScreenRecorder() : pauseCapture(false), stopCapture(false), started(false), activeMenu(true), //Aggiornato
-                                   magicNumber(3000), cropX(0), cropY(0), cropH(1080), cropW(1920) //Aggiornato
+                                   magicNumber(100), cropX(0), cropY(0), cropH(1080), cropW(1920) //Aggiornato
 {
 
     // av_register_all(); //Funzione di inizializzazione deprecata. Può essere tranquillamente omessa.
@@ -427,9 +427,18 @@ int ScreenRecorder::openAudioDevice() {
     }
 
 #ifdef __linux__
-    // audioInputFormat = av_find_input_format("alsa"); // #TODO: capire se utilizzare 'pulse' invece di alsa
     audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("alsa")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
-    value = avformat_open_input(&inAudioFormatContext, "hw:0", audioInputFormat, &audioOptions);
+    value = avformat_open_input(&inAudioFormatContext, "default", audioInputFormat, &audioOptions); // #TODO: ci stava hw:1, potrebbe essere hw:0
+    //Questi comandi funzionano: 
+    // ffmpeg -f alsa -i default -t 30 out.wav
+    // ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0 output.mp4
+    // Il seguente comando è una combianzione dei precedenti, funziona ed è sincronizzato:
+    // ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0 -f alsa -i default -t 30 av_output.mp4
+
+    // #TODO: capire se utilizzare 'pulse' invece di alsa
+    // audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("pulse")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
+    // value = avformat_open_input(&inAudioFormatContext, "default", audioInputFormat, &audioOptions);
+
     if (value != 0) {
         cerr << "Error in opening input device (audio)" << endl;
         exit(-1);
@@ -483,7 +492,13 @@ int ScreenRecorder::initOutputFile() {
         cerr << "Error in guessing the video format, try with correct format" << endl;
         exit(-5);
     }
-    string completeName = "..\\media\\" + outputName;
+
+    #ifdef __linux__
+        string completeName = "..//media//" + outputName;        
+    #elif _WIN32
+        string completeName = "..\\media\\" + outputName;
+    #endif
+
     avformat_alloc_output_context2(&outAVFormatContext, outputAVFormat, outputAVFormat->name, completeName.c_str());
     if (outAVFormatContext == nullptr) {
         cerr << "Error in allocating outAVFormatContext" << endl;
