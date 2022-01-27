@@ -12,7 +12,10 @@
 #include <thread>//Nuovo
 #include <mutex>//Nuovo
 #include <iomanip>//Nuovo
-#ifdef _WIN32
+
+#ifdef __linux__
+	#include <condition_variable> //#TODO: dovrebbe serveire anche per Windows
+#elif _WIN32
 	#include <Windows.h>//Nuovo
 	#include <WinUser.h>//Nuovo
 #endif
