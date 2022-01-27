@@ -1,0 +1,14 @@
+Installations
+ffmpeg
+    - sudo apt-get install libxcb-randr0-dev libxcb-xtest0-dev libxcb-xinerama0-dev libxcb-shape0-dev libxcb-xkb-dev 
+    - https://www.linuxfromscratch.org/blfs/view/stable/x/xcb-proto.html
+    - https://www.linuxfromscratch.org/blfs/view/stable/x/libxcb.html
+    - sudo apt install libx11-dev
+    - sudo apt install libpulse-dev //per avere pulse come audio input device
+    - sudo apt-get install libasound2-dev //per avere alsa come audio input device 
+        
+    - git clone https://github.com/FFmpeg/FFmpeg.git
+    - cd FFmpeg/
+    - ./configure --enable-libxcb --enable-libxcb-shm --enable-libxcb-xfixes --enable-libxcb-shape --enable-libpulse
+    - make
+    - sudo make install
