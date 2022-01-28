@@ -437,8 +437,15 @@ int ScreenRecorder::openAudioDevice() {
 
     // #TODO: capire se utilizzare 'pulse' invece di alsa
     audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("pulse")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
-    // value = avformat_open_input(&inAudioFormatContext, "alsa_input.pci-0000_00_1f.3.analog-stereo", audioInputFormat, &audioOptions); //così funziona
     value = avformat_open_input(&inAudioFormatContext, "alsa_input.pci-0000_00_1f.3.analog-stereo", audioInputFormat, &audioOptions); //così funziona
+    // FIXME: invece di mettere alsa_input.pci... 
+    // ritrovato da comando bash: pacmd list-sources | grep -e 'index:' -e device.string -e 'name:': 
+    //Provare a utilizzare un'API di PulseAudio tramite qaulcosa di simile:
+    /* vedi: https://stackoverflow.com/questions/67627232/fetching-device-description-using-alsa-soundlib-in-c
+    #include <pulse/proplist.h> // aggiungere libpulse a tasks.json
+	pa_proplist* test = pa_card_info::proplist; 
+    
+    */ 
     
 
 
