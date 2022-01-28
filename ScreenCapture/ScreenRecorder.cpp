@@ -427,8 +427,8 @@ int ScreenRecorder::openAudioDevice() {
     }
 
 #ifdef __linux__
-    audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("alsa")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
-    value = avformat_open_input(&inAudioFormatContext, "default", audioInputFormat, &audioOptions); // #TODO: ci stava hw:1, potrebbe essere hw:0
+    // audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("alsa")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
+    // value = avformat_open_input(&inAudioFormatContext, "default", audioInputFormat, &audioOptions); // #TODO: ci stava hw:1, potrebbe essere hw:0
     //Questi comandi funzionano: 
     // ffmpeg -f alsa -i default -t 30 out.wav
     // ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0 output.mp4
@@ -436,8 +436,11 @@ int ScreenRecorder::openAudioDevice() {
     // ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0 -f alsa -i default -t 30 av_output.mp4
 
     // #TODO: capire se utilizzare 'pulse' invece di alsa
-    // audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("pulse")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
-    // value = avformat_open_input(&inAudioFormatContext, "default", audioInputFormat, &audioOptions);
+    audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("pulse")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
+    // value = avformat_open_input(&inAudioFormatContext, "alsa_input.pci-0000_00_1f.3.analog-stereo", audioInputFormat, &audioOptions); //così funziona
+    value = avformat_open_input(&inAudioFormatContext, "alsa_input.pci-0000_00_1f.3.analog-stereo", audioInputFormat, &audioOptions); //così funziona
+    
+
 
     if (value != 0) {
         cerr << "Error in opening input device (audio)" << endl;
