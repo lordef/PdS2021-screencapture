@@ -13,7 +13,7 @@
 				"${fileDirname}/${fileBasenameNoExtension}",
 				"${fileDirname}/ScreenRecorder.cpp", //per linkare ScreenRecorder.cpp
 				"${fileDirname}/AudioRecorder.cpp", //per linkare AudioRecorder.cpp
-				"`pkg-config --cflags --libs libavcodec libavdevice libavformat libavutil libswresample libswscale xcb x11 libpulse`" 
+				"`pkg-config --cflags --libs libavcodec libavdevice libavformat libavutil libswresample libswscale xcb x11`" 
 				//per linkare le librerie di sistema, in questo caso quelle di ffmpeg				
 				// librerie: xcb x11 	utili per sfruttare X11
 				//#TODO: aggiugere altre librerie?
