@@ -436,8 +436,16 @@ int ScreenRecorder::openAudioDevice() {
     // ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0 -f alsa -i default -t 30 av_output.mp4
 
     // #TODO: capire se utilizzare 'pulse' invece di alsa
-    audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("pulse")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
-    value = avformat_open_input(&inAudioFormatContext, "alsa_input.pci-0000_00_1f.3.analog-stereo", audioInputFormat, &audioOptions); //così funziona
+    audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("alsa")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato   
+    
+    // const char* url = "alsa_input.pci-0000_00_1f.3.analog-stereo"; //funziona con pulse
+    const char* url = "default"; // funziona con alsa
+    // const char* url = "hw:0"; // NON funziona con alsa
+
+
+    // value = avformat_open_input(&inAudioFormatContext, "alsa_input.pci-0000_00_1f.3.analog-stereo", audioInputFormat, &audioOptions); //così funziona
+    value = avformat_open_input(&inAudioFormatContext, url, audioInputFormat, &audioOptions); //così funziona
+
     // FIXME: invece di mettere alsa_input.pci... 
     // ritrovato da comando bash: pacmd list-sources | grep -e 'index:' -e device.string -e 'name:': 
     //Provare a utilizzare un'API di PulseAudio tramite qaulcosa di simile:

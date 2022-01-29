@@ -61,8 +61,6 @@ int main()
 	//string format_output_file = "../media/output_";
 	//string output_file = "../media/output.mp4";
 	string output_file = "output_";
-
-
 	/***Codice nostro***/
     //ctime() used to give the present time
 	string current_time = ctime(&my_time);   
