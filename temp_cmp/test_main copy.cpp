@@ -6,11 +6,7 @@ using namespace std;
 
 int main()
 {
-
-
-
 	// string hello = "hello";
 	// cout << hello << endl;
-
 	return 0;
 }

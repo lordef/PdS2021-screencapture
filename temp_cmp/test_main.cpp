@@ -31,6 +31,70 @@ std::string space2underscore(std::string text)
     return text;
 }
 
+/* Setting name of the output file */
+std::string retrieveOutputFileName()
+{
+	std::string outputFileName = "output_";
+
+    // declaring argument of time()
+    time_t my_time = time(NULL);
+	//string format_output_file = "../media/output_";
+	//string output_file = "../media/output.mp4";
+
+    //ctime() used to give the present time
+	std::string current_time = ctime(&my_time);   
+	current_time.erase(current_time.end()-1, current_time.end());
+    outputFileName.append(current_time);
+    outputFileName.append(".mp4");
+	replace(outputFileName.begin(), outputFileName.end(), ' ', '_');
+
+	return outputFileName;
+}
+
+/* Recupero timestamp */
+std::string retrieveTimestamp()
+{
+
+    std::string current_time;   
+
+    #ifdef __linux__
+        // declaring argument of time()
+        time_t my_time = time(NULL);
+        //string format_output_file = "../media/output_";
+        //string output_file = "../media/output.mp4";
+
+        //ctime() used to give the present time
+        current_time = ctime(&my_time);   
+        current_time.erase(current_time.end()-1, current_time.end());
+        std::replace(current_time.begin(), current_time.end(), ' ', '_');
+    #elif _WIN32
+        time_t result = time(nullptr);
+        stringstream ss;
+        ss << time;
+        current_time = ss.str();
+    #endif
+
+	return current_time;
+}
+
+
+// /* Recupero timestamp */
+// std::string retrieveTimestamp()
+// {
+//     // declaring argument of time()
+//     time_t my_time = time(NULL);
+// 	//string format_output_file = "../media/output_";
+// 	//string output_file = "../media/output.mp4";
+
+//     //ctime() used to give the present time
+// 	std::string current_time = ctime(&my_time);   
+// 	current_time.erase(current_time.end()-1, current_time.end());
+// 	std::replace(current_time.begin(), current_time.end(), ' ', '_');
+
+// 	return current_time;
+// }
+
+
 int main()
 {
 	//int height, width;
@@ -43,10 +107,11 @@ int main()
 	
 	/***Codice Gabriele***/
 	std::string timestamp;//Nuovo
-	AVOutputFormat* outputAVFormat; //Aggiornato
+	
 	stringstream ss;
 	time_t result = time(nullptr);
-    ss << time;
+	result = time(NULL);
+    ss << result;
     timestamp = ss.str();
     string outputName = timestamp + " output.mp4";
    
@@ -55,24 +120,23 @@ int main()
 	cout << outputName <<"\n";
 
 
-	/* Setting name of the output file */
-    // declaring argument of time()
-    time_t my_time = time(NULL);
-	//string format_output_file = "../media/output_";
-	//string output_file = "../media/output.mp4";
-	string output_file = "output_";
-	/***Codice nostro***/
-    //ctime() used to give the present time
-	string current_time = ctime(&my_time);   
-	current_time.erase(current_time.end()-1, current_time.end());
-    output_file.append(current_time);
-    output_file.append(".mp4"); //ERRORE qui, potrebbe essere perchè non accetta una stringa essendo const char*
-	
-	replace(output_file.begin(), output_file.end(), ' ', '_');
+	// /* Setting name of the output file */
+    // // declaring argument of time()
+    // time_t my_time = time(NULL);
+	// //string format_output_file = "../media/output_";
+	// //string output_file = "../media/output.mp4";
+	// string output_file = "output_";
+	// /***Codice nostro***/
+    // //ctime() used to give the present time
+	// string current_time = ctime(&my_time);   
+	// current_time.erase(current_time.end()-1, current_time.end());
+    // output_file.append(current_time);
+    // output_file.append(".mp4"); //ERRORE qui, potrebbe essere perchè non accetta una stringa essendo const char*
+	// replace(output_file.begin(), output_file.end(), ' ', '_');
 
 
 	cout << "\nStampa nome file\n";
-	cout << output_file <<"\n";
+	cout << retrieveTimestamp() <<"\n";
 
 
 

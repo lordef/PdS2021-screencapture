@@ -5,6 +5,8 @@ using namespace std;
 static int64_t last_pts = AV_NOPTS_VALUE; //Nuovo
 
 /*Funzioni utili da spostare #TODO*/
+#include <bits/stdc++.h>
+
 #ifdef __linux__
 #include <X11/Xlib.h> //useful lib installed: sudo apt install libx11-dev 
 #include<tuple>
@@ -24,6 +26,32 @@ tuple<int, int> retrieveDisplayDimention()
 }
 
 #endif
+
+
+/* Recupero timestamp */
+std::string retrieveTimestamp()
+{
+
+    std::string current_time;   
+
+    // #ifdef __linux__ 
+    //#TODO: dovrebbe tranquillamente funzionare anche per Windows
+        // declaring argument of time()
+        time_t my_time = time(nullptr);
+        //ctime() used to give the present time
+        current_time = ctime(&my_time);   
+        current_time.erase(current_time.end()-1, current_time.end());
+        std::replace(current_time.begin(), current_time.end(), ' ', '_');
+    // #elif _WIN32
+    //     time_t result = time(nullptr);
+    //     stringstream ss;
+    //     ss << time;
+    //     current_time = ss.str();
+    // #endif
+
+	return current_time;
+}
+
 /****************************/
 
 /* initialize the resources*/
@@ -34,6 +62,10 @@ ScreenRecorder::ScreenRecorder() : pauseCapture(false), stopCapture(false), star
     // av_register_all(); //Funzione di inizializzazione deprecata. Può essere tranquillamente omessa.
     // avcodec_register_all(); //Funzione di inzizializzazione deprecata. Può essere tranquillamente omessa.
     avdevice_register_all(); // Inizializza libavdevice e registra tutti i dispositivi di input e output.
+
+    /* Set timestamp */
+    timestamp = retrieveTimestamp();
+
     cout << "\nAll required functions are registered successfully";
 }
 
@@ -498,12 +530,14 @@ int ScreenRecorder::initOutputFile() {
     value = 0;
 
     outAVFormatContext = nullptr;
-    /* #TODO: confrontare con funzione implementata da I ed L */
-    time_t result = time(nullptr);
-    stringstream ss;
-    ss << time;
-    timestamp = ss.str();
-    string outputName = timestamp + " output.mp4";
+    /* #TODO: vedi funzione retrieceTimestamp */
+    // time_t result = time(nullptr);
+    // stringstream ss;
+    // ss << time;
+    // timestamp = ss.str();
+
+    string outputName = timestamp + "_output.mp4";
+
     outputAVFormat = const_cast<AVOutputFormat*>(av_guess_format(nullptr, outputName.c_str(), nullptr));
 
     if (outputAVFormat == nullptr) {
@@ -770,8 +804,12 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     int frameFinished = 0;
     bool endPause = false;
     int numPause = 0;
-    AVFrame* croppedFrame;
-    ofstream outFile{ "..\\media\\" + timestamp + "log.txt", ios::out};
+    AVFrame* croppedFrame; //#TODO: questa variabile non viene usata
+    #ifdef __linux__
+        ofstream outFile{ "../media/" + timestamp + "_log.txt", ios::out};
+    #elif _WIN32
+        ofstream outFile{ "..\\media\\" + timestamp + "_log.txt", ios::out};
+    #endif
 
     int frameIndex = 0;
     // int flag;
