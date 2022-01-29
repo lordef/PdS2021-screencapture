@@ -1,21 +1,32 @@
 #ifndef SCREENRECORDER_H
 #define SCREENRECORDER_H
-#define AUDIO 1 //Nuovo
-#include "ffmpeg.h"
+#include "ffmpeg.h" // #TODO: potrebbe non servire poichè include dopo - riga 17
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <cstring>
 #include <math.h>
-#include <string>//Aggiornato
+#include <string>//Aggiornato -> era #include <string.h>
+
 #include <thread>//Nuovo
 #include <mutex>//Nuovo
 #include <iomanip>//Nuovo
-#include <Windows.h>//Nuovo
-#include <WinUser.h>//Nuovo
+
+#ifdef __linux__
+	#include <condition_variable> //#TODO: dovrebbe serveire anche per Windows
+#elif _WIN32
+	#include <Windows.h>//Nuovo
+	#include <WinUser.h>//Nuovo
+#endif
+
 #include <ctime>//Nuovo
+#include <time.h> // #TODO: forse utile per dare al file il nome con all'interno la data 
 #include <sstream>//Nuovo
+
+
+#define AUDIO 1 //Nuovo
+
 
 #define __STDC_CONSTANT_MACROS
 
@@ -28,7 +39,11 @@ extern "C"
 #include "libavdevice/avdevice.h"
 
 #include "libavfilter/avfilter.h"
-#include "libavfilter/avfiltergraph.h"
+#ifdef __linux__
+	//#include "libavfilter/avfiltergraph.h" //#TODO: commentato perchè su linux non serve
+#elif _WIN32
+	#include "libavfilter/avfiltergraph.h"
+#endif
 #include "libavfilter/buffersink.h"
 #include "libavfilter/buffersrc.h"
 
@@ -85,12 +100,15 @@ private:
 
 	AVDictionary* options;
 	AVDictionary* audioOptions; //Nuovo
+
 	AVOutputFormat* outputAVFormat; //Aggiornato
 	AVFormatContext* outAVFormatContext;
+
 	AVFormatContext* inAudioFormatContext; //Nuovo
 	AVCodecContext* outAVCodecContext;
-	AVCodecContext* outCodecContext;//Non usato?
+	AVCodecContext* outCodecContext; //Non usato?
 	//AVCodecContext* outVideoCodecContext; //Nuovo
+
 	AVAudioFifo* fifo;//Nuovo
 
 	AVStream* video_st;
@@ -143,15 +161,20 @@ public:
 	int initOutputFile(); //Aggiornato
 	int captureVideoFrames();
 	int openCamera();
+
 	int openVideoDevice(); //Nuovo
 	int openAudioDevice(); //Nuovo
+
 	void generateVideoStream(); //Nuovo
 	void generateAudioStream(); //Nuovo
+
 	int init_fifo(); //Nuovo
 	int add_samples_to_fifo(uint8_t** converted_input_samples, const int frame_size); //Nuovo
 	int initConvertedSamples(uint8_t*** converted_input_samples, AVCodecContext* output_codec_context, int frame_size); //Nuovo
+	
 	void captureAudio(); //Nuovo
 	void CreateThreads(); //Nuovo
+	
 	AVFrame* crop_frame(const AVFrame* in, int width, int height, int x, int y); //Nuovo
 	static void SetUpScreenRecorder(); //Nuovo
 

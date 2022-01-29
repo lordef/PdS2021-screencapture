@@ -1,6 +1,6 @@
 #include "AudioRecorder.h"
 #ifdef __linux__
-#include <assert.h>
+    #include <assert.h>
 #endif
 
 const AVSampleFormat requireAudioFmt = AV_SAMPLE_FMT_FLTP;
@@ -23,16 +23,24 @@ void AudioRecorder::Open()
     }
     deviceName = "audio=" + deviceName;
     AVInputFormat* inputFormat = av_find_input_format("dshow");
-#elif MACOS
-    if (deviceName == "") deviceName = ":0";
-    AVInputFormat* inputFormat = av_find_input_format("avfoundation");
-    //"[[VIDEO]:[AUDIO]]"
-#elif UNIX
+// #elif MACOS
+//     if (deviceName == "") deviceName = ":0";
+//     AVInputFormat* inputFormat = av_find_input_format("avfoundation");
+//     //"[[VIDEO]:[AUDIO]]"
+// #elif UNIX
+#elif __linux__
     if (deviceName == "") deviceName = "default";
-    AVInputFormat* inputFormat = av_find_input_format("pulse");
+    // AVInputFormat* inputFormat = av_find_input_format("pulse");
+    AVInputFormat* inputFormat = const_cast<AVInputFormat*>(av_find_input_format("pulse"));
+
 #endif
 
-    ret = avformat_open_input(&audioInFormatCtx, deviceName.c_str(), inputFormat, &options);
+    #ifdef __linux__
+        ret = avformat_open_input(&audioInFormatCtx, deviceName.c_str(), inputFormat, &options);
+    #elif _WIN32
+        ret = avformat_open_input(&audioInFormatCtx, deviceName.c_str(), inputFormat, &options);
+    #endif
+
     if (ret != 0) {
         throw std::runtime_error("Couldn't open input audio stream.");
     }
@@ -49,14 +57,18 @@ void AudioRecorder::Open()
         }
     }
     if (!audioInStream) {
-        throw std::runtime_error("Couldn't find a audio stream.");
+        throw std::runtime_error("Couldn't find an audio stream.");
     }
 
-    AVCodec* audioInCodec = avcodec_find_decoder(audioInStream->codecpar->codec_id);
+    // AVCodec* audioInCodec = avcodec_find_decoder(audioInStream->codecpar->codec_id);
+    AVCodec* audioInCodec = const_cast<AVCodec*>(avcodec_find_decoder(audioInStream->codecpar->codec_id));
+
     audioInCodecCtx = avcodec_alloc_context3(audioInCodec);
     avcodec_parameters_to_context(audioInCodecCtx, audioInStream->codecpar);
 
-    if (avcodec_open2(audioInCodecCtx, audioInCodec, nullptr) < 0) throw std::runtime_error("Could not open video codec.");
+    if (avcodec_open2(audioInCodecCtx, audioInCodec, nullptr) < 0){ 
+        throw std::runtime_error("Could not open video codec.");
+    }
 
     // audio converter, convert other fmt to requireAudioFmt
     audioConverter = swr_alloc_set_opts(nullptr,
@@ -88,8 +100,13 @@ void AudioRecorder::Open()
         throw std::runtime_error("Fail to open output file.");
     }
 
-    AVCodec* audioOutCodec = avcodec_find_encoder(AV_CODEC_ID_AAC);
-    if (!audioOutCodec) throw std::runtime_error("Fail to find aac encoder. Please check your DLL.");
+    // AVCodec* audioOutCodec = avcodec_find_encoder(AV_CODEC_ID_AAC);
+    AVCodec* audioOutCodec = const_cast<AVCodec*>(avcodec_find_encoder(AV_CODEC_ID_AAC));
+
+
+    if (!audioOutCodec){
+        throw std::runtime_error("Fail to find aac encoder. Please check your DLL.");
+    }
 
     audioOutCodecCtx = avcodec_alloc_context3(audioOutCodec);
     audioOutCodecCtx->channels = audioInStream->codecpar->channels;
@@ -128,7 +145,8 @@ void AudioRecorder::Start()
 {
     audioThread = new std::thread([this]() {
         this->isRun = true;
-        puts("Start record."); fflush(stdout);
+        puts("Start record."); 
+        fflush(stdout);
         try {
             this->StartEncode();
         }
@@ -141,11 +159,12 @@ void AudioRecorder::Start()
 void AudioRecorder::Stop()
 {
     bool r = isRun.exchange(false);
-    if (!r) return; //avoid run twice
+    if (!r) return; //avoid run twice the Stop method
     audioThread->join();
 
     int ret = av_write_trailer(audioOutFormatCtx);
     if (ret < 0) throw std::runtime_error("can not write file trailer.");
+
     avio_close(audioOutFormatCtx->pb);
 
     swr_free(&audioConverter);
@@ -156,7 +175,8 @@ void AudioRecorder::Stop()
 
     avformat_close_input(&audioInFormatCtx);
     avformat_free_context(audioOutFormatCtx);
-    puts("Stop record."); fflush(stdout);
+    puts("Stop record."); 
+    fflush(stdout);
 }
 
 void AudioRecorder::StartEncode()
@@ -176,10 +196,12 @@ void AudioRecorder::StartEncode()
         if (ret < 0) {
             throw std::runtime_error("can not read frame");
         }
+
         ret = avcodec_send_packet(audioInCodecCtx, inputPacket);
         if (ret < 0) {
             throw std::runtime_error("can not send pkt in decoding");
         }
+
         ret = avcodec_receive_frame(audioInCodecCtx, inputFrame);
         if (ret < 0) {
             throw std::runtime_error("can not receive frame in decoding");
@@ -192,11 +214,15 @@ void AudioRecorder::StartEncode()
         if (ret < 0) {
             throw std::runtime_error("Fail to alloc samples by av_samples_alloc_array_and_samples.");
         }
+
         ret = swr_convert(audioConverter, cSamples, inputFrame->nb_samples, (const uint8_t**)inputFrame->extended_data, inputFrame->nb_samples);
         if (ret < 0) {
             throw std::runtime_error("Fail to swr_convert.");
         }
-        if (av_audio_fifo_space(audioFifo) < inputFrame->nb_samples) throw std::runtime_error("audio buffer is too small.");
+
+        if (av_audio_fifo_space(audioFifo) < inputFrame->nb_samples){
+            throw std::runtime_error("audio buffer is too small.");
+        }
 
         ret = av_audio_fifo_write(audioFifo, (void**)cSamples, inputFrame->nb_samples);
         if (ret < 0) {
@@ -218,6 +244,7 @@ void AudioRecorder::StartEncode()
 
             ret = av_frame_get_buffer(outputFrame, 0);
             assert(ret >= 0);
+            
             ret = av_audio_fifo_read(audioFifo, (void**)outputFrame->data, audioOutCodecCtx->frame_size);
             assert(ret >= 0);
 
@@ -228,6 +255,7 @@ void AudioRecorder::StartEncode()
                 throw std::runtime_error("Fail to send frame in encoding");
             }
             av_frame_free(&outputFrame);
+
             ret = avcodec_receive_packet(audioOutCodecCtx, outputPacket);
             if (ret == AVERROR(EAGAIN)) {
                 continue;
