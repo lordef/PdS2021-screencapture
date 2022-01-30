@@ -21,7 +21,6 @@
 #endif
 
 #include <ctime>//Nuovo
-#include <time.h> // #TODO: forse utile per dare al file il nome con all'interno la data 
 #include <sstream>//Nuovo
 
 
