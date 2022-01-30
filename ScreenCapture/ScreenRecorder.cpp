@@ -34,7 +34,7 @@ std::string retrieveTimestamp()
 
     std::string current_time;   
 
-    // #ifdef __linux__ 
+    #ifdef __linux__ 
     //#TODO: dovrebbe tranquillamente funzionare anche per Windows
         // declaring argument of time()
         time_t my_time = time(nullptr);
@@ -42,12 +42,12 @@ std::string retrieveTimestamp()
         current_time = ctime(&my_time);   
         current_time.erase(current_time.end()-1, current_time.end());
         std::replace(current_time.begin(), current_time.end(), ' ', '_');
-    // #elif _WIN32
-    //     time_t result = time(nullptr);
-    //     stringstream ss;
-    //     ss << time;
-    //     current_time = ss.str();
-    // #endif
+    #elif _WIN32
+         time_t result = time(nullptr);
+         stringstream ss;
+         ss << time;
+         current_time = ss.str();
+    #endif
 
 	return current_time;
 }
@@ -56,7 +56,7 @@ std::string retrieveTimestamp()
 
 /* initialize the resources*/
 ScreenRecorder::ScreenRecorder() : pauseCapture(false), stopCapture(false), started(false), activeMenu(true), //Aggiornato
-                                   magicNumber(100), cropX(0), cropY(0), cropH(1080), cropW(1920) //Aggiornato
+                                   magicNumber(300), cropX(0), cropY(0), cropH(1080), cropW(1920) //Aggiornato
 {
 
     // av_register_all(); //Funzione di inizializzazione deprecata. Può essere tranquillamente omessa.
@@ -1459,15 +1459,24 @@ void ScreenRecorder::captureAudio() {
 
         //avformat_open_input(&inAudioFormatContext, "audio=Microphone Array (Realtek(R) Audio)", audioInputFormat, &audioOptions); //per il sync?
         ul.unlock();
+        /* Prendiamo il prossimo frame di uno stream
+
+        da inAudioFormatContext a inPacket*/
         if (av_read_frame(inAudioFormatContext, inPacket) >= 0 && inPacket->stream_index == audioStreamIndx) {
             //decode audio routing
             av_packet_rescale_ts(outPacket, inAudioFormatContext->streams[audioStreamIndx]->time_base, inAudioCodecContext->time_base);
+            /* Forniamo un pacchetto grezzo come input al decoder
+
+            Da inPacket a inAudioCodecContext*/
             if ((ret = avcodec_send_packet(inAudioCodecContext, inPacket)) < 0) {
                 cout << "Cannot decode current audio packet " << ret << endl;
                 continue;
             }
 
             while (ret >= 0) {
+                /*Restituisce dati di output decodificati da un decodificatore.
+                *
+                Da inAudioCodecContext a rawFrame*/
                 ret = avcodec_receive_frame(inAudioCodecContext, rawFrame);
                 if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
                     break;
@@ -1484,6 +1493,7 @@ void ScreenRecorder::captureAudio() {
                     resampledData, rawFrame->nb_samples,
                     (const uint8_t**)rawFrame->extended_data, rawFrame->nb_samples);
 
+                /*Aggiungiamo al buffer fifo dei sample audio di input convertiti*/
                 add_samples_to_fifo(resampledData, rawFrame->nb_samples);
 
                 //raw frame ready
@@ -1499,7 +1509,7 @@ void ScreenRecorder::captureAudio() {
                     cerr << "Cannot allocate an AVPacket for encoded video" << endl;
                     exit(1);
                 }
-
+                /*Inizializziamo scaledFrame*/
                 scaledFrame->nb_samples = outAudioCodecContext->frame_size;
                 scaledFrame->channel_layout = outAudioCodecContext->channel_layout;
                 scaledFrame->format = outAudioCodecContext->sample_fmt;
@@ -1507,15 +1517,25 @@ void ScreenRecorder::captureAudio() {
                 av_frame_get_buffer(scaledFrame, 0);
 
                 while (av_audio_fifo_size(fifo) >= outAudioCodecContext->frame_size) {
+                    /* Legge, dal primo paramatro, una certa quantità di dati (indicata dal terzo parametro)
 
+                    da fifo a scaledFrame->data ??*/
                     ret = av_audio_fifo_read(fifo, (void**)(scaledFrame->data), outAudioCodecContext->frame_size);
                     scaledFrame->pts = pts;
                     pts += scaledFrame->nb_samples;
+                    /*Forniamo un frame all'encoder.
+                    Utilizzeremo, poi, avcodec_receive_packet() per recuperare i pacchetti di output memorizzati nel buffer.
+
+                    Da ScaledFrame a encoder.
+                    Da encoder a outAudioCodecContext*/
                     if (avcodec_send_frame(outAudioCodecContext, scaledFrame) < 0) {
                         cout << "Cannot encode current audio packet " << endl;
                         exit(1);
                     }
                     while (ret >= 0) {
+                        /*Leggiamo dei dati codificati dall'encoder
+
+                        Da outAudioCodecContext a outPacket*/
                         ret = avcodec_receive_packet(outAudioCodecContext, outPacket);
                         if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
                             break;
@@ -1523,6 +1543,8 @@ void ScreenRecorder::captureAudio() {
                             cerr << "Error during encoding" << endl;
                             exit(1);
                         }
+                        /* Converte un campo valido di timing, all'interno di un pacchetto, da un timestamp
+                       (indicato come secondo parametro) ad un altro (indicato come terzo parametro)*/
                         av_packet_rescale_ts(outPacket, outAudioCodecContext->time_base, outAVFormatContext->streams[outAudioStreamIndex]->time_base);
 
                         outPacket->stream_index = outAudioStreamIndex;
@@ -1530,6 +1552,11 @@ void ScreenRecorder::captureAudio() {
                         write_lock.lock();
 
                         cout << outAVFormatContext << " " << outPacket << endl;
+                        /*Scriviamo il pacchettoin un output media file assicurandoci un corretto interleaving.
+                         Questa funzione eseguirà il buffering dei pacchetti internamente, assicurarandosi che i pacchetti
+                         nel file di output siano correttamente interleavati nell'ordine di dts crescente.
+
+                         Da outPacket a outAVFormatContext*/
                         if (av_interleaved_write_frame(outAVFormatContext, outPacket) != 0)
                             //if (av_write_frame(outAVFormatContext, outPacket) != 0)
                         {
