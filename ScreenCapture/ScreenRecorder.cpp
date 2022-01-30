@@ -80,7 +80,7 @@ ScreenRecorder::ScreenRecorder() : pauseCapture(false), stopCapture(false), star
     /* Set timestamp */
     timestamp = retrieveTimestamp();
 
-    cout << "\nAll required functions are registered successfully";
+    cout << "\nAll required functions are registered successfully\n";
 }
 
 // Definiamo il distruttore
@@ -1034,6 +1034,9 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
             break;
         }
         */
+        /* Prendiamo il prossimo frame di uno stream
+
+        da pAVFormatContext a pAVPacket*/
         if (av_read_frame(pAVFormatContext, pAVPacket) >= 0 && pAVPacket->stream_index == VideoStreamIndx)//Aggiornata
         {
             // char buf[1024];
@@ -1041,12 +1044,15 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
             // FUNZIONE DEPRECATA
             // value = avcodec_decode_video2( pAVCodecContext , pAVFrame , &frameFinished , pAVPacket );
             
-            /* avcodec_send_packet fornisce dati compressi grezzi in un AVPacket come input al decodificatore.
+            
+            av_packet_rescale_ts(pAVPacket, pAVFormatContext->streams[VideoStreamIndx]->time_base, pAVCodecContext->time_base);//Nuova
+            
+             /* avcodec_send_packet fornisce dati compressi grezzi in un AVPacket come input al decodificatore.
              * Internamente questa chiamata copierà i campi rilevanti di pAVCodecContext che possono influenzare
              * la decodifica per-packet e li applicherà quando il pacchetto verrà effettivamente decodificato.
-             * Ritorna 0 in caso di successo, altrimenti ritorna un valore negativo.
+             * 
+             * Da pavPacket a pAVCodecContext.
              */
-            av_packet_rescale_ts(pAVPacket, pAVFormatContext->streams[VideoStreamIndx]->time_base, pAVCodecContext->time_base);//Nuova
             value = avcodec_send_packet(pAVCodecContext, pAVPacket);
             
             if (value < 0) // Verifichiamo che non ci siano stati errori
@@ -1063,9 +1069,9 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
             cout << "\npAVCodecContext->codec->id: " << pAVCodecContext->codec->id;
             */
             
-            /* avcodec_receive_frame restituisce i dati decodificati da un decodificatore.
-             * Ritorna 0 in caso di successo.
-             */
+            /* avcodec_receive_frame restituisce i dati di output decodificati da un decodificatore.
+             * 
+             * Da pAVCodecContext a pAVFrame */
             value = avcodec_receive_frame(pAVCodecContext, pAVFrame);
 
             //#TODO: non più frame da scegliere
@@ -1087,8 +1093,11 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
             // snprintf(buf, sizeof(buf), "%s-%d", filename, dec_ctx->frame_number);
             // pgm_save(frame->data[0], frame->linesize[0], frame->width, frame->height, buf);
 
-            /* Funzione utile per riscalare lo slice dell'immagine (presa da pAVFrame->data) e salvare il risultato in outFrame->data.
+            /* Funzione utile per riscalare lo slice dell'immagine (presa da pAVFrame->data) e salvare 
+             * il risultato in outFrame->data.
              * Ritorna l'altezza dell'immagine di output
+             * 
+             * Da pavFrame a outFrame
              */
             value = sws_scale(swsCtx_, pAVFrame->data, pAVFrame->linesize, 0, pAVCodecContext->height, outFrame->data, outFrame->linesize);
             
@@ -1110,6 +1119,11 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
             outFrame->format = outAVCodecContext->pix_fmt;
             // outAVCodecContext->pix_fmt;
 
+            /*Forniamo un frame all'encoder.
+            Utilizzeremo, poi, avcodec_receive_packet() per recuperare i pacchetti di output memorizzati nel buffer.
+
+            Da outFrame a encoder.
+            Da encoder a outAVCodecContext*/
             value = avcodec_send_frame(outAVCodecContext, outFrame);
             if (value < 0)
             {
@@ -1117,7 +1131,9 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 continue;
                 // exit(1);
             }
+            /*Leggiamo dei dati codificati dall'encoder
 
+             Da outAVCodecContext a outPacket*/
             value = avcodec_receive_packet(outAVCodecContext, outPacket); // Legge i dati codificati dall'encoder.
             if (value == AVERROR(EAGAIN))
             {
@@ -1157,9 +1173,9 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 */
 
                 //DA QUI
-                outFile << "outPacket->duration: " << outPacket->duration << ", " << "pAVPacket->duration: " << pAVPacket->duration << endl;
-                outFile << "outPacket->pts: " << outPacket->pts << ", " << "pAVPacket->pts: " << pAVPacket->pts << endl;
-                outFile << "outPacket.dts: " << outPacket->dts << ", " << "pAVPacket->dts: " << pAVPacket->dts << endl;
+                outFile << "outPacket->duration: " << outPacket->duration << "\n" << "pAVPacket->duration: " << pAVPacket->duration << endl;
+                outFile << "outPacket->pts: " << outPacket->pts << "\n" << "pAVPacket->pts: " << pAVPacket->pts << endl;
+                outFile << "outPacket.dts: " << outPacket->dts << "\n" << "pAVPacket->dts: " << pAVPacket->dts << "\n"<< endl;
                 time_t timer;
                 double seconds;
 
@@ -1178,6 +1194,13 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 mu.unlock();
                
                 write_lock.lock();
+                cout << "\n Scrivo VIDEO" << endl;
+                /*Scriviamo il pacchetto in un output media file.
+                NB: Per l'audio viene usato av_interleaved_write_frame()...come mai?
+                NB: A differenza di av_interleaved_write_frame(), av_write_frame non effettua nessuna copia 
+                dei pacchetti nel buffer => più efficiente, meno efficace
+                
+                Da outPacket a outAVFormatContext*/
                 if (av_write_frame(outAVFormatContext, outPacket) != 0)
                 {
                     cout << "\nError in writing video frame";
@@ -1564,12 +1587,12 @@ void ScreenRecorder::captureAudio() {
                         outPacket->stream_index = outAudioStreamIndex;
 
                         write_lock.lock();
-
-                        cout << outAVFormatContext << " " << outPacket << endl;
+                        cout << "\n Scrivo AUDIO" << endl;
+                        //cout << outAVFormatContext << " " << outPacket << endl;
                         /*Scriviamo il pacchettoin un output media file assicurandoci un corretto interleaving.
                          Questa funzione eseguirà il buffering dei pacchetti internamente, assicurarandosi che i pacchetti
                          nel file di output siano correttamente interleavati nell'ordine di dts crescente.
-
+                         
                          Da outPacket a outAVFormatContext*/
                         if (av_interleaved_write_frame(outAVFormatContext, outPacket) != 0)
                             //if (av_write_frame(outAVFormatContext, outPacket) != 0)
