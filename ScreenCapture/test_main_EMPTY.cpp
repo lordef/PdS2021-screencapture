@@ -4,11 +4,9 @@
 
 using namespace std;
 
+
 int main()
 {
-	struct timespec systemtime;
-	clock_gettime(CLOCK_MONOTONIC, &systemtime);
-
 	// string hello = "hello";
 	// cout << hello << endl;
 	return 0;
