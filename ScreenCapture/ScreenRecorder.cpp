@@ -70,7 +70,7 @@ std::string retrieveTimestamp()
 
 /* initialize the resources*/
 ScreenRecorder::ScreenRecorder() : pauseCapture(false), stopCapture(false), started(false), activeMenu(true), //Aggiornato
-                                   magicNumber(300), cropX(0), cropY(0), cropH(1080), cropW(1920) //Aggiornato
+                                   magicNumber(3000), cropX(0), cropY(0), cropH(1080), cropW(1920) //Aggiornato
 {
 
     // av_register_all(); //Funzione di inizializzazione deprecata. Può essere tranquillamente omessa.
@@ -1194,6 +1194,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 mu.unlock();
                
                 write_lock.lock();
+                //cout << outPacket << endl;
                 cout << "\n Scrivo VIDEO" << endl;
                 /*Scriviamo il pacchetto in un output media file.
                 NB: Per l'audio viene usato av_interleaved_write_frame()...come mai?
@@ -1201,7 +1202,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 dei pacchetti nel buffer => più efficiente, meno efficace
                 
                 Da outPacket a outAVFormatContext*/
-                if (av_write_frame(outAVFormatContext, outPacket) != 0)
+                if (av_interleaved_write_frame(outAVFormatContext, outPacket) != 0)
                 {
                     cout << "\nError in writing video frame";
                 }
@@ -1587,6 +1588,7 @@ void ScreenRecorder::captureAudio() {
                         outPacket->stream_index = outAudioStreamIndex;
 
                         write_lock.lock();
+                        //cout << outPacket << endl;
                         cout << "\n Scrivo AUDIO" << endl;
                         //cout << outAVFormatContext << " " << outPacket << endl;
                         /*Scriviamo il pacchettoin un output media file assicurandoci un corretto interleaving.
