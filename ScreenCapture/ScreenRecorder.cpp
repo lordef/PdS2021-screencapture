@@ -70,7 +70,9 @@ std::string retrieveTimestamp()
 
 /* initialize the resources*/
 ScreenRecorder::ScreenRecorder() : pauseCapture(false), stopCapture(false), started(false), activeMenu(true), //Aggiornato
-                                   magicNumber(3000), cropX(0), cropY(0), cropH(1080), cropW(1920) //Aggiornato
+                                   magicNumber(3000), cropX(0), cropY(0), cropH(1080), cropW(1920) 
+                                   //Aggiornato - magicNumber=3000
+                                   // #TODO: usare funzione di rilevazione risluzioni implementata per linux
 {
 
     // av_register_all(); //Funzione di inizializzazione deprecata. Può essere tranquillamente omessa.
@@ -1597,7 +1599,7 @@ void ScreenRecorder::captureAudio() {
                          
                          Da outPacket a outAVFormatContext*/
                         if (av_interleaved_write_frame(outAVFormatContext, outPacket) != 0)
-                            //if (av_write_frame(outAVFormatContext, outPacket) != 0)
+                        // era: if (av_write_frame(outAVFormatContext, outPacket) != 0)
                         {
                             cerr << "Error in writing audio frame" << endl;
                         }
