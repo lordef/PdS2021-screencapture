@@ -9,6 +9,8 @@ ffmpeg
         
     - git clone https://github.com/FFmpeg/FFmpeg.git
     - cd FFmpeg/
-    - ./configure --enable-libxcb --enable-libxcb-shm --enable-libxcb-xfixes --enable-libxcb-shape --enable-libpulse
+    - ./configure --enable-libxcb --enable-libxcb-shm --enable-libxcb-xfixes --enable-libxcb-shape --enable-libpulse //TODO:versione lorenzo e isabella rispettivamente
+        oppure
+    - ./configure --enable-libxcb --enable-libxcb-shm --enable-libxcb-xfixes --enable-libxcb-shape --enable-libpulse --enable-protocol=file 
     - make
     - sudo make install
