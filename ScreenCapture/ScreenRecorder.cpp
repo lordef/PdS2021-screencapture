@@ -581,7 +581,8 @@ int ScreenRecorder::initOutputFile() {
 #endif 
     //create an empty video file
     if (!(outAVFormatContext->flags & AVFMT_NOFILE)) {
-        if (avio_open2(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE, nullptr, nullptr) < 0) {
+        int ret_avio = avio_open2(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE, nullptr, nullptr);
+        if (ret_avio < 0) {
             cerr << "Error in creating the video file" << endl;
             exit(-10);
         }
