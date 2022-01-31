@@ -562,7 +562,9 @@ int ScreenRecorder::initOutputFile() {
     }
 
     #ifdef __linux__
-        string completeName = "..//media//" + outputName;        
+        //string completeName = "../media/" + outputName;
+        string completeName = "../media/output.mp4"; //FIXME:        
+        
     #elif _WIN32
         string completeName = "..\\media\\" + outputName;
     #endif
@@ -581,7 +583,8 @@ int ScreenRecorder::initOutputFile() {
 #endif 
     //create an empty video file
     if (!(outAVFormatContext->flags & AVFMT_NOFILE)) {
-        int ret_avio = avio_open2(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE, nullptr, nullptr);
+        //int ret_avio = avio_open2(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE, nullptr, nullptr);
+        int ret_avio = avio_open(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE);
         if (ret_avio < 0) {
             cerr << "Error in creating the video file" << endl;
             exit(-10);
