@@ -1,4 +1,8 @@
 #TODO: cancella questo file
 
+
+Configurazioni: 
+- alsa -i default
+ 
 File utile per capire con che parametri avviene la desincronizzazione
 - provare a capire con valori magicNumber

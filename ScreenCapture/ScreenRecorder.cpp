@@ -564,7 +564,7 @@ int ScreenRecorder::initOutputFile() {
     #ifdef __linux__
         //string completeName = "../media/" + outputName; //FIXME:non funziona
         //string completeName = "output.mp4"; //funziona     
-        string completeName = "media/output.mp4";   
+        string completeName = "media/output.mp4"; //funziona
  
         
     #elif _WIN32
