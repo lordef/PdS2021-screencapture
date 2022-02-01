@@ -21,11 +21,14 @@
 	#include "ListAVDevices.h"
 #endif
 
+
 #include <ctime>//Nuovo
 #include <sstream>//Nuovo
 
 
 #define AUDIO 1 //Nuovo
+#define RUN 0 //#TODO: utile per debuggare, eliminare prima della consegna -> cerca nel codice "#if RUN == 1" ed elimianre
+
 
 
 #define __STDC_CONSTANT_MACROS

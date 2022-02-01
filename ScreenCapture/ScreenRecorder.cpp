@@ -571,9 +571,18 @@ int ScreenRecorder::initOutputFile() {
     }
 
     #ifdef __linux__
-        //string completeName = "../media/" + outputName; //FIXME:non funziona
-        //string completeName = "output.mp4"; //funziona     
-        string completeName = "media/output.mp4"; //funziona        
+        /* 
+            N.B.:   IN DEBUG la cartella di partenza è quella in cui di trova questo file stesso
+                    IN RUN la cartella di partenza è quella del progetto in sé
+        */
+        // string completeName = "../media/" + outputName; // DEBUG
+        // string completeName = "media/output.mp4"; // RUN   
+        // string completeName = "../media/" + outputName; // DEBUG  
+        #if RUN == 1
+            string completeName = "media/" + outputName; // RUN 
+        #else
+            string completeName = "../media/" + outputName; // DEBUG 
+        #endif   
     #elif _WIN32
         string completeName = "..\\media\\" + outputName;
     #endif
@@ -835,7 +844,11 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     int numPause = 0;
     AVFrame* croppedFrame; //#TODO: questa variabile non viene usata
     #ifdef __linux__
-        ofstream outFile{ "../media/" + timestamp + "_log.txt", ios::out};
+        #if RUN == 1 
+            ofstream outFile{ "media/" + timestamp + "_log.txt", ios::out}; // RUN
+        #else  
+            ofstream outFile{ "../media/" + timestamp + "_log.txt", ios::out}; // DEBUG
+        #endif 
     #elif _WIN32
         ofstream outFile{ "..\\media\\" + timestamp + "_log.txt", ios::out};
     #endif
