@@ -150,11 +150,12 @@ private:
 	int w, h; //Nuovo
 	std::string timestamp;//Nuovo
 	std::string deviceName;
-
+	double fps;
 
 
 public:
-
+	int ptsA;
+	int ptsV;
 	ScreenRecorder();
 	~ScreenRecorder();
 
