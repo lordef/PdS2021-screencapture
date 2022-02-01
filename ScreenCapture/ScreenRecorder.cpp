@@ -70,7 +70,7 @@ std::string retrieveTimestamp()
 
 /* initialize the resources*/
 ScreenRecorder::ScreenRecorder() : pauseCapture(false), stopCapture(false), started(false), activeMenu(true), //Aggiornato
-                                   magicNumber(3000), cropX(0), cropY(0), cropH(1080), cropW(1920) 
+                                   magicNumber(100), cropX(0), cropY(0), cropH(1080), cropW(1920) 
                                    //Aggiornato - magicNumber=3000
                                    // #TODO: usare funzione di rilevazione risluzioni implementata per linux
 {
@@ -571,9 +571,9 @@ int ScreenRecorder::initOutputFile() {
     }
 
     #ifdef __linux__
-        //string completeName = "../media/" + outputName; //FIXME:non funziona
-        //string completeName = "output.mp4"; //funziona     
-        string completeName = "media/output.mp4"; //funziona        
+        // string completeName = "../media/" + outputName; //FIXME:funziona per L, non per I SOLO IN DEBUG
+        // string completeName = "output.mp4"; //funziona per L ed I IN DEBUG, per L in RUN - Attenzione: in debug salva in ScreeenCapture, in tun salva in screecapture 
+        string completeName = "media/output.mp4"; //funziona per I        
     #elif _WIN32
         string completeName = "..\\media\\" + outputName;
     #endif
