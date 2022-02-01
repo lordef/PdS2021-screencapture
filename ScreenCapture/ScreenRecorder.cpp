@@ -511,9 +511,16 @@ int ScreenRecorder::openAudioDevice() {
     }
 
 #elif _WIN32
+    if (deviceName == "") {
+        deviceName = DS_GetDefaultDevice("a");
+        if (deviceName == "") {
+            throw std::runtime_error("Fail to get default audio device, maybe no microphone.");
+        }
+    }
+    deviceName = "audio=" + deviceName;
     audioInputFormat = av_find_input_format("dshow");
     //value = avformat_open_input(&inAudioFormatContext, "audio=Microfono (Realtek(R) Audio)", audioInputFormat, &audioOptions);
-    value = avformat_open_input(&inAudioFormatContext, "audio=Microphone Array (Realtek(R) Audio)", audioInputFormat, &audioOptions);
+    value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions);
     if (value != 0) {
         cerr << "Error in opening input device (audio)" << endl;
         exit(-1);

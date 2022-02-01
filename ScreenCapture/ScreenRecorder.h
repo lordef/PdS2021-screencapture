@@ -8,6 +8,7 @@
 #include <cstring>
 #include <math.h>
 #include <string>//Aggiornato -> era #include <string.h>
+#include "ListAVDevices.h"
 
 #include <thread>//Nuovo
 #include <mutex>//Nuovo
@@ -148,6 +149,7 @@ private:
 	int width, height; //Nuovo
 	int w, h; //Nuovo
 	std::string timestamp;//Nuovo
+	std::string deviceName;
 
 
 
