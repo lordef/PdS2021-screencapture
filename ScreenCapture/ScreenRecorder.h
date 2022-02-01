@@ -18,6 +18,7 @@
 #elif _WIN32
 	#include <Windows.h>//Nuovo
 	#include <WinUser.h>//Nuovo
+	#include "ListAVDevices.h"
 #endif
 
 #include <ctime>//Nuovo
@@ -119,7 +120,9 @@ private:
 	const char* dev_name;
 	const char* output_file;
 
-	double video_pts;
+	// double video_pts;
+	int ptsA;
+	int ptsV;
 
 	int magicNumber;//Nuovo
 	int cropX; //Nuovo
@@ -148,11 +151,10 @@ private:
 	int width, height; //Nuovo
 	int w, h; //Nuovo
 	std::string timestamp;//Nuovo
-
-
+	std::string deviceName;
+	double fps;
 
 public:
-
 	ScreenRecorder();
 	~ScreenRecorder();
 

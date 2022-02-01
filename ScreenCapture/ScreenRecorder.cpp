@@ -403,7 +403,8 @@ int ScreenRecorder::openCamera()
     }
     pCodecParameters = pAVFormatContext->streams[VideoStreamIndx]->codecpar;
     pAVCodec = const_cast<AVCodec*>(avcodec_find_decoder(pAVFormatContext->streams[VideoStreamIndx]->codecpar->codec_id)); 
-
+    fps = av_q2d(pAVFormatContext->streams[VideoStreamIndx]->r_frame_rate); //TODO: test on linux
+    cout << "\nfps= " << fps << endl;
 
     if (pAVCodec == nullptr)
     {
@@ -463,6 +464,7 @@ int ScreenRecorder::openAudioDevice() {
     inAudioFormatContext = nullptr;
 
     inAudioFormatContext = avformat_alloc_context();
+    
     value = av_dict_set(&audioOptions, "sample_rate", "44100", 0);
     if (value < 0) {
         cerr << "Error: cannot set audio sample rate" << endl;
@@ -511,9 +513,16 @@ int ScreenRecorder::openAudioDevice() {
     }
 
 #elif _WIN32
+    if (deviceName == "") {
+        deviceName = DS_GetDefaultDevice("a");
+        if (deviceName == "") {
+            throw std::runtime_error("Fail to get default audio device, maybe no microphone.");
+        }
+    }
+    deviceName = "audio=" + deviceName;
     audioInputFormat = av_find_input_format("dshow");
     //value = avformat_open_input(&inAudioFormatContext, "audio=Microfono (Realtek(R) Audio)", audioInputFormat, &audioOptions);
-    value = avformat_open_input(&inAudioFormatContext, "audio=Microphone Array (Realtek(R) Audio)", audioInputFormat, &audioOptions);
+    value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions);
     if (value != 0) {
         cerr << "Error in opening input device (audio)" << endl;
         exit(-1);
@@ -564,9 +573,7 @@ int ScreenRecorder::initOutputFile() {
     #ifdef __linux__
         //string completeName = "../media/" + outputName; //FIXME:non funziona
         //string completeName = "output.mp4"; //funziona     
-        string completeName = "media/output.mp4"; //funziona
- 
-        
+        string completeName = "media/output.mp4"; //funziona        
     #elif _WIN32
         string completeName = "..\\media\\" + outputName;
     #endif
@@ -587,7 +594,7 @@ int ScreenRecorder::initOutputFile() {
     if (!(outAVFormatContext->flags & AVFMT_NOFILE)) {
         //int ret_avio = avio_open2(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE, nullptr, nullptr);
         int ret_avio = avio_open(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE);
-        if (ret_avio < 0) {
+        if (ret_avio < 0) {            
             cerr << "Error in creating the video file" << endl;
             exit(-10);
         }
@@ -1201,9 +1208,12 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 }
                 mu.unlock();
                
-                write_lock.lock();
+                unique_lock<mutex> ul(write_lock);
+                ptsV = outPacket->pts;
+                //cv.wait(ul, [this]() {return ptsA > ptsV; });
+                
                 //cout << outPacket << endl;
-                cout << "\n Scrivo VIDEO" << endl;
+                cout << "\n Scrivo pts-VIDEO: " << ptsV << endl;
                 /*Scriviamo il pacchetto in un output media file.
                 NB: Per l'audio viene usato av_interleaved_write_frame()...come mai?
                 NB: A differenza di av_interleaved_write_frame(), av_write_frame non effettua nessuna copia 
@@ -1215,7 +1225,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                     cout << "\nError in writing video frame";
                 }
                 
-                write_lock.unlock(); 
+                ul.unlock(); 
                 av_packet_free(&outPacket); 
                  //A QUI
                 // av_packet_unref(&outPacket);
@@ -1510,7 +1520,7 @@ void ScreenRecorder::captureAudio() {
         da inAudioFormatContext a inPacket*/
         if (av_read_frame(inAudioFormatContext, inPacket) >= 0 && inPacket->stream_index == audioStreamIndx) {
             //decode audio routing
-            av_packet_rescale_ts(outPacket, inAudioFormatContext->streams[audioStreamIndx]->time_base, inAudioCodecContext->time_base);
+            av_packet_rescale_ts(inPacket, inAudioFormatContext->streams[audioStreamIndx]->time_base, inAudioCodecContext->time_base);
             /* Forniamo un pacchetto grezzo come input al decoder
 
             Da inPacket a inAudioCodecContext*/
@@ -1595,9 +1605,12 @@ void ScreenRecorder::captureAudio() {
 
                         outPacket->stream_index = outAudioStreamIndex;
 
-                        write_lock.lock();
+                        unique_lock<mutex> ul(write_lock);
+                        //cv.notify_one();
+                        ptsA = outPacket->pts;
+                        
                         //cout << outPacket << endl;
-                        cout << "\n Scrivo AUDIO" << endl;
+                        cout << "\n Scrivo pts-AUDIO: "<< ptsA << endl;
                         //cout << outAVFormatContext << " " << outPacket << endl;
                         /*Scriviamo il pacchettoin un output media file assicurandoci un corretto interleaving.
                          Questa funzione eseguirà il buffering dei pacchetti internamente, assicurarandosi che i pacchetti
@@ -1609,7 +1622,8 @@ void ScreenRecorder::captureAudio() {
                         {
                             cerr << "Error in writing audio frame" << endl;
                         }
-                        write_lock.unlock();
+                        
+                        ul.unlock();
                         av_packet_unref(outPacket);
                     }
                     ret = 0;
