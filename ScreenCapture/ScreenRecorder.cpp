@@ -403,7 +403,7 @@ int ScreenRecorder::openCamera()
     }
     pCodecParameters = pAVFormatContext->streams[VideoStreamIndx]->codecpar;
     pAVCodec = const_cast<AVCodec*>(avcodec_find_decoder(pAVFormatContext->streams[VideoStreamIndx]->codecpar->codec_id)); 
-    fps = av_q2d(pAVFormatContext->streams[VideoStreamIndx]->r_frame_rate);
+    fps = av_q2d(pAVFormatContext->streams[VideoStreamIndx]->r_frame_rate); //TODO: test on linux
     cout << "\nfps= " << fps << endl;
 
     if (pAVCodec == nullptr)
@@ -571,7 +571,9 @@ int ScreenRecorder::initOutputFile() {
     }
 
     #ifdef __linux__
-        string completeName = "..//media//" + outputName;        
+        //string completeName = "../media/" + outputName; //FIXME:non funziona
+        //string completeName = "output.mp4"; //funziona     
+        string completeName = "media/output.mp4"; //funziona        
     #elif _WIN32
         string completeName = "..\\media\\" + outputName;
     #endif
@@ -590,7 +592,9 @@ int ScreenRecorder::initOutputFile() {
 #endif 
     //create an empty video file
     if (!(outAVFormatContext->flags & AVFMT_NOFILE)) {
-        if (avio_open2(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE, nullptr, nullptr) < 0) {
+        //int ret_avio = avio_open2(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE, nullptr, nullptr);
+        int ret_avio = avio_open(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE);
+        if (ret_avio < 0) {            
             cerr << "Error in creating the video file" << endl;
             exit(-10);
         }

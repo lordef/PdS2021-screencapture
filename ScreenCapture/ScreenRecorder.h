@@ -8,7 +8,6 @@
 #include <cstring>
 #include <math.h>
 #include <string>//Aggiornato -> era #include <string.h>
-#include "ListAVDevices.h"
 
 #include <thread>//Nuovo
 #include <mutex>//Nuovo
@@ -19,6 +18,7 @@
 #elif _WIN32
 	#include <Windows.h>//Nuovo
 	#include <WinUser.h>//Nuovo
+	#include "ListAVDevices.h"
 #endif
 
 #include <ctime>//Nuovo
@@ -120,7 +120,9 @@ private:
 	const char* dev_name;
 	const char* output_file;
 
-	double video_pts;
+	// double video_pts;
+	int ptsA;
+	int ptsV;
 
 	int magicNumber;//Nuovo
 	int cropX; //Nuovo
@@ -152,10 +154,7 @@ private:
 	std::string deviceName;
 	double fps;
 
-
 public:
-	int ptsA;
-	int ptsV;
 	ScreenRecorder();
 	~ScreenRecorder();
 
