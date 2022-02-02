@@ -4,13 +4,12 @@
 using namespace std;
 static int64_t last_pts = AV_NOPTS_VALUE; //Nuovo
 
-/*Funzioni utili da spostare #TODO*/
+/******* #TODO: Funzioni utili da spostare *****************/
 #include <bits/stdc++.h>
 
 #ifdef __linux__
 #include <X11/Xlib.h> //useful lib installed: sudo apt install libx11-dev 
 #include<tuple>
-
 
 tuple<int, int> retrieveDisplayDimention()
 {
@@ -26,7 +25,6 @@ tuple<int, int> retrieveDisplayDimention()
 }
 
 #endif
-
 
 /* Recupero timestamp */
 std::string retrieveTimestamp()
@@ -68,9 +66,10 @@ std::string retrieveTimestamp()
 
 /****************************/
 
-/* initialize the resources*/
-ScreenRecorder::ScreenRecorder() : pauseCapture(false), stopCapture(false), started(false), activeMenu(true), //Aggiornato
-                                   magicNumber(3000), cropX(0), cropY(0), cropH(1080), cropW(1920) 
+/* Definiamo il COSTRUTTORE */
+/* Initialize the resources*/
+ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), started(true), activeMenu(true), 
+                                   magicNumber(100), cropX(0), cropY(0), cropH(1080), cropW(1920) 
                                    //Aggiornato - magicNumber=3000
                                    // #TODO: usare funzione di rilevazione risluzioni implementata per linux
 {
@@ -85,9 +84,9 @@ ScreenRecorder::ScreenRecorder() : pauseCapture(false), stopCapture(false), star
     cout << "\nAll required functions are registered successfully\n";
 }
 
-// Definiamo il distruttore
+/* Definiamo il DISTRUTTORE */
 /* uninitialize the resources */
-ScreenRecorder::~ScreenRecorder() //Aggiornato
+ScreenRecorder::~ScreenRecorder()
 {
     if (started) {
         /*value = av_write_trailer(outAVFormatContext);
@@ -138,9 +137,81 @@ ScreenRecorder::~ScreenRecorder() //Aggiornato
     
 }
 
-/*==================================== VIDEO ==============================*/
+/* Inizializzazione file di output e suo risorse */
+int ScreenRecorder::initOutputFile() {
+    value = 0;
 
-/* establishing the connection between camera or screen through its respective folder */
+    outAVFormatContext = nullptr;
+    /* #TODO: vedi funzione retrieceTimestamp */
+    // time_t result = time(nullptr);
+    // stringstream ss;
+    // ss << time;
+    // timestamp = ss.str();
+
+    string outputName = timestamp + "_output.mp4";
+
+    outputAVFormat = const_cast<AVOutputFormat*>(av_guess_format(nullptr, outputName.c_str(), nullptr));
+
+    if (outputAVFormat == nullptr) {
+        cerr << "Error in guessing the video format, try with correct format" << endl;
+        exit(-5);
+    }
+
+    #ifdef __linux__
+        /* 
+            N.B.:   IN DEBUG la cartella di partenza è quella in cui di trova questo file stesso
+                    IN RUN la cartella di partenza è quella del progetto in sé
+        */
+        // string completeName = "../media/" + outputName; // DEBUG
+        // string completeName = "media/output.mp4"; // RUN   
+        // string completeName = "../media/" + outputName; // DEBUG  
+        #if RUN == 1
+            string completeName = "media/" + outputName; // RUN 
+        #else
+            string completeName = "../media/" + outputName; // DEBUG 
+        #endif   
+    #elif _WIN32
+        string completeName = "..\\media\\" + outputName;
+    #endif
+
+    avformat_alloc_output_context2(&outAVFormatContext, outputAVFormat, outputAVFormat->name, completeName.c_str());
+    if (outAVFormatContext == nullptr) {
+        cerr << "Error in allocating outAVFormatContext" << endl;
+        exit(-4);
+    }
+
+
+    /*===========================================================================*/
+    this->generateVideoStream();
+    if (isAudioActive)
+        this->generateAudioStream();
+
+    //create an empty video file
+    if (!(outAVFormatContext->flags & AVFMT_NOFILE)) {
+        //int ret_avio = avio_open2(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE, nullptr, nullptr);
+        int ret_avio = avio_open(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE);
+        if (ret_avio < 0) {            
+            cerr << "Error in creating the video file" << endl;
+            exit(-10);
+        }
+    }
+
+    if (outAVFormatContext->nb_streams == 0) {
+        cerr << "Output file does not contain any stream" << endl;
+        exit(-11);
+    }
+    value = avformat_write_header(outAVFormatContext, &options);
+    if (value < 0) {
+        cerr << "Error in writing the header context" << endl;
+        exit(-12);
+    }
+    return 0;
+}
+
+
+/***************************** VIDEO *****************************/
+
+/* Establishing the connection between camera or screen through its respective folder */
 //int ScreenRecorder::openCamera() throw() //#FIXME
 int ScreenRecorder::openCamera()
 {
@@ -457,173 +528,7 @@ int ScreenRecorder::openCamera()
     return 0;
 }
 
-/*==========================================  AUDIO  ============================*/
-
-int ScreenRecorder::openAudioDevice() {
-    audioOptions = nullptr;
-    inAudioFormatContext = nullptr;
-
-    inAudioFormatContext = avformat_alloc_context();
-    
-    value = av_dict_set(&audioOptions, "sample_rate", "44100", 0);
-    if (value < 0) {
-        cerr << "Error: cannot set audio sample rate" << endl;
-        exit(-1);
-    }
-    value = av_dict_set(&audioOptions, "async", "1", 0);
-    if (value < 0) {
-        cerr << "Error: cannot set audio sample rate" << endl;
-        exit(-1);
-    }
-
-#ifdef __linux__
-    // audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("alsa")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
-    // value = avformat_open_input(&inAudioFormatContext, "default", audioInputFormat, &audioOptions); // #TODO: ci stava hw:1, potrebbe essere hw:0
-    //Questi comandi funzionano: 
-    // ffmpeg -f alsa -i default -t 30 out.wav
-    // ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0 output.mp4
-    // Il seguente comando è una combianzione dei precedenti, funziona ed è sincronizzato:
-    // ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0 -f alsa -i default -t 30 av_output.mp4
-
-    // #TODO: capire se utilizzare 'pulse' invece di alsa
-    audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("alsa")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato   
-    
-    // const char* url = "alsa_input.pci-0000_00_1f.3.analog-stereo"; //funziona con pulse
-    const char* url = "default"; // funziona con alsa
-    // const char* url = "hw:0"; // NON funziona con alsa
-
-
-    // value = avformat_open_input(&inAudioFormatContext, "alsa_input.pci-0000_00_1f.3.analog-stereo", audioInputFormat, &audioOptions); //così funziona
-    value = avformat_open_input(&inAudioFormatContext, url, audioInputFormat, &audioOptions); //così funziona
-
-    // FIXME: invece di mettere alsa_input.pci... 
-    // ritrovato da comando bash: pacmd list-sources | grep -e 'index:' -e device.string -e 'name:': 
-    //Provare a utilizzare un'API di PulseAudio tramite qaulcosa di simile:
-    /* vedi: https://stackoverflow.com/questions/67627232/fetching-device-description-using-alsa-soundlib-in-c
-    #include <pulse/proplist.h> // aggiungere libpulse a tasks.json
-	pa_proplist* test = pa_card_info::proplist; 
-    
-    */ 
-    
-
-
-    if (value != 0) {
-        cerr << "Error in opening input device (audio)" << endl;
-        exit(-1);
-    }
-
-#elif _WIN32
-    if (deviceName == "") {
-        deviceName = DS_GetDefaultDevice("a");
-        if (deviceName == "") {
-            throw std::runtime_error("Fail to get default audio device, maybe no microphone.");
-        }
-    }
-    deviceName = "audio=" + deviceName;
-    audioInputFormat = av_find_input_format("dshow");
-    //value = avformat_open_input(&inAudioFormatContext, "audio=Microfono (Realtek(R) Audio)", audioInputFormat, &audioOptions);
-    value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions);
-    if (value != 0) {
-        cerr << "Error in opening input device (audio)" << endl;
-        exit(-1);
-    }
-#endif
-
-    value = avformat_find_stream_info(inAudioFormatContext, nullptr);
-    if (value != 0) {
-        cerr << "Error: cannot find the audio stream information" << endl;
-        exit(-1);
-    }
-
-    audioStreamIndx = -1;
-    for (int i = 0; i < inAudioFormatContext->nb_streams; i++) {
-        if (inAudioFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
-            audioStreamIndx = i;
-            break;
-        }
-    }
-    if (audioStreamIndx == -1) {
-        cerr << "Error: unable to find audio stream index" << endl;
-        exit(-2);
-    }
-    
-    return 0; 
-
-}
-
-int ScreenRecorder::initOutputFile() {
-    value = 0;
-
-    outAVFormatContext = nullptr;
-    /* #TODO: vedi funzione retrieceTimestamp */
-    // time_t result = time(nullptr);
-    // stringstream ss;
-    // ss << time;
-    // timestamp = ss.str();
-
-    string outputName = timestamp + "_output.mp4";
-
-    outputAVFormat = const_cast<AVOutputFormat*>(av_guess_format(nullptr, outputName.c_str(), nullptr));
-
-    if (outputAVFormat == nullptr) {
-        cerr << "Error in guessing the video format, try with correct format" << endl;
-        exit(-5);
-    }
-
-    #ifdef __linux__
-        /* 
-            N.B.:   IN DEBUG la cartella di partenza è quella in cui di trova questo file stesso
-                    IN RUN la cartella di partenza è quella del progetto in sé
-        */
-        // string completeName = "../media/" + outputName; // DEBUG
-        // string completeName = "media/output.mp4"; // RUN   
-        // string completeName = "../media/" + outputName; // DEBUG  
-        #if RUN == 1
-            string completeName = "media/" + outputName; // RUN 
-        #else
-            string completeName = "../media/" + outputName; // DEBUG 
-        #endif   
-    #elif _WIN32
-        string completeName = "..\\media\\" + outputName;
-    #endif
-
-    avformat_alloc_output_context2(&outAVFormatContext, outputAVFormat, outputAVFormat->name, completeName.c_str());
-    if (outAVFormatContext == nullptr) {
-        cerr << "Error in allocating outAVFormatContext" << endl;
-        exit(-4);
-    }
-
-
-    /*===========================================================================*/
-    this->generateVideoStream();
-#if AUDIO
-    this->generateAudioStream();
-#endif 
-    //create an empty video file
-    if (!(outAVFormatContext->flags & AVFMT_NOFILE)) {
-        //int ret_avio = avio_open2(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE, nullptr, nullptr);
-        int ret_avio = avio_open(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE);
-        if (ret_avio < 0) {            
-            cerr << "Error in creating the video file" << endl;
-            exit(-10);
-        }
-    }
-
-    if (outAVFormatContext->nb_streams == 0) {
-        cerr << "Output file does not contain any stream" << endl;
-        exit(-11);
-    }
-    value = avformat_write_header(outAVFormatContext, &options);
-    if (value < 0) {
-        cerr << "Error in writing the header context" << endl;
-        exit(-12);
-    }
-    return 0;
-}
-
-/*==================================== VIDEO ==============================*/
-
-/* initialize the video output file and its properties  */
+/* Initialize the video output file and its properties  */
 void ScreenRecorder::generateVideoStream() //Nome aggiornato
 {
     // Trova un codificatore (encoder) che matcha con l'ID_codec indicato.
@@ -831,8 +736,9 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     */
 }
 
+
 /* 
-funzione per acquisire e memorizzare i dati in frame allocando la memoria richiesta 
+Funzione per acquisire e memorizzare i dati in frame allocando la memoria richiesta 
 e rilasciando automaticamente la memoria 
 */
 int ScreenRecorder::captureVideoFrames() //Da sistemare
@@ -1035,19 +941,19 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
         cout << "\noutFrame->buf: " << outFrame->buf;
         */
         //Da qui
-        if (pauseCapture) {
+        if (pauseSC) {
             cout << "Pause" << endl;
             outFile << "///////////////////   Pause  ///////////////////" << endl;
             cout << "outAVCodecContext->time_base: " << outAVCodecContext->time_base.num << ", " << outAVCodecContext->time_base.den << endl;
         }
         std::unique_lock<std::mutex> ul(mu);
 
-        cv.wait(ul, [this]() { return !pauseCapture; });   //pause capture (not busy waiting)
+        cv.wait(ul, [this]() { return !pauseSC; });   //pause capture (not busy waiting)
         if (endPause) {
             endPause = false;
         }
 
-        if (stopCapture)  //check if the capture has to stop
+        if (stopSC)  //check if the capture has to stop
             break;
 
         ul.unlock();
@@ -1208,6 +1114,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 double seconds;
 
                 mu.lock();
+
                 if (!activeMenu) {
                     time(&timer);
                     seconds = difftime(timer, startTime);
@@ -1239,6 +1146,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 }
                 
                 ul.unlock(); 
+
                 av_packet_free(&outPacket); 
                  //A QUI
                 // av_packet_unref(&outPacket);
@@ -1286,7 +1194,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
         
     } // End of while-loop
 
-    stopCapture = true;//Nuovo
+    stopSC = true;
     av_packet_free(&outPacket);//Nuovo
     /*
      * Scrive il trailer dello stream in un file multimediale di output e
@@ -1319,7 +1227,105 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     return 0;
 }
 
-/*==========================================  AUDIO  ============================*///NUOVO
+
+/***************************** FINE - VIDEO *****************************/
+
+
+/***************************** AUDIO *****************************/
+
+int ScreenRecorder::openAudioDevice() {
+    audioOptions = nullptr;
+    inAudioFormatContext = nullptr;
+
+    inAudioFormatContext = avformat_alloc_context();
+    
+    value = av_dict_set(&audioOptions, "sample_rate", "44100", 0);
+    if (value < 0) {
+        cerr << "Error: cannot set audio sample rate" << endl;
+        exit(-1);
+    }
+    value = av_dict_set(&audioOptions, "async", "1", 0);
+    if (value < 0) {
+        cerr << "Error: cannot set audio sample rate" << endl;
+        exit(-1);
+    }
+
+#ifdef __linux__
+    // audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("alsa")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
+    // value = avformat_open_input(&inAudioFormatContext, "default", audioInputFormat, &audioOptions); // #TODO: ci stava hw:1, potrebbe essere hw:0
+    //Questi comandi funzionano: 
+    // ffmpeg -f alsa -i default -t 30 out.wav
+    // ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0 output.mp4
+    // Il seguente comando è una combianzione dei precedenti, funziona ed è sincronizzato:
+    // ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0 -f alsa -i default -t 30 av_output.mp4
+
+    // #TODO: capire se utilizzare 'pulse' invece di alsa
+    audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("alsa")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato   
+    
+    // const char* url = "alsa_input.pci-0000_00_1f.3.analog-stereo"; //funziona con pulse
+    // const char* url = "hw:0"; // NON funziona con alsa
+    // const char* url = "default"; // funziona con alsa
+    deviceName = "default";
+
+    // value = avformat_open_input(&inAudioFormatContext, "alsa_input.pci-0000_00_1f.3.analog-stereo", audioInputFormat, &audioOptions); //così funziona
+    // value = avformat_open_input(&inAudioFormatContext, url, audioInputFormat, &audioOptions); //così funziona
+        value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions); //così funziona
+
+
+    // FIXME: invece di mettere alsa_input.pci... 
+    // ritrovato da comando bash: pacmd list-sources | grep -e 'index:' -e device.string -e 'name:': 
+    //Provare a utilizzare un'API di PulseAudio tramite qaulcosa di simile:
+    /* vedi: https://stackoverflow.com/questions/67627232/fetching-device-description-using-alsa-soundlib-in-c
+    #include <pulse/proplist.h> // aggiungere libpulse a tasks.json
+	pa_proplist* test = pa_card_info::proplist; 
+    
+    */ 
+    
+
+
+    if (value != 0) {
+        cerr << "Error in opening input device (audio)" << endl;
+        exit(-1);
+    }
+
+#elif _WIN32
+    if (deviceName == "") {
+        deviceName = DS_GetDefaultDevice("a");
+        if (deviceName == "") {
+            throw std::runtime_error("Fail to get default audio device, maybe no microphone.");
+        }
+    }
+    deviceName = "audio=" + deviceName;
+    audioInputFormat = av_find_input_format("dshow");
+    //value = avformat_open_input(&inAudioFormatContext, "audio=Microfono (Realtek(R) Audio)", audioInputFormat, &audioOptions);
+    value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions);
+    if (value != 0) {
+        cerr << "Error in opening input device (audio)" << endl;
+        exit(-1);
+    }
+#endif
+
+    value = avformat_find_stream_info(inAudioFormatContext, nullptr);
+    if (value != 0) {
+        cerr << "Error: cannot find the audio stream information" << endl;
+        exit(-1);
+    }
+
+    audioStreamIndx = -1;
+    for (int i = 0; i < inAudioFormatContext->nb_streams; i++) {
+        if (inAudioFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO) {
+            audioStreamIndx = i;
+            break;
+        }
+    }
+    if (audioStreamIndx == -1) {
+        cerr << "Error: unable to find audio stream index" << endl;
+        exit(-2);
+    }
+    
+    return 0; 
+
+}
 
 void ScreenRecorder::generateAudioStream() {
     AVCodecParameters* params = inAudioFormatContext->streams[audioStreamIndx]->codecpar;
@@ -1431,9 +1437,7 @@ int ScreenRecorder::add_samples_to_fifo(uint8_t** converted_input_samples, const
     return 0;
 }
 
-int ScreenRecorder::initConvertedSamples(uint8_t*** converted_input_samples,
-    AVCodecContext* output_codec_context,
-    int frame_size) {
+int ScreenRecorder::initConvertedSamples(uint8_t*** converted_input_samples, AVCodecContext* output_codec_context, int frame_size) {
     int error;
     /* Allocate as many pointers as there are audio channels.
      * Each pointer will later point to the audio samples of the corresponding
@@ -1456,7 +1460,8 @@ int ScreenRecorder::initConvertedSamples(uint8_t*** converted_input_samples,
     return 0;
 }
 
-static int64_t pts = 0;
+static int64_t pts = 0; //#FIXME: inserire all'interno di captureAudio()?
+
 void ScreenRecorder::captureAudio() {
     int ret;
     AVPacket* inPacket, * outPacket;
@@ -1515,14 +1520,14 @@ void ScreenRecorder::captureAudio() {
 
     //while (true) {
     while (pAVCodecContext->frame_number < magicNumber) {
-        if (pauseCapture) {
+        if (pauseSC) {
             cout << "Pause audio" << endl;
             //avformat_close_input(&inAudioFormatContext); //serve per il sync dell'audio???
         }
         std::unique_lock<std::mutex> ul(mu);
 
-        cv.wait(ul, [this]() { return !pauseCapture; });
-        if (stopCapture) {
+        cv.wait(ul, [this]() { return !pauseSC; });
+        if (stopSC) {
             break;
         }
 
@@ -1648,14 +1653,19 @@ void ScreenRecorder::captureAudio() {
     }
 }
 
+/***************************** FINE - AUDIO *****************************/
+
+
+/* Creazione thread per video e audio */
 void ScreenRecorder::CreateThreads() {
     thread t2(&ScreenRecorder::captureVideoFrames, this);
-#if AUDIO
-    std::thread t1(&ScreenRecorder::captureAudio, this);
-    t1.join();
-#endif
+    if (isAudioActive){
+        std::thread t1(&ScreenRecorder::captureAudio, this);
+        t1.join();
+    }
     t2.join();
 }
+
 
 AVFrame* ScreenRecorder::crop_frame(const AVFrame* in, int width, int height, int x, int y)
 {
@@ -1697,6 +1707,21 @@ AVFrame* ScreenRecorder::crop_frame(const AVFrame* in, int width, int height, in
     return f;
 }
 
+
+//TODO: testare questa funzione, prima chiamandola in questo file in un'altra fuznione -> 'cerca stopSC=true', POI magari momentaneamente con un timer inferiore al tempo di registrazione deciso inizialmente
+int ScreenRecorder::stopScreenCapture() {
+    if (!stopSC) {
+        stopSC = true;
+        cout << "ScreenRecorder stopped" << endl;
+        return 0;
+    }
+    else{
+        cout << "ScreenRecorder is not running" << endl;
+        return -1; //TODO: capire come usscire, forse con exit -1 --> ESSERE COERETNI CON TUTTE LE ECCEZIONI
+    }
+}
+
+/* Funzione che racchiude il setup base */
 void ScreenRecorder::SetUpScreenRecorder() {
     ScreenRecorder screen_record;
     screen_record.openCamera();

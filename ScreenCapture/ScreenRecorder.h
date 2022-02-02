@@ -26,8 +26,8 @@
 #include <sstream>//Nuovo
 
 
-#define AUDIO 1 //Nuovo
-#define RUN 0 //#TODO: utile per debuggare, eliminare prima della consegna -> cerca nel codice "#if RUN == 1" ed elimianre
+// #define AUDIO 1 //TODO: ora inutile -> sostituita da isAudioActive
+#define RUN 1 //#TODO: utile per debuggare, eliminare prima della consegna -> cerca nel codice "#if RUN == 1" ed elimianre
 
 
 
@@ -127,11 +127,11 @@ private:
 	int ptsA;
 	int ptsV;
 
-	int magicNumber;//Nuovo
-	int cropX; //Nuovo
-	int cropY; //Nuovo
-	int cropH; //Nuovo
-	int cropW; //Nuovo
+	int magicNumber; //TODO: cosa sta a rappresentare
+	int cropX; 
+	int cropY; 
+	int cropH; 
+	int cropW; 
 
 	int out_size;
 	int codec_id;
@@ -147,9 +147,10 @@ private:
 	std::thread* rescale;
 	std::thread* mux;
 	
-	bool pauseCapture; //Nuovo
-	bool stopCapture; //Nuovo
-	bool started; //Nuovo
+	bool isAudioActive;
+	bool pauseSC; //Nuovo
+	bool stopSC; // utile a terminare la registrazione
+	bool started; // utile per deallocare quando ScreenRecoder muore
 	bool activeMenu; //Nuovo
 	int width, height; //Nuovo
 	int w, h; //Nuovo
@@ -161,7 +162,7 @@ public:
 	ScreenRecorder();
 	~ScreenRecorder();
 
-	/* function to initiate communication with display library */
+	/* Function to initiate communication with display library */
 	int initOutputFile(); //Aggiornato
 	int captureVideoFrames();
 	int openCamera();
@@ -179,9 +180,38 @@ public:
 	void captureAudio(); //Nuovo
 	void CreateThreads(); //Nuovo
 	
-	AVFrame* crop_frame(const AVFrame* in, int width, int height, int x, int y); //Nuovo
-	static void SetUpScreenRecorder(); //Nuovo
+	/*** API ancora da implementare/testare ***/
 
+	/* Define the area to be recorded */
+	AVFrame* crop_frame(const AVFrame* in, int width, int height, int x, int y); //#TODO: testy
+
+	/* Select whether the audio should be captured or not */
+	/*
+	#TODO: fare un costruttore che setta isAudioActive a true o false, ora di defualt sta a true
+	Questa scelta non ci permette di mettere o togliere l'audio mentre si sta registrando, dovrebbe andar bene
+	*/
+
+
+	/* Activate and stop the recording process */
+	//#TODO: da testare
+	int stopScreenCapture();
+
+	/* Temporarily pause and subsequently resume it */
+	//#TODO
+
+	/* Define the file that will contain the final recording */
+	//#TODO --> vedi funzione initOutputFile() e adattarla a prendere un input (sarebbe il filepath)
+
+	/* Indication of recording in progress */
+	//#TODO
+
+
+	/*** fine - API ancora da implementare/testare ***/
+
+
+
+	/* Avvia le funzioni principali */
+	static void SetUpScreenRecorder();
 };
 
 #endif
