@@ -68,7 +68,7 @@ std::string retrieveTimestamp()
 
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
-ScreenRecorder::ScreenRecorder() : pauseCapture(false), stopCapture(false), started(false), activeMenu(true), //Aggiornato
+ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseCapture(false), stopCapture(false), started(true), activeMenu(true), //Aggiornato
                                    magicNumber(100), cropX(0), cropY(0), cropH(1080), cropW(1920) 
                                    //Aggiornato - magicNumber=3000
                                    // #TODO: usare funzione di rilevazione risluzioni implementata per linux
@@ -183,9 +183,9 @@ int ScreenRecorder::initOutputFile() {
 
     /*===========================================================================*/
     this->generateVideoStream();
-#if AUDIO
-    this->generateAudioStream();
-#endif 
+    if (isAudioActive)
+        this->generateAudioStream();
+
     //create an empty video file
     if (!(outAVFormatContext->flags & AVFMT_NOFILE)) {
         //int ret_avio = avio_open2(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE, nullptr, nullptr);
@@ -1114,6 +1114,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 double seconds;
 
                 mu.lock();
+
                 if (!activeMenu) {
                     time(&timer);
                     seconds = difftime(timer, startTime);
@@ -1145,6 +1146,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 }
                 
                 ul.unlock(); 
+
                 av_packet_free(&outPacket); 
                  //A QUI
                 // av_packet_unref(&outPacket);
@@ -1261,12 +1263,14 @@ int ScreenRecorder::openAudioDevice() {
     audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("alsa")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato   
     
     // const char* url = "alsa_input.pci-0000_00_1f.3.analog-stereo"; //funziona con pulse
-    const char* url = "default"; // funziona con alsa
     // const char* url = "hw:0"; // NON funziona con alsa
-
+    // const char* url = "default"; // funziona con alsa
+    deviceName = "default";
 
     // value = avformat_open_input(&inAudioFormatContext, "alsa_input.pci-0000_00_1f.3.analog-stereo", audioInputFormat, &audioOptions); //così funziona
-    value = avformat_open_input(&inAudioFormatContext, url, audioInputFormat, &audioOptions); //così funziona
+    // value = avformat_open_input(&inAudioFormatContext, url, audioInputFormat, &audioOptions); //così funziona
+        value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions); //così funziona
+
 
     // FIXME: invece di mettere alsa_input.pci... 
     // ritrovato da comando bash: pacmd list-sources | grep -e 'index:' -e device.string -e 'name:': 
@@ -1655,10 +1659,10 @@ void ScreenRecorder::captureAudio() {
 /* Creazione thread per video e audio */
 void ScreenRecorder::CreateThreads() {
     thread t2(&ScreenRecorder::captureVideoFrames, this);
-#if AUDIO
-    std::thread t1(&ScreenRecorder::captureAudio, this);
-    t1.join();
-#endif
+    if (isAudioActive){
+        std::thread t1(&ScreenRecorder::captureAudio, this);
+        t1.join();
+    }
     t2.join();
 }
 

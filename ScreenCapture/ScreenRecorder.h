@@ -26,7 +26,7 @@
 #include <sstream>//Nuovo
 
 
-#define AUDIO 1 //Nuovo
+// #define AUDIO 1 //TODO: ora inutile -> sostituita da isAudioActive
 #define RUN 1 //#TODO: utile per debuggare, eliminare prima della consegna -> cerca nel codice "#if RUN == 1" ed elimianre
 
 
@@ -127,11 +127,11 @@ private:
 	int ptsA;
 	int ptsV;
 
-	int magicNumber;//Nuovo
-	int cropX; //Nuovo
-	int cropY; //Nuovo
-	int cropH; //Nuovo
-	int cropW; //Nuovo
+	int magicNumber; //TODO: cosa sta a rappresentare
+	int cropX; 
+	int cropY; 
+	int cropH; 
+	int cropW; 
 
 	int out_size;
 	int codec_id;
@@ -147,9 +147,10 @@ private:
 	std::thread* rescale;
 	std::thread* mux;
 	
+	bool isAudioActive;
 	bool pauseCapture; //Nuovo
 	bool stopCapture; //Nuovo
-	bool started; //Nuovo
+	bool started; // utile per deallocare quando ScreenRecoder muore
 	bool activeMenu; //Nuovo
 	int width, height; //Nuovo
 	int w, h; //Nuovo
@@ -185,7 +186,11 @@ public:
 	AVFrame* crop_frame(const AVFrame* in, int width, int height, int x, int y); //#TODO: testy
 
 	/* Select whether the audio should be captured or not */
-	int toggleAudio(bool isAudio); 	//#TODO: ritorna successo o meno con l'int
+	/*
+	#TODO: fare un costruttore che setta isAudioActive a true o false, ora di defualt sta a true
+	Questa scelta non ci permette di mettere o togliere l'audio mentre si sta registrando, dovrebbe andar bene
+	*/
+
 
 	/* Activate and stop the recording process */
 	//#TODO
