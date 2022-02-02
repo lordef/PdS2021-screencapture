@@ -148,8 +148,8 @@ private:
 	std::thread* mux;
 	
 	bool isAudioActive;
-	bool pauseCapture; //Nuovo
-	bool stopCapture; //Nuovo
+	bool pauseSC; //Nuovo
+	bool stopSC; // utile a terminare la registrazione
 	bool started; // utile per deallocare quando ScreenRecoder muore
 	bool activeMenu; //Nuovo
 	int width, height; //Nuovo
@@ -193,7 +193,8 @@ public:
 
 
 	/* Activate and stop the recording process */
-	//#TODO
+	//#TODO: da testare
+	int stopScreenCapture();
 
 	/* Temporarily pause and subsequently resume it */
 	//#TODO

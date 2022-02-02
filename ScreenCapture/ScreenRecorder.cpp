@@ -68,7 +68,7 @@ std::string retrieveTimestamp()
 
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
-ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseCapture(false), stopCapture(false), started(true), activeMenu(true), //Aggiornato
+ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), started(true), activeMenu(true), 
                                    magicNumber(100), cropX(0), cropY(0), cropH(1080), cropW(1920) 
                                    //Aggiornato - magicNumber=3000
                                    // #TODO: usare funzione di rilevazione risluzioni implementata per linux
@@ -941,19 +941,19 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
         cout << "\noutFrame->buf: " << outFrame->buf;
         */
         //Da qui
-        if (pauseCapture) {
+        if (pauseSC) {
             cout << "Pause" << endl;
             outFile << "///////////////////   Pause  ///////////////////" << endl;
             cout << "outAVCodecContext->time_base: " << outAVCodecContext->time_base.num << ", " << outAVCodecContext->time_base.den << endl;
         }
         std::unique_lock<std::mutex> ul(mu);
 
-        cv.wait(ul, [this]() { return !pauseCapture; });   //pause capture (not busy waiting)
+        cv.wait(ul, [this]() { return !pauseSC; });   //pause capture (not busy waiting)
         if (endPause) {
             endPause = false;
         }
 
-        if (stopCapture)  //check if the capture has to stop
+        if (stopSC)  //check if the capture has to stop
             break;
 
         ul.unlock();
@@ -1194,7 +1194,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
         
     } // End of while-loop
 
-    stopCapture = true;//Nuovo
+    stopSC = true;
     av_packet_free(&outPacket);//Nuovo
     /*
      * Scrive il trailer dello stream in un file multimediale di output e
@@ -1520,14 +1520,14 @@ void ScreenRecorder::captureAudio() {
 
     //while (true) {
     while (pAVCodecContext->frame_number < magicNumber) {
-        if (pauseCapture) {
+        if (pauseSC) {
             cout << "Pause audio" << endl;
             //avformat_close_input(&inAudioFormatContext); //serve per il sync dell'audio???
         }
         std::unique_lock<std::mutex> ul(mu);
 
-        cv.wait(ul, [this]() { return !pauseCapture; });
-        if (stopCapture) {
+        cv.wait(ul, [this]() { return !pauseSC; });
+        if (stopSC) {
             break;
         }
 
@@ -1705,6 +1705,20 @@ AVFrame* ScreenRecorder::crop_frame(const AVFrame* in, int width, int height, in
 
     if (f == nullptr) cout << "frame croppato nullo dioc" << endl;
     return f;
+}
+
+
+//TODO: testare questa funzione, prima chiamandola in questo file in un'altra fuznione -> 'cerca stopSC=true', POI magari momentaneamente con un timer inferiore al tempo di registrazione deciso inizialmente
+int ScreenRecorder::stopScreenCapture() {
+    if (!stopSC) {
+        stopSC = true;
+        cout << "ScreenRecorder stopped" << endl;
+        return 0;
+    }
+    else{
+        cout << "ScreenRecorder is not running" << endl;
+        return -1; //TODO: capire come usscire, forse con exit -1 --> ESSERE COERETNI CON TUTTE LE ECCEZIONI
+    }
 }
 
 /* Funzione che racchiude il setup base */
