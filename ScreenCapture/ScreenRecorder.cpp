@@ -69,7 +69,7 @@ std::string retrieveTimestamp()
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
 ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), started(true), activeMenu(true), 
-                                   magicNumber(100), cropX(0), cropY(0), cropH(1080), cropW(1920) 
+                                   magicNumber(3000), cropX(0), cropY(0), cropH(1080), cropW(1920) 
                                    //Aggiornato - magicNumber=3000
                                    // #TODO: usare funzione di rilevazione risluzioni implementata per linux
 {
