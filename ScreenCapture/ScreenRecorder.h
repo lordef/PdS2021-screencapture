@@ -27,7 +27,7 @@
 
 
 #define AUDIO 1 //Nuovo
-#define RUN 0 //#TODO: utile per debuggare, eliminare prima della consegna -> cerca nel codice "#if RUN == 1" ed elimianre
+#define RUN 1 //#TODO: utile per debuggare, eliminare prima della consegna -> cerca nel codice "#if RUN == 1" ed elimianre
 
 
 
@@ -161,7 +161,7 @@ public:
 	ScreenRecorder();
 	~ScreenRecorder();
 
-	/* function to initiate communication with display library */
+	/* Function to initiate communication with display library */
 	int initOutputFile(); //Aggiornato
 	int captureVideoFrames();
 	int openCamera();
@@ -179,9 +179,33 @@ public:
 	void captureAudio(); //Nuovo
 	void CreateThreads(); //Nuovo
 	
-	AVFrame* crop_frame(const AVFrame* in, int width, int height, int x, int y); //Nuovo
-	static void SetUpScreenRecorder(); //Nuovo
+	/*** API ancora da implementare/testare ***/
 
+	/* Define the area to be recorded */
+	AVFrame* crop_frame(const AVFrame* in, int width, int height, int x, int y); //#TODO: testy
+
+	/* Select whether the audio should be captured or not */
+	int toggleAudio(bool isAudio); 	//#TODO: ritorna successo o meno con l'int
+
+	/* Activate and stop the recording process */
+	//#TODO
+
+	/* Temporarily pause and subsequently resume it */
+	//#TODO
+
+	/* Define the file that will contain the final recording */
+	//#TODO --> vedi funzione initOutputFile() e adattarla a prendere un input (sarebbe il filepath)
+
+	/* Indication of recording in progress */
+	//#TODO
+
+
+	/*** fine - API ancora da implementare/testare ***/
+
+
+
+	/* Avvia le funzioni principali */
+	static void SetUpScreenRecorder();
 };
 
 #endif
