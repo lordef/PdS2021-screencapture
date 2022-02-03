@@ -1717,7 +1717,7 @@ int ScreenRecorder::stopScreenCapture() {
         return 0;
     }
     // else{
-        cout << "ScreenRecorder is not running" << endl;
+        cout << "\nScreenRecorder is not running" << endl;
         return -1;
     // }
 }
