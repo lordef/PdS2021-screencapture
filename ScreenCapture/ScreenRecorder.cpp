@@ -940,6 +940,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
         cout << "\npAVFrame->buf: " << pAVFrame->buf;
         cout << "\noutFrame->buf: " << outFrame->buf;
         */
+
         //Da qui
         if (pauseSC) {
             cout << "Pause" << endl;
@@ -1194,7 +1195,8 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
         
     } // End of while-loop
 
-    stopSC = true;
+    stopSC = true; //#TODO: ha senso settarla qui? Non dovrebbe settarsi a true una volta finiti entrambi i thread Video e Audio?
+
     av_packet_free(&outPacket);//Nuovo
     /*
      * Scrive il trailer dello stream in un file multimediale di output e
@@ -1708,17 +1710,16 @@ AVFrame* ScreenRecorder::crop_frame(const AVFrame* in, int width, int height, in
 }
 
 
-//TODO: testare questa funzione, prima chiamandola in questo file in un'altra fuznione -> 'cerca stopSC=true', POI magari momentaneamente con un timer inferiore al tempo di registrazione deciso inizialmente
 int ScreenRecorder::stopScreenCapture() {
     if (!stopSC) {
         stopSC = true;
-        cout << "ScreenRecorder stopped" << endl;
+        cout << "\nScreenRecorder stopped" << endl;
         return 0;
     }
-    else{
+    // else{
         cout << "ScreenRecorder is not running" << endl;
-        return -1; //TODO: capire come usscire, forse con exit -1 --> ESSERE COERETNI CON TUTTE LE ECCEZIONI
-    }
+        return -1;
+    // }
 }
 
 /* Funzione che racchiude il setup base */
