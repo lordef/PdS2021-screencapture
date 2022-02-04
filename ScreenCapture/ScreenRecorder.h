@@ -115,7 +115,7 @@ private:
 	AVAudioFifo* fifo;//Nuovo
 
 	AVStream* video_st;
-	AVFrame* outAVFrame;
+	AVFrame* outAVFrame; //#TODO: questa variabile non viene utilizzata -> sarebbe outFrame?
 
 	std::mutex mu; //Nuovo
 	std::mutex write_lock; //Nuovo

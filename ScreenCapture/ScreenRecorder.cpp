@@ -749,6 +749,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     bool endPause = false;
     int numPause = 0;
     AVFrame* croppedFrame; //#TODO: questa variabile non viene usata
+
     #ifdef __linux__
         #if RUN == 1 
             ofstream outFile{ "media/" + timestamp + "_log.txt", ios::out}; // RUN
@@ -969,8 +970,8 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
             break;
         }
         */
-        /* Prendiamo il prossimo frame di uno stream
 
+        /* Prendiamo il prossimo frame di uno stream
         da pAVFormatContext a pAVPacket*/
         if (av_read_frame(pAVFormatContext, pAVPacket) >= 0 && pAVPacket->stream_index == VideoStreamIndx)//Aggiornata
         {
@@ -1053,6 +1054,15 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
             outFrame->height = outAVCodecContext->height;
             outFrame->format = outAVCodecContext->pix_fmt;
             // outAVCodecContext->pix_fmt;
+
+
+           /********************************************************************************/
+           /* TODO: WORKING ON -> forse bisogna manipolare outFrame se vogliamo cropparlo */
+            // outFrame = crop_frame(outFrame, outAVCodecContext->width, outAVCodecContext->height, 400, 35);
+
+           /********************************************************************************/
+
+
 
             /*Forniamo un frame all'encoder.
             Utilizzeremo, poi, avcodec_receive_packet() per recuperare i pacchetti di output memorizzati nel buffer.
@@ -1183,6 +1193,8 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 cout << "\nUnable to release the avframe resources for outframe";
                 exit(1);
             }
+
+            //TODO: il prossimo passaggio è un errore di copia e incolla?
             value = av_image_fill_arrays(outFrame->data, outFrame->linesize, video_outbuf, AV_PIX_FMT_YUV420P, outAVCodecContext->width, outAVCodecContext->height, 1);
             if (value < 0) // Verifico che non ci siano errori
             {
@@ -1674,10 +1686,13 @@ AVFrame* ScreenRecorder::crop_frame(const AVFrame* in, int width, int height, in
     AVFilterContext* buffersink_ctx;
     AVFilterContext* buffersrc_ctx;
     AVFilterGraph* filter_graph = avfilter_graph_alloc();
-    AVFrame* f = av_frame_alloc();
+
+    AVFrame* newFrame = av_frame_alloc(); //TODO: inserire messaggio di errore, se la memoria non viene allocata -> vedi captureVideoFrame()
+
     AVFilterInOut* inputs = NULL, * outputs = NULL;
     char args[512];
     int ret;
+
     snprintf(args, sizeof(args),
         "buffer=video_size=%dx%d:pix_fmt=%d:time_base=1/1:pixel_aspect=0/1[in];"
         "[in]crop=out_w=%d:out_h=%d:x=%d:y=%d[out];"
@@ -1696,17 +1711,18 @@ AVFrame* ScreenRecorder::crop_frame(const AVFrame* in, int width, int height, in
     assert(buffersrc_ctx != NULL);
     assert(buffersink_ctx != NULL);
 
-    av_frame_ref(f, in);
-    ret = av_buffersrc_add_frame(buffersrc_ctx, f);
+    av_frame_ref(newFrame, in);
+    ret = av_buffersrc_add_frame(buffersrc_ctx, newFrame);
     if (ret < 0) return NULL;
-    ret = av_buffersink_get_frame(buffersink_ctx, f);
+    ret = av_buffersink_get_frame(buffersink_ctx, newFrame);
     if (ret < 0) return NULL;
 
     avfilter_graph_free(&filter_graph);
 
 
-    if (f == nullptr) cout << "frame croppato nullo dioc" << endl;
-    return f;
+    if (newFrame == nullptr) cout << "Frame croppato nullo" << endl;
+    
+    return newFrame;
 }
 
 
