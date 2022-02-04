@@ -232,16 +232,19 @@ int ScreenRecorder::openCamera()
         cerr << "Error in setting probesize value" << endl;
         exit(-1);
     }
+
     value = av_dict_set(&options, "rtbufsize", "2048M", 0);
     if (value < 0) {
         cerr << "Error in setting probesize value" << endl;
         exit(-1);
     }
+
     value = av_dict_set(&options, "offset_x", "0", 0);
     if (value < 0) {
         cerr << "Error in setting offset x value" << endl;
         exit(-1);
     }
+
     value = av_dict_set(&options, "offset_y", "0", 0);
     if (value < 0) {
         cerr << "Error in setting offset y value" << endl;
@@ -310,11 +313,19 @@ int ScreenRecorder::openCamera()
 
 #elif __linux__
 
+    /*****************/
+    /*TODO: WORKING ON cropping del video - capire da ffmpeg: studiare opzioni da qui:*/
+    /*
+    Link utile: https://ffmpeg.org/ffmpeg-devices.html#x11grab  sezione "3.21.1 Options" utile per il crop video
+    */
+    /*****************/
+
     int offset_x = 0, offset_y = 0;
     string url = ":0.0+" + to_string(offset_x) + "," + to_string(offset_y);  //custom string to set the start point of the screen section
+    
     pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
+    
     value = avformat_open_input(&pAVFormatContext, url.c_str(), pAVInputFormat, &options);
-
     if (value != 0) {
         cerr << "Error in opening input device (video)" << endl;
         exit(-1);
@@ -340,8 +351,6 @@ int ScreenRecorder::openCamera()
         cerr << "Error in opening input device" << endl;
         exit(-1);
     }
-
-
 
 #endif
     //A QUI
@@ -1056,14 +1065,6 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
             // outAVCodecContext->pix_fmt;
 
 
-           /********************************************************************************/
-           /* TODO: WORKING ON -> forse bisogna manipolare outFrame se vogliamo cropparlo */
-            // outFrame = crop_frame(outFrame, outAVCodecContext->width, outAVCodecContext->height, 400, 35);
-
-           /********************************************************************************/
-
-
-
             /*Forniamo un frame all'encoder.
             Utilizzeremo, poi, avcodec_receive_packet() per recuperare i pacchetti di output memorizzati nel buffer.
 
@@ -1283,7 +1284,7 @@ int ScreenRecorder::openAudioDevice() {
 
     // value = avformat_open_input(&inAudioFormatContext, "alsa_input.pci-0000_00_1f.3.analog-stereo", audioInputFormat, &audioOptions); //così funziona
     // value = avformat_open_input(&inAudioFormatContext, url, audioInputFormat, &audioOptions); //così funziona
-        value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions); //così funziona
+    value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions); //così funziona
 
 
     // FIXME: invece di mettere alsa_input.pci... 
@@ -1681,6 +1682,7 @@ void ScreenRecorder::CreateThreads() {
 }
 
 
+//#TODO: questa funzione DOVREBBE ESSERE INUTILE, ragionare su costruttore e sulle options di x11grab
 AVFrame* ScreenRecorder::crop_frame(const AVFrame* in, int width, int height, int x, int y)
 {
     AVFilterContext* buffersink_ctx;

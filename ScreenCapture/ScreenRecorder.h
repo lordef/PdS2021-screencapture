@@ -183,7 +183,8 @@ public:
 	/*** API ancora da implementare/testare ***/
 
 	/* Define the area to be recorded */
-	AVFrame* crop_frame(const AVFrame* in, int width, int height, int x, int y); //#TODO: testy
+	 //#TODO: DOVREBBE ESSERE INUTILE, ragionare su costruttore e sulle options di x11grab
+	AVFrame* crop_frame(const AVFrame* in, int width, int height, int x, int y); 
 
 	/* Select whether the audio should be captured or not */
 	/*
