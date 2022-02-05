@@ -226,9 +226,12 @@ int ScreenRecorder::openCamera()
     //DA QUI
     pAVFormatContext = avformat_alloc_context();
 
+    /*****/
+    //#TODO; sezione utilizzata solo da linux - in Windows si agisce con le funzioni _itoa_s
     // string dimension = to_string(width) + "x" + to_string(height);
     //av_dict_set(&options, "video_size", dimension.c_str(), 0);   //option to set the dimension of the screen section to record
     //av_dict_set(&options, "video_size", "1920x1080", 0);   //option to set the dimension of the screen section to record
+    /*****/
 
     value = av_dict_set(&options, "probesize", "60M", 0);
     if (value < 0) {
