@@ -329,6 +329,12 @@ int ScreenRecorder::openCamera()
     */
     /*****************/
 
+    /*****************/
+    // #FIXME: codice temporaneo per debuggare su pc L e I, poiché risoluzioni diverse
+    int cropH, cropW; //height, width
+    tie(cropH, cropW)=retrieveDisplayDimention();
+    /*****************/
+
     string resolutionS = to_string(cropW) + "x" + to_string(cropH);
     //option to set the dimension of the screen section to record
     value = av_dict_set(&options, "video_size", resolutionS.c_str(), 0); 
