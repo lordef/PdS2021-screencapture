@@ -69,9 +69,12 @@ std::string retrieveTimestamp()
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
 ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), started(true), activeMenu(true), 
-                                   magicNumber(100), cropX(0), cropY(0), cropH(1080), cropW(1920) 
+                                   magicNumber(3000), cropX(0), cropY(0), cropH(1080), cropW(1920) 
                                    //Aggiornato - magicNumber=3000
-                                   // #TODO: usare funzione di rilevazione risluzioni implementata per linux
+                                   /* #TODO: N.B.: sia per linux che per windows controllare che i valori passati 
+                                                rispettino la risoluzione del pc su cui gira il codice 
+                                                in particolare che tutte le variabili di crop 
+                                                ispirarsi a libavdevice/xcbgrab.c -> cerca la stringa 'outside the screen'*/
 {
 
     // av_register_all(); //Funzione di inizializzazione deprecata. Può essere tranquillamente omessa.
@@ -223,25 +226,31 @@ int ScreenRecorder::openCamera()
     //DA QUI
     pAVFormatContext = avformat_alloc_context();
 
-    string dimension = to_string(width) + "x" + to_string(height);
+    /*****/
+    //#TODO; sezione utilizzata solo da linux - in Windows si agisce con le funzioni _itoa_s
+    // string dimension = to_string(width) + "x" + to_string(height);
     //av_dict_set(&options, "video_size", dimension.c_str(), 0);   //option to set the dimension of the screen section to record
     //av_dict_set(&options, "video_size", "1920x1080", 0);   //option to set the dimension of the screen section to record
+    /*****/
 
     value = av_dict_set(&options, "probesize", "60M", 0);
     if (value < 0) {
         cerr << "Error in setting probesize value" << endl;
         exit(-1);
     }
+
     value = av_dict_set(&options, "rtbufsize", "2048M", 0);
     if (value < 0) {
         cerr << "Error in setting probesize value" << endl;
         exit(-1);
     }
-    value = av_dict_set(&options, "offset_x", "0", 0);
+
+    value = av_dict_set(&options, "offset_x", "0", 0); 
     if (value < 0) {
         cerr << "Error in setting offset x value" << endl;
         exit(-1);
     }
+
     value = av_dict_set(&options, "offset_y", "0", 0);
     if (value < 0) {
         cerr << "Error in setting offset y value" << endl;
@@ -310,11 +319,37 @@ int ScreenRecorder::openCamera()
 
 #elif __linux__
 
-    int offset_x = 0, offset_y = 0;
-    string url = ":0.0+" + to_string(offset_x) + "," + to_string(offset_y);  //custom string to set the start point of the screen section
-    pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
-    value = avformat_open_input(&pAVFormatContext, url.c_str(), pAVInputFormat, &options);
+    /*****************/
+    /*TODO: WORKING ON cropping del video - capire da ffmpeg: studiare opzioni da qui:*/
+    /*
+    - Link utile: https://ffmpeg.org/ffmpeg-devices.html#x11grab  sezione "3.21.1 Options" utile per il crop video
+    - #TODO: N.B.: 
+        sia per linux che per windows
+        controllare che i valori passati rispettino la risoluzione del pc su cui gira il codice
+    */
+    /*****************/
 
+    /*****************/
+    // #FIXME: codice temporaneo per debuggare su pc L e I, poiché risoluzioni diverse
+    int cropH, cropW; //height, width
+    tie(cropH, cropW)=retrieveDisplayDimention();
+    /*****************/
+
+    string resolutionS = to_string(cropW) + "x" + to_string(cropH);
+    //option to set the dimension of the screen section to record
+    value = av_dict_set(&options, "video_size", resolutionS.c_str(), 0); 
+    if (value < 0)
+    {
+        cout << "\nError in setting video_size values";
+        exit(1);
+    }
+
+    // int offset_x = 0, offset_y = 0;
+    string url = ":0.0+" + to_string(cropX) + "," + to_string(cropY);  //custom string to set the start point of the screen section
+    
+    pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
+    
+    value = avformat_open_input(&pAVFormatContext, url.c_str(), pAVInputFormat, &options);
     if (value != 0) {
         cerr << "Error in opening input device (video)" << endl;
         exit(-1);
@@ -340,8 +375,6 @@ int ScreenRecorder::openCamera()
         cerr << "Error in opening input device" << endl;
         exit(-1);
     }
-
-
 
 #endif
     //A QUI
@@ -749,6 +782,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     bool endPause = false;
     int numPause = 0;
     AVFrame* croppedFrame; //#TODO: questa variabile non viene usata
+
     #ifdef __linux__
         #if RUN == 1 
             ofstream outFile{ "media/" + timestamp + "_log.txt", ios::out}; // RUN
@@ -969,8 +1003,8 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
             break;
         }
         */
-        /* Prendiamo il prossimo frame di uno stream
 
+        /* Prendiamo il prossimo frame di uno stream
         da pAVFormatContext a pAVPacket*/
         if (av_read_frame(pAVFormatContext, pAVPacket) >= 0 && pAVPacket->stream_index == VideoStreamIndx)//Aggiornata
         {
@@ -1053,6 +1087,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
             outFrame->height = outAVCodecContext->height;
             outFrame->format = outAVCodecContext->pix_fmt;
             // outAVCodecContext->pix_fmt;
+
 
             /*Forniamo un frame all'encoder.
             Utilizzeremo, poi, avcodec_receive_packet() per recuperare i pacchetti di output memorizzati nel buffer.
@@ -1183,6 +1218,8 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 cout << "\nUnable to release the avframe resources for outframe";
                 exit(1);
             }
+
+            //TODO: il prossimo passaggio è un errore di copia e incolla?
             value = av_image_fill_arrays(outFrame->data, outFrame->linesize, video_outbuf, AV_PIX_FMT_YUV420P, outAVCodecContext->width, outAVCodecContext->height, 1);
             if (value < 0) // Verifico che non ci siano errori
             {
@@ -1271,7 +1308,7 @@ int ScreenRecorder::openAudioDevice() {
 
     // value = avformat_open_input(&inAudioFormatContext, "alsa_input.pci-0000_00_1f.3.analog-stereo", audioInputFormat, &audioOptions); //così funziona
     // value = avformat_open_input(&inAudioFormatContext, url, audioInputFormat, &audioOptions); //così funziona
-        value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions); //così funziona
+    value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions); //così funziona
 
 
     // FIXME: invece di mettere alsa_input.pci... 
@@ -1666,47 +1703,6 @@ void ScreenRecorder::CreateThreads() {
         t1.join();
     }
     t2.join();
-}
-
-
-AVFrame* ScreenRecorder::crop_frame(const AVFrame* in, int width, int height, int x, int y)
-{
-    AVFilterContext* buffersink_ctx;
-    AVFilterContext* buffersrc_ctx;
-    AVFilterGraph* filter_graph = avfilter_graph_alloc();
-    AVFrame* f = av_frame_alloc();
-    AVFilterInOut* inputs = NULL, * outputs = NULL;
-    char args[512];
-    int ret;
-    snprintf(args, sizeof(args),
-        "buffer=video_size=%dx%d:pix_fmt=%d:time_base=1/1:pixel_aspect=0/1[in];"
-        "[in]crop=out_w=%d:out_h=%d:x=%d:y=%d[out];"
-        "[out]buffersink",
-        in->width, in->height, in->format,
-        width, height, x, y);
-
-    ret = avfilter_graph_parse2(filter_graph, args, &inputs, &outputs);
-    if (ret < 0) return NULL;
-    assert(inputs == NULL && outputs == NULL);
-    ret = avfilter_graph_config(filter_graph, NULL);
-    if (ret < 0) return NULL;
-
-    buffersrc_ctx = avfilter_graph_get_filter(filter_graph, "Parsed_buffer_0");
-    buffersink_ctx = avfilter_graph_get_filter(filter_graph, "Parsed_buffersink_2");
-    assert(buffersrc_ctx != NULL);
-    assert(buffersink_ctx != NULL);
-
-    av_frame_ref(f, in);
-    ret = av_buffersrc_add_frame(buffersrc_ctx, f);
-    if (ret < 0) return NULL;
-    ret = av_buffersink_get_frame(buffersink_ctx, f);
-    if (ret < 0) return NULL;
-
-    avfilter_graph_free(&filter_graph);
-
-
-    if (f == nullptr) cout << "frame croppato nullo dioc" << endl;
-    return f;
 }
 
 

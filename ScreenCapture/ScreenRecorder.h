@@ -115,7 +115,7 @@ private:
 	AVAudioFifo* fifo;//Nuovo
 
 	AVStream* video_st;
-	AVFrame* outAVFrame;
+	AVFrame* outAVFrame; //#TODO: questa variabile non viene utilizzata -> sarebbe outFrame?
 
 	std::mutex mu; //Nuovo
 	std::mutex write_lock; //Nuovo
@@ -183,7 +183,9 @@ public:
 	/*** API ancora da implementare/testare ***/
 
 	/* Define the area to be recorded */
-	AVFrame* crop_frame(const AVFrame* in, int width, int height, int x, int y); //#TODO: testy
+	// #TODO: incorporata nel cotruttore; si vedano i parametri cropX-Y-H-W
+	// da testare in Windows se funziona
+	// fare un cotruttore che prenda questi dati di crop come input, cosa da fare anche per la prossima API
 
 	/* Select whether the audio should be captured or not */
 	/*
