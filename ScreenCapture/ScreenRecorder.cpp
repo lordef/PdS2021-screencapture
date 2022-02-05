@@ -71,7 +71,10 @@ std::string retrieveTimestamp()
 ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), started(true), activeMenu(true), 
                                    magicNumber(100), cropX(0), cropY(0), cropH(1080), cropW(1920) 
                                    //Aggiornato - magicNumber=3000
-                                   // #TODO: usare funzione di rilevazione risluzioni implementata per linux
+                                   /* #TODO: N.B.: sia per linux che per windows controllare che i valori passati 
+                                                rispettino la risoluzione del pc su cui gira il codice 
+                                                in particolare che tutte le variabili di crop 
+                                                ispirarsi a libavdevice/xcbgrab.c -> cerca la stringa 'outside the screen'*/
 {
 
     // av_register_all(); //Funzione di inizializzazione deprecata. Può essere tranquillamente omessa.
@@ -223,7 +226,7 @@ int ScreenRecorder::openCamera()
     //DA QUI
     pAVFormatContext = avformat_alloc_context();
 
-    string dimension = to_string(width) + "x" + to_string(height);
+    // string dimension = to_string(width) + "x" + to_string(height);
     //av_dict_set(&options, "video_size", dimension.c_str(), 0);   //option to set the dimension of the screen section to record
     //av_dict_set(&options, "video_size", "1920x1080", 0);   //option to set the dimension of the screen section to record
 
@@ -239,7 +242,7 @@ int ScreenRecorder::openCamera()
         exit(-1);
     }
 
-    value = av_dict_set(&options, "offset_x", "0", 0);
+    value = av_dict_set(&options, "offset_x", "0", 0); 
     if (value < 0) {
         cerr << "Error in setting offset x value" << endl;
         exit(-1);
@@ -316,12 +319,24 @@ int ScreenRecorder::openCamera()
     /*****************/
     /*TODO: WORKING ON cropping del video - capire da ffmpeg: studiare opzioni da qui:*/
     /*
-    Link utile: https://ffmpeg.org/ffmpeg-devices.html#x11grab  sezione "3.21.1 Options" utile per il crop video
+    - Link utile: https://ffmpeg.org/ffmpeg-devices.html#x11grab  sezione "3.21.1 Options" utile per il crop video
+    - #TODO: N.B.: 
+        sia per linux che per windows
+        controllare che i valori passati rispettino la risoluzione del pc su cui gira il codice
     */
     /*****************/
 
-    int offset_x = 0, offset_y = 0;
-    string url = ":0.0+" + to_string(offset_x) + "," + to_string(offset_y);  //custom string to set the start point of the screen section
+    string resolutionS = to_string(cropW) + "x" + to_string(cropH);
+    //option to set the dimension of the screen section to record
+    value = av_dict_set(&options, "video_size", resolutionS.c_str(), 0); 
+    if (value < 0)
+    {
+        cout << "\nError in setting video_size values";
+        exit(1);
+    }
+
+    // int offset_x = 0, offset_y = 0;
+    string url = ":0.0+" + to_string(cropX) + "," + to_string(cropY);  //custom string to set the start point of the screen section
     
     pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
     
