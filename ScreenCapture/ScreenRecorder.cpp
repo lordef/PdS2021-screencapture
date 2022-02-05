@@ -1706,52 +1706,6 @@ void ScreenRecorder::CreateThreads() {
 }
 
 
-//#TODO: questa funzione DOVREBBE ESSERE INUTILE, ragionare su costruttore e sulle options di x11grab
-AVFrame* ScreenRecorder::crop_frame(const AVFrame* in, int width, int height, int x, int y)
-{
-    AVFilterContext* buffersink_ctx;
-    AVFilterContext* buffersrc_ctx;
-    AVFilterGraph* filter_graph = avfilter_graph_alloc();
-
-    AVFrame* newFrame = av_frame_alloc(); //TODO: inserire messaggio di errore, se la memoria non viene allocata -> vedi captureVideoFrame()
-
-    AVFilterInOut* inputs = NULL, * outputs = NULL;
-    char args[512];
-    int ret;
-
-    snprintf(args, sizeof(args),
-        "buffer=video_size=%dx%d:pix_fmt=%d:time_base=1/1:pixel_aspect=0/1[in];"
-        "[in]crop=out_w=%d:out_h=%d:x=%d:y=%d[out];"
-        "[out]buffersink",
-        in->width, in->height, in->format,
-        width, height, x, y);
-
-    ret = avfilter_graph_parse2(filter_graph, args, &inputs, &outputs);
-    if (ret < 0) return NULL;
-    assert(inputs == NULL && outputs == NULL);
-    ret = avfilter_graph_config(filter_graph, NULL);
-    if (ret < 0) return NULL;
-
-    buffersrc_ctx = avfilter_graph_get_filter(filter_graph, "Parsed_buffer_0");
-    buffersink_ctx = avfilter_graph_get_filter(filter_graph, "Parsed_buffersink_2");
-    assert(buffersrc_ctx != NULL);
-    assert(buffersink_ctx != NULL);
-
-    av_frame_ref(newFrame, in);
-    ret = av_buffersrc_add_frame(buffersrc_ctx, newFrame);
-    if (ret < 0) return NULL;
-    ret = av_buffersink_get_frame(buffersink_ctx, newFrame);
-    if (ret < 0) return NULL;
-
-    avfilter_graph_free(&filter_graph);
-
-
-    if (newFrame == nullptr) cout << "Frame croppato nullo" << endl;
-    
-    return newFrame;
-}
-
-
 int ScreenRecorder::stopScreenCapture() {
     if (!stopSC) {
         stopSC = true;
