@@ -69,7 +69,7 @@ std::string retrieveTimestamp()
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
 ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), started(true), activeMenu(true), 
-                                   magicNumber(3000), cropX(0), cropY(0), cropH(1080), cropW(1920) 
+                                   magicNumber(100), cropX(0), cropY(0), cropH(1080), cropW(1920) 
                                    //Aggiornato - magicNumber=3000
                                    /* #TODO: N.B.: sia per linux che per windows controllare che i valori passati 
                                                 rispettino la risoluzione del pc su cui gira il codice 
@@ -779,7 +779,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     int64_t pts = 0;
     int flag;
     int frameFinished = 0;
-    bool endPause = false;
+    // bool endPause = false; //#TODO: dovrebbe essere inutile, perché è il contrario di pauseSC
     int numPause = 0;
     AVFrame* croppedFrame; //#TODO: questa variabile non viene usata
 
@@ -981,12 +981,14 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
             outFile << "///////////////////   Pause  ///////////////////" << endl;
             cout << "outAVCodecContext->time_base: " << outAVCodecContext->time_base.num << ", " << outAVCodecContext->time_base.den << endl;
         }
+
         std::unique_lock<std::mutex> ul(mu);
 
         cv.wait(ul, [this]() { return !pauseSC; });   //pause capture (not busy waiting)
-        if (endPause) {
-            endPause = false;
-        }
+
+        // if (endPause) {      //#TODO: dovrebbe essere inutile, perché è il contrario di pauseSC
+        //     endPause = false;
+        // }
 
         if (stopSC)  //check if the capture has to stop
             break;
@@ -1197,6 +1199,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
 
             // av_packet_unref(&outPacket);
             av_packet_free(&outPacket);
+            
             /* #TODO: sezione non capita da I e L */
             av_packet_free(&pAVPacket);
             pAVPacket = av_packet_alloc();
@@ -1559,19 +1562,22 @@ void ScreenRecorder::captureAudio() {
 
     //while (true) {
     while (pAVCodecContext->frame_number < magicNumber) {
+
         if (pauseSC) {
             cout << "Pause audio" << endl;
             //avformat_close_input(&inAudioFormatContext); //serve per il sync dell'audio???
         }
         std::unique_lock<std::mutex> ul(mu);
-
         cv.wait(ul, [this]() { return !pauseSC; });
+
         if (stopSC) {
             break;
         }
 
         //avformat_open_input(&inAudioFormatContext, "audio=Microphone Array (Realtek(R) Audio)", audioInputFormat, &audioOptions); //per il sync?
         ul.unlock();
+
+
         /* Prendiamo il prossimo frame di uno stream
 
         da inAudioFormatContext a inPacket*/
@@ -1716,6 +1722,20 @@ int ScreenRecorder::stopScreenCapture() {
         cout << "\nScreenRecorder is not running" << endl;
         return -1;
     // }
+}
+
+
+int ScreenRecorder::toggleScreenCapture() {
+    if (!pauseSC) {
+        pauseSC = true;
+        cout << "\nScreenRecorder paused" << endl;
+    }
+    else{
+        pauseSC = false;
+        cout << "\nScreenRecorder resumed" << endl;
+    }
+
+    return 0;
 }
 
 /* Funzione che racchiude il setup base */
