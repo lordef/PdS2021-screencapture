@@ -148,7 +148,7 @@ private:
 	std::thread* mux;
 	
 	bool isAudioActive;
-	bool pauseSC; //Nuovo
+	bool pauseSC; // utile a mettere in pausa la registrazione
 	bool stopSC; // utile a terminare la registrazione
 	bool started; // utile per deallocare quando ScreenRecoder muore
 	bool activeMenu; //Nuovo
@@ -193,13 +193,15 @@ public:
 	Questa scelta non ci permette di mettere o togliere l'audio mentre si sta registrando, dovrebbe andar bene
 	*/
 
-
 	/* Activate and stop the recording process */
-	//#TODO: da testare
+	//#TODO: bisogna capie se sfruttare unique_lock o meccanismi del genere
 	int stopScreenCapture();
 
 	/* Temporarily pause and subsequently resume it */
-	//#TODO
+	//#TODO: bisogna capie se sfruttare unique_lock o meccanismi del genere
+	//#TODO: da testare
+	int toggleScreenCapture();
+
 
 	/* Define the file that will contain the final recording */
 	//#TODO --> vedi funzione initOutputFile() e adattarla a prendere un input (sarebbe il filepath)
