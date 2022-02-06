@@ -207,7 +207,7 @@ public:
 	//#TODO --> vedi funzione initOutputFile() e adattarla a prendere un input (sarebbe il filepath)
 
 	/* Indication of recording in progress */
-	//#TODO
+	//#TODO: magari fare polling su variabile di stop (stopSC) -> forse solo interfaccia
 
 
 	/*** fine - API ancora da implementare/testare ***/
