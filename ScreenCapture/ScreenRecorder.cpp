@@ -1197,6 +1197,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
 
             // av_packet_unref(&outPacket);
             av_packet_free(&outPacket);
+            
             /* #TODO: sezione non capita da I e L */
             av_packet_free(&pAVPacket);
             pAVPacket = av_packet_alloc();
