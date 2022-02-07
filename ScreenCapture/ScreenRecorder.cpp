@@ -8,7 +8,7 @@ static int64_t last_pts = AV_NOPTS_VALUE; //Nuovo
 #include <bits/stdc++.h>
 
 #ifdef __linux__
-#include <X11/Xlib.h> //useful lib installed: sudo apt install libx11-dev 
+#include <X11/Xlib.h> //useful lib installed: sudo apt install libx11-dev
 #include<tuple>
 
 tuple<int, int> retrieveDisplayDimention()
@@ -19,9 +19,9 @@ tuple<int, int> retrieveDisplayDimention()
 	int width  = scrn->width;
 	//cout << "\nStampa dimensioni display\n";
 	//cout << width<<"x"<< height;
-	
+
 	return make_tuple(height, width);
-	
+
 }
 
 #endif
@@ -68,12 +68,12 @@ std::string retrieveTimestamp()
 
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
-ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), started(true), activeMenu(true), 
-                                   magicNumber(100), cropX(0), cropY(0), cropH(1080), cropW(1920) 
+ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), started(true), activeMenu(true),
+                                   magicNumber(100), cropX(0), cropY(0), cropH(1080), cropW(1920)
                                    //Aggiornato - magicNumber=3000
-                                   /* #TODO: N.B.: sia per linux che per windows controllare che i valori passati 
-                                                rispettino la risoluzione del pc su cui gira il codice 
-                                                in particolare che tutte le variabili di crop 
+                                   /* #TODO: N.B.: sia per linux che per windows controllare che i valori passati
+                                                rispettino la risoluzione del pc su cui gira il codice
+                                                in particolare che tutte le variabili di crop
                                                 ispirarsi a libavdevice/xcbgrab.c -> cerca la stringa 'outside the screen'*/
 {
 
@@ -99,7 +99,7 @@ ScreenRecorder::~ScreenRecorder()
         }*/
 
         // ---------------Audio-----------------
-        avformat_close_input(&inAudioFormatContext); 
+        avformat_close_input(&inAudioFormatContext);
         if (inAudioFormatContext == nullptr) {
             cout << "inAudioFormatContext close successfully" << endl;
         }
@@ -137,7 +137,7 @@ ScreenRecorder::~ScreenRecorder()
             exit(1);
         }
     }
-    
+
 }
 
 /* Inizializzazione file di output e suo risorse */
@@ -161,18 +161,18 @@ int ScreenRecorder::initOutputFile() {
     }
 
     #ifdef __linux__
-        /* 
+        /*
             N.B.:   IN DEBUG la cartella di partenza è quella in cui di trova questo file stesso
                     IN RUN la cartella di partenza è quella del progetto in sé
         */
         // string completeName = "../media/" + outputName; // DEBUG
-        // string completeName = "media/output.mp4"; // RUN   
-        // string completeName = "../media/" + outputName; // DEBUG  
+        // string completeName = "media/output.mp4"; // RUN
+        // string completeName = "../media/" + outputName; // DEBUG
         #if RUN == 1
-            string completeName = "media/" + outputName; // RUN 
+            string completeName = "media/" + outputName; // RUN
         #else
-            string completeName = "../media/" + outputName; // DEBUG 
-        #endif   
+            string completeName = "../media/" + outputName; // DEBUG
+        #endif
     #elif _WIN32
         string completeName = "..\\media\\" + outputName;
     #endif
@@ -193,7 +193,7 @@ int ScreenRecorder::initOutputFile() {
     if (!(outAVFormatContext->flags & AVFMT_NOFILE)) {
         //int ret_avio = avio_open2(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE, nullptr, nullptr);
         int ret_avio = avio_open(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE);
-        if (ret_avio < 0) {            
+        if (ret_avio < 0) {
             cerr << "Error in creating the video file" << endl;
             exit(-10);
         }
@@ -222,7 +222,7 @@ int ScreenRecorder::openCamera()
     value = 0; // valore di ritorno per valutare esito delle operazioni
     options = nullptr; // Nuovo
     pAVFormatContext = nullptr; //Nuovo
-    
+
     //DA QUI
     pAVFormatContext = avformat_alloc_context();
 
@@ -245,7 +245,7 @@ int ScreenRecorder::openCamera()
         exit(-1);
     }
 
-    value = av_dict_set(&options, "offset_x", "0", 0); 
+    value = av_dict_set(&options, "offset_x", "0", 0);
     if (value < 0) {
         cerr << "Error in setting offset x value" << endl;
         exit(-1);
@@ -323,7 +323,7 @@ int ScreenRecorder::openCamera()
     /*TODO: WORKING ON cropping del video - capire da ffmpeg: studiare opzioni da qui:*/
     /*
     - Link utile: https://ffmpeg.org/ffmpeg-devices.html#x11grab  sezione "3.21.1 Options" utile per il crop video
-    - #TODO: N.B.: 
+    - #TODO: N.B.:
         sia per linux che per windows
         controllare che i valori passati rispettino la risoluzione del pc su cui gira il codice
     */
@@ -337,7 +337,7 @@ int ScreenRecorder::openCamera()
 
     string resolutionS = to_string(cropW) + "x" + to_string(cropH);
     //option to set the dimension of the screen section to record
-    value = av_dict_set(&options, "video_size", resolutionS.c_str(), 0); 
+    value = av_dict_set(&options, "video_size", resolutionS.c_str(), 0);
     if (value < 0)
     {
         cout << "\nError in setting video_size values";
@@ -346,9 +346,9 @@ int ScreenRecorder::openCamera()
 
     // int offset_x = 0, offset_y = 0;
     string url = ":0.0+" + to_string(cropX) + "," + to_string(cropY);  //custom string to set the start point of the screen section
-    
-    pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
-    
+
+    pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato
+
     value = avformat_open_input(&pAVFormatContext, url.c_str(), pAVInputFormat, &options);
     if (value != 0) {
         cerr << "Error in opening input device (video)" << endl;
@@ -402,7 +402,7 @@ int ScreenRecorder::openCamera()
     // #ifdef __linux__
     //     // const_cast to solve -> Error: a value of type "const AVInputFormat *" cannot be assigned to an entity of type "AVInputFormat *"
     //     // pAVInputFormat = av_find_input_format("x11grab");
-    //     pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
+    //     pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato
     // #elif _WIN32
     //     pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("gdigrab"));
     // #endif
@@ -453,21 +453,21 @@ int ScreenRecorder::openCamera()
         cout << "\nError in setting preset values";
         exit(1);
     }*/
-    
+
     //pAVFormatContext = avformat_alloc_context(); // Allocate an AVFormatContext
 
-    
-    
+
+
     //La seuente riga è da utilizzare con dshow
     //value = avformat_open_input(&pAVFormatContext, "video=screen-capture-recorder", pAVInputFormat, &options);
-    
+
     // avformat_open_input apre uno stream di input e legge l'header.
     // NB: I codec non vengono aperti. Lo stream, inoltre, deve essere chiuso con avformat_close_input().
     // Ritorna 0 in caso di successo, un valore <0 in caso di fallimento.
     //AGGIORNATA la avformat
     /*
     #ifdef __linux__
-        value = avformat_open_input(&pAVFormatContext, ":0.0", pAVInputFormat, &options); //display -> :0.0 
+        value = avformat_open_input(&pAVFormatContext, ":0.0", pAVInputFormat, &options); //display -> :0.0
     #elif _WIN32
         //La seuente riga è da utilizzare con dshow
         //value = avformat_open_input(&pAVFormatContext, "video=screen-capture-recorder", pAVInputFormat, &options);
@@ -506,7 +506,7 @@ int ScreenRecorder::openCamera()
         exit(1);
     }
     pCodecParameters = pAVFormatContext->streams[VideoStreamIndx]->codecpar;
-    pAVCodec = const_cast<AVCodec*>(avcodec_find_decoder(pAVFormatContext->streams[VideoStreamIndx]->codecpar->codec_id)); 
+    pAVCodec = const_cast<AVCodec*>(avcodec_find_decoder(pAVFormatContext->streams[VideoStreamIndx]->codecpar->codec_id));
     fps = av_q2d(pAVFormatContext->streams[VideoStreamIndx]->r_frame_rate); //TODO: test on linux
     cout << "\nfps= " << fps << endl;
 
@@ -549,7 +549,7 @@ int ScreenRecorder::openCamera()
     //Aggiornata la avcodec_open2
     /*
     value = avcodec_open2(pAVCodecContext, pAVCodec, NULL);
-    
+
     if (value < 0)
     {
         cout << "\nUnable to open the av codec";
@@ -557,7 +557,7 @@ int ScreenRecorder::openCamera()
     }*/
 
     // cout << "\npAVCodecContext->width: "<< pAVCodecContext->width;
-    
+
     return 0;
 }
 
@@ -667,7 +667,7 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     // declaring argument of time()
         // time_t my_time = time(NULL);
     // ctime() used to give the present time
-        // string current_time = ctime(&my_time);   
+        // string current_time = ctime(&my_time);
         // format_output_file.append(current_time);
         // format_output_file.append(".mp4");
         // output_file = format_output_file; //ERRORE qui, potrebbe essere perchè non accetta una stringa essendo const char*
@@ -704,9 +704,9 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
 
 
     */
-    
 
-    
+
+
 
     /* set property of the video file */
     // outAVCodecContext = video_st->codec; //video_st non ha più un campo codec
@@ -730,7 +730,7 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
 
     // cout << outAVCodecContext;
     /* create empty video file */
-    
+
     //if (!(outAVFormatContext->flags & AVFMT_NOFILE)) // Mi assicuro che i flag siano settati secondo i valori indicati da AVFMT_NOFILE
     //{
         /*
@@ -770,9 +770,9 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
 }
 
 
-/* 
-Funzione per acquisire e memorizzare i dati in frame allocando la memoria richiesta 
-e rilasciando automaticamente la memoria 
+/*
+Funzione per acquisire e memorizzare i dati in frame allocando la memoria richiesta
+e rilasciando automaticamente la memoria
 */
 int ScreenRecorder::captureVideoFrames() //Da sistemare
 {
@@ -784,11 +784,11 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     AVFrame* croppedFrame; //#TODO: questa variabile non viene usata
 
     #ifdef __linux__
-        #if RUN == 1 
+        #if RUN == 1
             ofstream outFile{ "media/" + timestamp + "_log.txt", ios::out}; // RUN
-        #else  
+        #else
             ofstream outFile{ "../media/" + timestamp + "_log.txt", ios::out}; // DEBUG
-        #endif 
+        #endif
     #elif _WIN32
         ofstream outFile{ "..\\media\\" + timestamp + "_log.txt", ios::out};
     #endif
@@ -798,7 +798,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     // int frameFinished;
 
     /*Quando decodifichi un singolo pacchetto, non hai ancora informazioni sufficienti per avere un frame
-     * (a seconda del tipo di codec). 
+     * (a seconda del tipo di codec).
      * Quando decodifichi un GRUPPO di pacchetti che rappresenta un frame,
      * solo allora hai un'immagine! Ecco perché frameFinished ti farà sapere che hai decodificato abbastanza
      * per avere un frame.
@@ -812,20 +812,20 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     if (!pAVPacket)
         exit(1);
     // cout<<""<<pAVPacket->
-    
+
     // Le successive 2 righe di codice son deprecate commentate perchè av_init_packet è stato deprecato
-    
+
     /*av_malloc alloca un blocco di dimenzione pari a "sizeof(AVPacket)" Byte e ritorna un puntatore al blocco
      * allocato oppure NULL se il blocco non può essere allocato.
      * NB: pAVPacket è di tipo AVPacket *. Non a caso si esegue un cast a "AVPacket *" del ritorno di av-malloc
      * Di fatto, pAVPacket è un puntatore ad un pacchetto.*/
-    
+
     // pAVPacket = (AVPacket *)av_malloc(sizeof(AVPacket));
-    
+
     /*Inizializza i campi facoltativi di un pacchetto con valori predefiniti.
      *NB: questa funzione non tocca i membri "data" e "size", che devono essere inizializzati separatamente.*/
     // av_init_packet(pAVPacket);
-    
+
 
 
     /*av_frame_alloc() alloca un AVFrame e imposta i suoi campi sui valori predefiniti.
@@ -855,7 +855,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     /*"av_image_get_buffer_size" restituisce il numero di byte necessari per memorizzare un'immagine.
      * NB: Le specifiche dell'immagine sono indicate tra parentesi*/
     int nbytes = av_image_get_buffer_size(outAVCodecContext->pix_fmt, outAVCodecContext->width, outAVCodecContext->height, 32);
-    
+
     uint8_t *video_outbuf = (uint8_t *)av_malloc(nbytes);
     if (video_outbuf == nullptr)
     {
@@ -868,7 +868,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     /* Si effettua un setup dei data pointers e delle linesizes (??) in base alle specifiche dell'immagine e
      * ed all'array fornito.
      * La funzione ritorna la dimensione in byte richiesta per video_outbuf oppure un valore minore di zero in caso di errore.
-     * 
+     *
      * SIGNIFICATO PARAMETRI:
      * "outFrame->data" indica i data pointers da compilare
      * "outFrame->linesize" indica le linesize per l'immagine in outFrame->data da compilare
@@ -879,7 +879,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
      */
     value = av_image_fill_arrays(outFrame->data, outFrame->linesize, video_outbuf, AV_PIX_FMT_YUV420P, outAVCodecContext->width, outAVCodecContext->height, 1);
     // #TODO: il terzo parametro dovrebbe esser preso da qui: outAVCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
-    
+
     if (value < 0) // Verifico che non ci siano errori
     {
         cout << "\nError in filling image array";
@@ -895,7 +895,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
         cout << "\nError nell'allocazione del SwsContext";
         exit(1);
     }
-    
+
 
     /*La funzione sws_getContext alloca un SwsContext e ne ritorna il puntatore (o NULL in caso di errore).
      * I primi 3 parametri sono riferiti all'immagine sorgente. // tra AVPAcket e AVCodec -> pAVCodecContext
@@ -936,10 +936,10 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
         exit(-1);
     }
 
-    /* 
+    /*
     //#TODO: non più frame => dovrebbe essere inutile questa sezione, poiché ora scegliamo il tempo di registrazione
     int ii = 0;
-    int no_frames = 100; 
+    int no_frames = 100;
     cout << "\nEnter No. of frames to capture : ";
     cin >> no_frames;
     */
@@ -954,7 +954,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
 
 
     /*av_read_frame è una funzione che ad ogni chiamata trasmette un frame preso da uno stream.
-         * In caso di successo il paccheto sarà reference-counted (pAVPacket->buf viene settato) 
+         * In caso di successo il paccheto sarà reference-counted (pAVPacket->buf viene settato)
          * e sarà disponibile a tempo indeterminato.
          * Il pacchetto deve essere lberato con av_packet_unref() quando non è più utile.
          * Per il video, il pacchetto contiene esattamente un fotogramma.
@@ -975,12 +975,27 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
         cout << "\noutFrame->buf: " << outFrame->buf;
         */
 
+       /* #TODO: Testing pause-stop etc.*/
+       if (pAVCodecContext->frame_number == 50){
+           toggleScreenCapture();
+       }
+ 
+       /*********************************/
+
         //Da qui
         if (pauseSC) {
             cout << "Pause" << endl;
             outFile << "///////////////////   Pause  ///////////////////" << endl;
             cout << "outAVCodecContext->time_base: " << outAVCodecContext->time_base.num << ", " << outAVCodecContext->time_base.den << endl;
         }
+
+       /* #TODO: Testing pause-stop etc.*/
+        if (pAVCodecContext->frame_number == 50){
+           for (int iter=0; iter < 100000; iter++){
+               cout << "\n" << iter << endl;
+           }
+           toggleScreenCapture();
+       }
 
         std::unique_lock<std::mutex> ul(mu);
 
@@ -994,10 +1009,10 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
             break;
 
         ul.unlock();
-        
+
         //A qui
-        
-        /* 
+
+        /*
         //#TODO: non più frame
         if (ii++ == no_frames)
         {
@@ -1014,18 +1029,18 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
 
             // FUNZIONE DEPRECATA
             // value = avcodec_decode_video2( pAVCodecContext , pAVFrame , &frameFinished , pAVPacket );
-            
-            
+
+
             av_packet_rescale_ts(pAVPacket, pAVFormatContext->streams[VideoStreamIndx]->time_base, pAVCodecContext->time_base);//Nuova
-            
+
              /* avcodec_send_packet fornisce dati compressi grezzi in un AVPacket come input al decodificatore.
              * Internamente questa chiamata copierà i campi rilevanti di pAVCodecContext che possono influenzare
              * la decodifica per-packet e li applicherà quando il pacchetto verrà effettivamente decodificato.
-             * 
+             *
              * Da pavPacket a pAVCodecContext.
              */
             value = avcodec_send_packet(pAVCodecContext, pAVPacket);
-            
+
             if (value < 0) // Verifichiamo che non ci siano stati errori
             {
                 cout << "\nProblem with avcodec_send_packet";
@@ -1039,15 +1054,15 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
             cout << "\npAVCodecContext->pix_fmt: " << pAVCodecContext->pix_fmt;
             cout << "\npAVCodecContext->codec->id: " << pAVCodecContext->codec->id;
             */
-            
+
             /* avcodec_receive_frame restituisce i dati di output decodificati da un decodificatore.
-             * 
+             *
              * Da pAVCodecContext a pAVFrame */
             value = avcodec_receive_frame(pAVCodecContext, pAVFrame);
 
             //#TODO: non più frame da scegliere
             //cout << "\nFrame: " << pAVCodecContext->frame_number << "\n";
-            
+
             // cout << "\npAVFrame->data[0]: " << pAVFrame->data[0];
             // cout << "\nvalue AVERROR_EOF: " << AVERROR_EOF;
             if (value == AVERROR(EAGAIN) || value == AVERROR_EOF)
@@ -1064,14 +1079,14 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
             // snprintf(buf, sizeof(buf), "%s-%d", filename, dec_ctx->frame_number);
             // pgm_save(frame->data[0], frame->linesize[0], frame->width, frame->height, buf);
 
-            /* Funzione utile per riscalare lo slice dell'immagine (presa da pAVFrame->data) e salvare 
+            /* Funzione utile per riscalare lo slice dell'immagine (presa da pAVFrame->data) e salvare
              * il risultato in outFrame->data.
              * Ritorna l'altezza dell'immagine di output
-             * 
+             *
              * Da pavFrame a outFrame
              */
             value = sws_scale(swsCtx_, pAVFrame->data, pAVFrame->linesize, 0, pAVCodecContext->height, outFrame->data, outFrame->linesize);
-            
+
             if (value < 0)
             {
                 cout << "\nProblem with sws_scale ";
@@ -1138,7 +1153,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 // video_st->codec->time_base è stato deprecato.
 
                 //printf("\nWrite frame %3d (size= %2d)\n", j++, outPacket->size / 1000);
-                
+
                 /*
                     * "av_write_frame" serve per scrivere un pacchetto (outpacket) in un file multimediale di output.
                      * Ritorna 0 se tutto è ok, un valore <0 se ci sono errori, 1 se è stato flushato
@@ -1165,27 +1180,27 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                         << std::setw(2) << std::setfill('0') << s << std::flush;
                 }
                 mu.unlock();
-               
+
                 unique_lock<mutex> ul(write_lock);
                 ptsV = outPacket->pts;
                 //cv.wait(ul, [this]() {return ptsA > ptsV; });
-                
+
                 //cout << outPacket << endl;
                 cout << "\n Scrivo pts-VIDEO: " << ptsV << endl;
                 /*Scriviamo il pacchetto in un output media file.
                 NB: Per l'audio viene usato av_interleaved_write_frame()...come mai?
-                NB: A differenza di av_interleaved_write_frame(), av_write_frame non effettua nessuna copia 
+                NB: A differenza di av_interleaved_write_frame(), av_write_frame non effettua nessuna copia
                 dei pacchetti nel buffer => più efficiente, meno efficace
-                
+
                 Da outPacket a outAVFormatContext*/
                 if (av_interleaved_write_frame(outAVFormatContext, outPacket) != 0)
                 {
                     cout << "\nError in writing video frame";
                 }
-                
-                ul.unlock(); 
 
-                av_packet_free(&outPacket); 
+                ul.unlock();
+
+                av_packet_free(&outPacket);
                  //A QUI
                 // av_packet_unref(&outPacket);
                 /*
@@ -1194,12 +1209,12 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                  * i rimanenti campi del pacchetto ai loro valori predefiniti.
                  */
                 cout.flush();
-                
+
             } // got_picture
 
             // av_packet_unref(&outPacket);
             av_packet_free(&outPacket);
-            
+
             /* #TODO: sezione non capita da I e L */
             av_packet_free(&pAVPacket);
             pAVPacket = av_packet_alloc();
@@ -1232,7 +1247,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
             /******Fine sezione non capita *********/
 
         }
-        
+
     } // End of while-loop
 
     stopSC = true; //#TODO: ha senso settarla qui? Non dovrebbe settarsi a true una volta finiti entrambi i thread Video e Audio?
@@ -1243,7 +1258,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
      * libera i dati privati ​​del file. Se non ci sono stati errori, ritorna 0.
      */
     value = av_write_trailer(outAVFormatContext);
-    
+
     if (value < 0)
     {
         cout << "\nError in writing av trailer";
@@ -1252,7 +1267,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     outFile.close();//Nuovo
 
     // THIS WAS ADDED LATER
-    
+
     av_packet_free(&pAVPacket);
     sws_freeContext(swsCtx_);
     /* #TODO: sezione non capita da I e L */
@@ -1265,7 +1280,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
      * Riceve come parametro il puntatore al blocco di memoria che deve essere liberato.
      */
     av_free(video_outbuf);
-    
+
     return 0;
 }
 
@@ -1280,7 +1295,7 @@ int ScreenRecorder::openAudioDevice() {
     inAudioFormatContext = nullptr;
 
     inAudioFormatContext = avformat_alloc_context();
-    
+
     value = av_dict_set(&audioOptions, "sample_rate", "44100", 0);
     if (value < 0) {
         cerr << "Error: cannot set audio sample rate" << endl;
@@ -1293,17 +1308,17 @@ int ScreenRecorder::openAudioDevice() {
     }
 
 #ifdef __linux__
-    // audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("alsa")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
+    // audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("alsa")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato
     // value = avformat_open_input(&inAudioFormatContext, "default", audioInputFormat, &audioOptions); // #TODO: ci stava hw:1, potrebbe essere hw:0
-    //Questi comandi funzionano: 
+    //Questi comandi funzionano:
     // ffmpeg -f alsa -i default -t 30 out.wav
     // ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0 output.mp4
     // Il seguente comando è una combianzione dei precedenti, funziona ed è sincronizzato:
     // ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0 -f alsa -i default -t 30 av_output.mp4
 
     // #TODO: capire se utilizzare 'pulse' invece di alsa
-    audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("alsa")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato   
-    
+    audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("alsa")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato
+
     // const char* url = "alsa_input.pci-0000_00_1f.3.analog-stereo"; //funziona con pulse
     // const char* url = "hw:0"; // NON funziona con alsa
     // const char* url = "default"; // funziona con alsa
@@ -1314,15 +1329,15 @@ int ScreenRecorder::openAudioDevice() {
     value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions); //così funziona
 
 
-    // FIXME: invece di mettere alsa_input.pci... 
-    // ritrovato da comando bash: pacmd list-sources | grep -e 'index:' -e device.string -e 'name:': 
+    // FIXME: invece di mettere alsa_input.pci...
+    // ritrovato da comando bash: pacmd list-sources | grep -e 'index:' -e device.string -e 'name:':
     //Provare a utilizzare un'API di PulseAudio tramite qaulcosa di simile:
     /* vedi: https://stackoverflow.com/questions/67627232/fetching-device-description-using-alsa-soundlib-in-c
     #include <pulse/proplist.h> // aggiungere libpulse a tasks.json
-	pa_proplist* test = pa_card_info::proplist; 
-    
-    */ 
-    
+	pa_proplist* test = pa_card_info::proplist;
+
+    */
+
 
 
     if (value != 0) {
@@ -1364,15 +1379,15 @@ int ScreenRecorder::openAudioDevice() {
         cerr << "Error: unable to find audio stream index" << endl;
         exit(-2);
     }
-    
-    return 0; 
+
+    return 0;
 
 }
 
 void ScreenRecorder::generateAudioStream() {
     AVCodecParameters* params = inAudioFormatContext->streams[audioStreamIndx]->codecpar;
     inAudioCodec = const_cast<AVCodec*>(avcodec_find_decoder(params->codec_id));
-    
+
     if (inAudioCodec == nullptr) {
         cerr << "Error: cannot find the audio decoder" << endl;
         exit(-1);
@@ -1671,21 +1686,21 @@ void ScreenRecorder::captureAudio() {
                         unique_lock<mutex> ul(write_lock);
                         //cv.notify_one();
                         ptsA = outPacket->pts;
-                        
+
                         //cout << outPacket << endl;
                         cout << "\n Scrivo pts-AUDIO: "<< ptsA << endl;
                         //cout << outAVFormatContext << " " << outPacket << endl;
                         /*Scriviamo il pacchettoin un output media file assicurandoci un corretto interleaving.
                          Questa funzione eseguirà il buffering dei pacchetti internamente, assicurarandosi che i pacchetti
                          nel file di output siano correttamente interleavati nell'ordine di dts crescente.
-                         
+
                          Da outPacket a outAVFormatContext*/
                         if (av_interleaved_write_frame(outAVFormatContext, outPacket) != 0)
                         // era: if (av_write_frame(outAVFormatContext, outPacket) != 0)
                         {
                             cerr << "Error in writing audio frame" << endl;
                         }
-                        
+
                         ul.unlock();
                         av_packet_unref(outPacket);
                     }
@@ -1727,16 +1742,19 @@ int ScreenRecorder::stopScreenCapture() {
 
 int ScreenRecorder::toggleScreenCapture() {
     std::lock_guard<std::mutex> lg(mu);
-    if(stopSC) return -1;
+    if(stopSC){
+        cout << "\nScreenRecorder is stopped" << endl;
+        return -1;
+    }
     if (!pauseSC) {
         pauseSC = true;
-        cout << "\nScreenRecorder paused" << endl;
+        cout << "\nScreenRecorder paused" << endl; //TODO: queste stampe potrebbero essere inutili
     }
     else{
         pauseSC = false;
         cout << "\nScreenRecorder resumed" << endl;
     }
-
+    cv.notify_all();
     return 0;
 }
 
