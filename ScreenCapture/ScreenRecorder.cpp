@@ -785,9 +785,9 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
 
 #ifdef __linux__
 #if RUN == 1 
-    ofstream outFile{ "media/" + timestamp + "_log.txt", ios::out }; // RUN
+    ofstream outFile{ "media/" + timestamp + "_log.txt", ios::app }; // RUN
 #else  
-    ofstream outFile{ "../media/" + timestamp + "_log.txt", ios::out }; // DEBUG
+    ofstream outFile{ "../media/" + timestamp + "_log.txt", ios::app }; // DEBUG
 #endif 
 #elif _WIN32
     ofstream outFile{ "..\\media\\" + timestamp + "_log.txt", ios::app };
@@ -1166,7 +1166,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 mu.unlock();
 
                 unique_lock<mutex> ulw(write_lock);
-                //Effettuo conversione dei dts. Lavoro sui dts e non sui pts perchè i 
+                //Effettuo conversione dei pts 
                 ptsV = outPacket->pts / video_st->time_base.den;
                 cvw.notify_one();
                 cvw.wait(ulw, [this](){return ptsA >= ptsV; });
@@ -1516,9 +1516,9 @@ void ScreenRecorder::captureAudio() {
     init_fifo();
 #ifdef __linux__
 #if RUN == 1 
-    ofstream outFile{ "media/" + timestamp + "_log.txt", ios::out }; // RUN
+    ofstream outFile{ "media/" + timestamp + "_log.txt", ios::app }; // RUN
 #else  
-    ofstream outFile{ "../media/" + timestamp + "_log.txt", ios::out }; // DEBUG
+    ofstream outFile{ "../media/" + timestamp + "_log.txt", ios::app }; // DEBUG
 #endif 
 #elif _WIN32
     ofstream outFile{ "..\\media\\" + timestamp + "_log.txt", ios::app };
