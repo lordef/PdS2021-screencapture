@@ -1726,6 +1726,8 @@ int ScreenRecorder::stopScreenCapture() {
 
 
 int ScreenRecorder::toggleScreenCapture() {
+    std::lock_guard<std::mutex> lg(mu);
+    if(stopSC) return -1;
     if (!pauseSC) {
         pauseSC = true;
         cout << "\nScreenRecorder paused" << endl;
