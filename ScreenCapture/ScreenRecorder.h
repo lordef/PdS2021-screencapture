@@ -115,18 +115,22 @@ private:
 	AVAudioFifo* fifo;//Nuovo
 
 	AVStream* video_st;
+	AVStream* audio_st;
 	AVFrame* outAVFrame; //#TODO: questa variabile non viene utilizzata -> sarebbe outFrame?
+
 
 	std::mutex mu; //Nuovo
 	std::mutex write_lock; //Nuovo
 	std::condition_variable cv; //Nuovo
+	std::condition_variable cvw;
 	const char* dev_name;
 	const char* output_file;
 
 	// double video_pts;
 	int ptsA;
 	int ptsV;
-
+	
+	bool end;
 	int magicNumber; //TODO: cosa sta a rappresentare
 	int cropX; 
 	int cropY; 
@@ -156,6 +160,7 @@ private:
 	int w, h; //Nuovo
 	std::string timestamp;//Nuovo
 	std::string deviceName;
+	uint64_t  frameCount;
 	double fps;
 
 public:
