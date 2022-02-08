@@ -69,7 +69,7 @@ std::string retrieveTimestamp()
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
 ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), started(true), activeMenu(true),
-                                    magicNumber(3000), cropX(0), cropY(0), cropH(1080), cropW(1920), frameCount(0)
+                                    magicNumber(300), cropX(0), cropY(0), cropH(1080), cropW(1920), frameCount(0), end (false)
 //Aggiornato - magicNumber=3000
 /* #TODO: N.B.: sia per linux che per windows controllare che i valori passati
              rispettino la risoluzione del pc su cui gira il codice
@@ -1169,7 +1169,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 //Effettuo conversione dei pts 
                 ptsV = outPacket->pts / video_st->time_base.den;
                 cvw.notify_one();
-                cvw.wait(ulw, [this](){return ptsA >= ptsV; });
+                cvw.wait(ulw, [this](){return ((ptsA - 2 > ptsV)|| end); });
                 
                 
                 
@@ -1687,7 +1687,7 @@ void ScreenRecorder::captureAudio() {
                         //Effettuo conversione dei pts
                         ptsA = outPacket->pts / outAudioCodecContext->sample_rate;
                         cvw.notify_one();
-                        cvw.wait(ulw, [this]() {return ptsA <= ptsV; });
+                        cvw.wait(ulw, [this]() {return ptsA - 2 <= ptsV; });
                         
                         
                         
@@ -1720,6 +1720,10 @@ void ScreenRecorder::captureAudio() {
         }
         
     }
+    unique_lock<mutex> ulw(write_lock);
+    end = true;
+    cvw.notify_one();
+
     outFile.close();//Nuovo
 }
 

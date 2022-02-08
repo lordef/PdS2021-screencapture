@@ -129,7 +129,7 @@ private:
 	// double video_pts;
 	int ptsA;
 	int ptsV;
-
+	boolean end;
 	int magicNumber; //TODO: cosa sta a rappresentare
 	int cropX; 
 	int cropY; 
