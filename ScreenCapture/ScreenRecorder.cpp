@@ -976,9 +976,9 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
         */
 
         /* #FIXME: Testing pause-stop etc.*/
-        if (pAVCodecContext->frame_number == 50){
-            toggleScreenCapture();
-        }
+        // if (pAVCodecContext->frame_number == 50){
+        //     toggleScreenCapture();
+        // }
     
         /*********************************/
 
@@ -990,12 +990,12 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
         }
 
        /* #FIXME: Testing pause-stop etc.*/
-        if (pAVCodecContext->frame_number == 50){
-           for (int iter=0; iter < 100000; iter++){
-               cout << "\n" << iter << endl;
-           }
-           toggleScreenCapture();
-       }
+    //     if (pAVCodecContext->frame_number == 50){
+    //        for (int iter=0; iter < 100000; iter++){
+    //            cout << "\n" << iter << endl;
+    //        }
+    //        toggleScreenCapture();
+    //    }
 
         std::unique_lock<std::mutex> ul(mu);
 
