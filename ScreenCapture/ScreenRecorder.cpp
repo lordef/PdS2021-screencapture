@@ -617,7 +617,11 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     outAVCodecContext->global_quality = 500; //Nuovo
     outAVCodecContext->max_b_frames = 2;
     outAVCodecContext->time_base.num = 1;
-    outAVCodecContext->time_base.den = 25;// 15fps // Aggiornato
+    #ifdef __linux__
+        outAVCodecContext->time_base.den = 12.5;// 15fps
+    #elif _WIN32
+        outAVCodecContext->time_base.den = 25;// 15fps
+    #endif
     outAVCodecContext->bit_rate_tolerance = 400000; //Nuovo
 
     if (outAVCodecContext->codec_id == AV_CODEC_ID_H264)//Aggiornato
@@ -1183,8 +1187,13 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 unique_lock<mutex> ulw(write_lock);
                 //Effettuo conversione dei pts 
                 ptsV = outPacket->pts / video_st->time_base.den;
-                cvw.notify_one();
-                cvw.wait(ulw, [this](){return ((ptsA - 2 > ptsV)|| end); });
+
+                #ifdef __linux__
+                    // cvw.wait(ulw, [this](){return ((ptsA > ptsV) || end); });
+                #elif _WIN32
+                    cvw.notify_one();
+                    cvw.wait(ulw, [this](){return ((ptsA - 2 > ptsV) || end); });
+                #endif
                 
                 
                 
@@ -1701,8 +1710,13 @@ void ScreenRecorder::captureAudio() {
                         unique_lock<mutex> ulw(write_lock);   
                         //Effettuo conversione dei pts
                         ptsA = outPacket->pts / outAudioCodecContext->sample_rate;
-                        cvw.notify_one();
-                        cvw.wait(ulw, [this]() {return ptsA - 2 <= ptsV; });
+
+                        #ifdef __linux__
+                            // cvw.wait(ulw, [this]() {return ptsA <= ptsV; });
+                        #elif _WIN32
+                            cvw.notify_one();
+                            cvw.wait(ulw, [this]() {return ptsA - 2 <= ptsV; });
+                        #endif
                         
                         
                         
@@ -1735,9 +1749,12 @@ void ScreenRecorder::captureAudio() {
         }
         
     }
-    unique_lock<mutex> ulw(write_lock);
-    end = true;
-    cvw.notify_one();
+
+    #ifdef _WIN32
+        unique_lock<mutex> ulw(write_lock);
+        end = true;
+        cvw.notify_one();
+    #endif
 
     outFile.close();//Nuovo
 }
