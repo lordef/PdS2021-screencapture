@@ -617,7 +617,11 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     outAVCodecContext->global_quality = 500; //Nuovo
     outAVCodecContext->max_b_frames = 2;
     outAVCodecContext->time_base.num = 1;
-    outAVCodecContext->time_base.den = 25;// 15fps // Aggiornato
+    #ifdef __linux__
+        outAVCodecContext->time_base.den = 12.5;// 15fps
+    #elif _WIN32
+        outAVCodecContext->time_base.den = 25;// 15fps
+    #endif
     outAVCodecContext->bit_rate_tolerance = 400000; //Nuovo
 
     if (outAVCodecContext->codec_id == AV_CODEC_ID_H264)//Aggiornato
@@ -785,7 +789,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
 
 #ifdef __linux__
 #if RUN == 1 
-    ofstream outFile{ "media/" + timestamp + "_log.txt", ios::app }; // RUN
+    ofstream outFile{ "media/" + timestamp + "_log.txt", ios::app }; // RUN  //FIXME: capire se va bene altrimenti mettere out inceve di app
 #else  
     ofstream outFile{ "../media/" + timestamp + "_log.txt", ios::app }; // DEBUG
 #endif 
@@ -975,12 +979,27 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
         cout << "\noutFrame->buf: " << outFrame->buf;
         */
 
+        /* #FIXME: Testing pause-stop etc.*/
+        // if (pAVCodecContext->frame_number == 50){
+        //     toggleScreenCapture();
+        // }
+    
+        /*********************************/
+
         //Da qui
         if (pauseSC) {
             cout << "Pause" << endl;
             outFile << "///////////////////   Pause  ///////////////////" << endl;
             cout << "outAVCodecContext->time_base: " << outAVCodecContext->time_base.num << ", " << outAVCodecContext->time_base.den << endl;
         }
+
+       /* #FIXME: Testing pause-stop etc.*/
+    //     if (pAVCodecContext->frame_number == 50){
+    //        for (int iter=0; iter < 100000; iter++){
+    //            cout << "\n" << iter << endl;
+    //        }
+    //        toggleScreenCapture();
+    //    }
 
         std::unique_lock<std::mutex> ul(mu);
 
@@ -1168,8 +1187,13 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 unique_lock<mutex> ulw(write_lock);
                 //Effettuo conversione dei pts 
                 ptsV = outPacket->pts / video_st->time_base.den;
-                cvw.notify_one();
-                cvw.wait(ulw, [this](){return ((ptsA - 2 > ptsV)|| end); });
+
+                #ifdef __linux__
+                    // cvw.wait(ulw, [this](){return ((ptsA > ptsV) || end); });
+                #elif _WIN32
+                    cvw.notify_one();
+                    cvw.wait(ulw, [this](){return ((ptsA - 2 > ptsV) || end); });
+                #endif
                 
                 
                 
@@ -1686,8 +1710,13 @@ void ScreenRecorder::captureAudio() {
                         unique_lock<mutex> ulw(write_lock);   
                         //Effettuo conversione dei pts
                         ptsA = outPacket->pts / outAudioCodecContext->sample_rate;
-                        cvw.notify_one();
-                        cvw.wait(ulw, [this]() {return ptsA - 2 <= ptsV; });
+
+                        #ifdef __linux__
+                            // cvw.wait(ulw, [this]() {return ptsA <= ptsV; });
+                        #elif _WIN32
+                            cvw.notify_one();
+                            cvw.wait(ulw, [this]() {return ptsA - 2 <= ptsV; });
+                        #endif
                         
                         
                         
@@ -1720,9 +1749,12 @@ void ScreenRecorder::captureAudio() {
         }
         
     }
-    unique_lock<mutex> ulw(write_lock);
-    end = true;
-    cvw.notify_one();
+
+    #ifdef _WIN32
+        unique_lock<mutex> ulw(write_lock);
+        end = true;
+        cvw.notify_one();
+    #endif
 
     outFile.close();//Nuovo
 }
@@ -1755,15 +1787,20 @@ int ScreenRecorder::stopScreenCapture() {
 
 
 int ScreenRecorder::toggleScreenCapture() {
+    std::lock_guard<std::mutex> lg(mu);
+    if(stopSC){
+        cout << "\nScreenRecorder is stopped" << endl;
+        return -1;
+    }
     if (!pauseSC) {
         pauseSC = true;
-        cout << "\nScreenRecorder paused" << endl;
+        cout << "\nScreenRecorder paused" << endl; //TODO: queste stampe potrebbero essere inutili
     }
-    else {
+    else{
         pauseSC = false;
         cout << "\nScreenRecorder resumed" << endl;
     }
-
+    cv.notify_all();
     return 0;
 }
 
