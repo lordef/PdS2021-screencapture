@@ -603,13 +603,16 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     outAVCodecContext->codec_id = AV_CODEC_ID_MPEG4; // AV_CODEC_ID_MPEG4; // AV_CODEC_ID_H264 // AV_CODEC_ID_MPEG1VIDEO
     outAVCodecContext->codec_type = AVMEDIA_TYPE_VIDEO;
     outAVCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
-    outAVCodecContext->bit_rate = 10000000;//Nuovo
 #ifdef __linux__
+    outAVCodecContext->bit_rate = 96000; //FIXME: era 10 000 000
+
     int he, wi; //height, width
     tie(he, wi) = retrieveDisplayDimention();
     outAVCodecContext->width = wi;    //#TODO: questo parametro deve essere dinamico (su macchina virtuale funziona con 1280x800)
     outAVCodecContext->height = he;      // ora questi valori rappresentano la risoluzione massima dello schermo
 #elif _WIN32
+    outAVCodecContext->bit_rate = 10000000;
+
     outAVCodecContext->width = 1920;    //#TODO: questo parametro deve essere dinamico
     outAVCodecContext->height = 1080;
 #endif
@@ -622,7 +625,7 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     #elif _WIN32
         outAVCodecContext->time_base.den = 25;// 15fps
     #endif
-    outAVCodecContext->bit_rate_tolerance = 400000; //Nuovo
+    outAVCodecContext->bit_rate_tolerance = 400000;
 
     if (outAVCodecContext->codec_id == AV_CODEC_ID_H264)//Aggiornato
     {
