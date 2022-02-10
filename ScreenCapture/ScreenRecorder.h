@@ -188,9 +188,9 @@ public:
 	/*** API ancora da implementare/testare ***/
 
 	/* Define the area to be recorded */
-	// #TODO: incorporata nel cotruttore; si vedano i parametri cropX-Y-H-W
+	// #TODO: incorporata nel costruttore; si vedano i parametri cropX-Y-H-W
 	// da testare in Windows se funziona
-	// fare un cotruttore che prenda questi dati di crop come input, cosa da fare anche per la prossima API
+	// fare un costruttore che prenda questi dati di crop come input, cosa da fare anche per la prossima API
 
 	/* Select whether the audio should be captured or not */
 	/*
