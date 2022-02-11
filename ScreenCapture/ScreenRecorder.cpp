@@ -69,13 +69,28 @@ std::string retrieveTimestamp()
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
 ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), started(true), activeMenu(true),
-                                    magicNumber(300), cropX(0), cropY(0), cropH(1080), cropW(1920), frameCount(0), end (false)
+                                    magicNumber(100), cropX(0), cropY(0), cropH(300), cropW(1000), frameCount(0), end (false)
+// ScreenRecorder::ScreenRecorder( bool isAudioActive = true, 
+//                                 int cropX = 0, int cropY = 0, int cropH = 1080, int cropW = 1920,
+// 					            int magicNumber = 100, bool activeMenu = true) 
+
+                                // : isAudioActive(isAudioActive), 
+                                // cropX(cropX), cropY(cropY), cropH(cropH), cropW(cropW), 
+                                // magicNumber(magicNumber), activeMenu(activeMenu)
 //Aggiornato - magicNumber=3000
 /* #TODO: N.B.: sia per linux che per windows controllare che i valori passati
              rispettino la risoluzione del pc su cui gira il codice
              in particolare che tutte le variabili di crop
              ispirarsi a libavdevice/xcbgrab.c -> cerca la stringa 'outside the screen'*/
 {
+
+    #ifdef __linux__
+    /*****************/
+        // #FIXME: codice temporaneo per debuggare su pc L e I, poiché risoluzioni diverse
+        // int cropH, cropW; //height, width
+        tie(cropH, cropW) = retrieveDisplayDimention(); //FIXME: commentare perché sovrascrive crop passati
+    /*****************/
+    #endif
 
     // av_register_all(); //Funzione di inizializzazione deprecata. Può essere tranquillamente omessa.
     // avcodec_register_all(); //Funzione di inzizializzazione deprecata. Può essere tranquillamente omessa.
@@ -328,12 +343,6 @@ int ScreenRecorder::openCamera()
          controllare che i valori passati rispettino la risoluzione del pc su cui gira il codice
      */
      /*****************/
-
-     /*****************/
-     // #FIXME: codice temporaneo per debuggare su pc L e I, poiché risoluzioni diverse
-    int cropH, cropW; //height, width
-    tie(cropH, cropW) = retrieveDisplayDimention();
-    /*****************/
 
     string resolutionS = to_string(cropW) + "x" + to_string(cropH);
     //option to set the dimension of the screen section to record
@@ -606,10 +615,12 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
 #ifdef __linux__
     outAVCodecContext->bit_rate = 96000; //FIXME: era 10 000 000
 
-    int he, wi; //height, width
-    tie(he, wi) = retrieveDisplayDimention();
-    outAVCodecContext->width = wi;    //#TODO: questo parametro deve essere dinamico (su macchina virtuale funziona con 1280x800)
-    outAVCodecContext->height = he;      // ora questi valori rappresentano la risoluzione massima dello schermo
+    // int he, wi; //height, width
+    // tie(he, wi) = retrieveDisplayDimention();
+    // outAVCodecContext->width = wi;    //#TODO: questo parametro deve essere dinamico (su macchina virtuale funziona con 1280x800)
+    // outAVCodecContext->height = he;      // ora questi valori rappresentano la risoluzione massima dello schermo
+    outAVCodecContext->width = cropW;    //#TODO: questo parametro deve essere dinamico (su macchina virtuale funziona con 1280x800)
+    outAVCodecContext->height = cropH;      // ora questi valori rappresentano la risoluzione massima dello schermo
 #elif _WIN32
     outAVCodecContext->bit_rate = 10000000;
 
@@ -1191,9 +1202,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 //Effettuo conversione dei pts 
                 ptsV = outPacket->pts / video_st->time_base.den;
 
-                #ifdef __linux__
-                    // cvw.wait(ulw, [this](){return ((ptsA > ptsV) || end); });
-                #elif _WIN32
+                #ifdef _WIN32
                     cvw.notify_one();
                     cvw.wait(ulw, [this](){return ((ptsA - 2 > ptsV) || end); });
                 #endif
