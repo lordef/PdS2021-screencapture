@@ -626,8 +626,10 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
 #elif _WIN32
     outAVCodecContext->bit_rate = 10000000;
 
-    outAVCodecContext->width = 1920;    //#TODO: questo parametro deve essere dinamico
-    outAVCodecContext->height = 1080;
+    // outAVCodecContext->width = 1920;    //#TODO: questo parametro deve essere dinamico
+    // outAVCodecContext->height = 1080;
+    outAVCodecContext->width = cropW;    //#TODO: testare su windows
+    outAVCodecContext->height = cropH;
 #endif
     outAVCodecContext->gop_size = 10; //aggiornato -> era 3
     outAVCodecContext->global_quality = 500; //Nuovo
