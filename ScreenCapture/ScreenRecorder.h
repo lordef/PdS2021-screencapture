@@ -130,7 +130,6 @@ private:
 	int ptsA;
 	int ptsV;
 	
-	bool end;
 	int magicNumber; //TODO: cosa sta a rappresentare
 	int cropX; 
 	int cropY; 
@@ -152,19 +151,25 @@ private:
 	std::thread* mux;
 	
 	bool isAudioActive;
-	bool pauseSC; // utile a mettere in pausa la registrazione
-	bool stopSC; // utile a terminare la registrazione
-	bool started; // utile per deallocare quando ScreenRecoder muore
+	bool pauseSC = false; // utile a mettere in pausa la registrazione
+	bool stopSC = false; // utile a terminare la registrazione
+	bool started = true; // utile per deallocare quando ScreenRecoder muore
 	bool activeMenu; //Nuovo
+	bool end = false; //#FIXME: variabile che potrebbe andare in contrasto con stopSC => CONTROLLARE
+
+
 	int width, height; //Nuovo
 	int w, h; //Nuovo
 	std::string timestamp;//Nuovo
 	std::string deviceName;
-	uint64_t  frameCount;
+	uint64_t frameCount = 0;
 	double fps;
 
 public:
 	ScreenRecorder();
+	// ScreenRecorder( bool isAudioActive, int cropX, int cropY, int cropH, int cropW,
+	// 				int magicNumber, bool activeMenu); // #TODO: valutare se sopprimere magicNumber e activeMenu 
+
 	~ScreenRecorder();
 
 	/* Function to initiate communication with display library */
@@ -194,8 +199,9 @@ public:
 
 	/* Select whether the audio should be captured or not */
 	/*
-	#TODO: fare un costruttore che setta isAudioActive a true o false, ora di defualt sta a true
-	Questa scelta non ci permette di mettere o togliere l'audio mentre si sta registrando, dovrebbe andar bene
+	#TODO: fare un costruttore che setta isAudioActive a true o false, ora di default sta a true
+		Convenzione da discutere: q
+			questa scelta non ci permette di mettere o togliere l'audio mentre si sta registrando, dovrebbe andar bene
 	*/
 
 	/* Activate and stop the recording process */
