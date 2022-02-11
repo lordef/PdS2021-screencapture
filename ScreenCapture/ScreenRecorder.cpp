@@ -69,7 +69,9 @@ std::string retrieveTimestamp()
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
 ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), started(true), activeMenu(true),
-                                    magicNumber(100), cropX(0), cropY(0), cropH(300), cropW(1000), frameCount(0), end (false)
+                                    magicNumber(100), cropX(0), cropY(0), cropH(1080), cropW(1920), frameCount(0), end (false)
+
+// TODO: aggiustare codice seguente e sostituirlo a quello sopra                                    
 // ScreenRecorder::ScreenRecorder( bool isAudioActive = true, 
 //                                 int cropX = 0, int cropY = 0, int cropH = 1080, int cropW = 1920,
 // 					            int magicNumber = 100, bool activeMenu = true) 
