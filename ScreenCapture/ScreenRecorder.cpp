@@ -1468,7 +1468,11 @@ void ScreenRecorder::generateAudioStream() {
     outAudioCodecContext->channels = inAudioCodecContext->channels;
     outAudioCodecContext->channel_layout = av_get_default_channel_layout(outAudioCodecContext->channels);
     outAudioCodecContext->bit_rate = 96000;
-    outAudioCodecContext->time_base = { 1, inAudioCodecContext->sample_rate };
+    /** //#FIXME: test: metterli uguali ad audio e video **/
+    // outAudioCodecContext->time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2
+    // outAudioCodecContext->time_base.num = 1; 
+    // outAudioCodecContext->time_base.den = 12.5; 
+    /****/
 
     outAudioCodecContext->strict_std_compliance = FF_COMPLIANCE_EXPERIMENTAL;
 
@@ -1480,6 +1484,7 @@ void ScreenRecorder::generateAudioStream() {
         cerr << "error in opening the avcodec" << endl;
         exit(1);
     }
+    
 
     //find a free stream index
     outAudioStreamIndex = -1;
