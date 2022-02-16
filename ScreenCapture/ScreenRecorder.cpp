@@ -1161,9 +1161,9 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
 
             if (value >= 0) // Frame successfully encoded :)
             {
-
+                
                 if (outPacket->pts != AV_NOPTS_VALUE)
-                    outPacket->pts = av_rescale_q(outPacket->pts, outAVCodecContext->time_base, video_st->time_base);
+                    outPacket->pts = av_rescale_q(outPacket->pts, outAVCodecContext->time_base, video_st->time_base);//FIXME: ultimo parametro protrebbe essere AV_TIME_BASE_Q Provare a capire da qui -> https://stackoverflow.com/questions/25837947/synchronizing-ffmpeg-video-frames-using-pts
                 // Rescales a 64-bit integer by 2 rational numbers.
                 // Nel codice di Abdullah veniva usata la stessa funzione ma con un parametro diverso (che dava errore):
                 //  outPacket.pts = av_rescale_q(outPacket.pts, video_st->codec->time_base, video_st->time_base);
