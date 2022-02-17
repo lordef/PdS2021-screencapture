@@ -4,5 +4,41 @@
 Configurazioni: 
 - alsa -i default
  
-File utile per capire con che parametri avviene la desincronizzazione
-- provare a capire con valori magicNumber
+Quando si croppa, ci sta desync:
+- ragionarte su come settare timebase, fps, sample_rate, etc.
+
+Situazione attuale:
+    outAVCodecContext->time_base.num = 1;
+
+
+---------------------------------------------------------------
+CROPPING:
+Prova1
+magic Number 100
+cropH 300 sia in openCamera che in generateVideoStream
+cropW 1000 sia in openCamera che in generateVideoStream
+X,Y 0
+-> video ok audio muto per 2/3 del video
+
+Prova2
+prova con dimensioni massime -> tutto funzionante
+
+se si ritaglia, si taglia l’audio
+
+Prova3
+openCamera con cropW e cropH
+generateVideoStream con la massima risoluzione
+-> video strano compresso, l’audio si blocca a 6 sec di 10 sec totali
+
+video size deve essere cropH e cropW
+
+------------
+Prova risoluzione problema desync quando si croppa
+
+Andiamo a ragionare su timebase, sia audio che video
+Ragionare su saple rate -> per l'audio
+
+Prima prova
+time_base.den e time_base.num uguali per audio e video  -> questa prova da file corrotto (modificato)
+---------------------------------------------------------------
+

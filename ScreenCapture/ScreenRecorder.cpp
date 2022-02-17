@@ -636,7 +636,9 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     outAVCodecContext->max_b_frames = 2;
     outAVCodecContext->time_base.num = 1;
     #ifdef __linux__
-        outAVCodecContext->time_base.den = 12.5;// 15fps
+        // outAVCodecContext->time_base.den = 12.5;// 15fps //#TODO: TESTING values
+        outAVCodecContext->time_base.den = 25;// 15fps
+
     #elif _WIN32
         outAVCodecContext->time_base.den = 25;// 15fps
     #endif
