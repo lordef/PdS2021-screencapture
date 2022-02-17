@@ -69,7 +69,7 @@ std::string retrieveTimestamp()
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
 ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), started(true), activeMenu(true),
-                                    magicNumber(100), cropX(0), cropY(0), cropH(1080), cropW(1920), frameCount(0), end (false)
+                                    magicNumber(100), cropX(0), cropY(0), cropH(700), cropW(700), frameCount(0), end (false)
 
 // TODO: aggiustare codice seguente e sostituirlo a quello sopra                                    
 // ScreenRecorder::ScreenRecorder( bool isAudioActive = true, 
@@ -615,7 +615,7 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     outAVCodecContext->codec_type = AVMEDIA_TYPE_VIDEO;
     outAVCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
 #ifdef __linux__
-    outAVCodecContext->bit_rate = 96000; //FIXME: era 10 000 000
+    outAVCodecContext->bit_rate = 90000; //FIXME: era 10 000 000
 
     // int he, wi; //height, width
     // tie(he, wi) = retrieveDisplayDimention();
@@ -636,8 +636,8 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     outAVCodecContext->max_b_frames = 2;
     outAVCodecContext->time_base.num = 1;
     #ifdef __linux__
-        // outAVCodecContext->time_base.den = 12.5;// 15fps //#TODO: TESTING values
-        outAVCodecContext->time_base.den = 25;// 15fps
+        outAVCodecContext->time_base.den = 12.5;// 15fps //#TODO: TESTING values
+        // outAVCodecContext->time_base.den = 25;// 15fps
 
     #elif _WIN32
         outAVCodecContext->time_base.den = 25;// 15fps
@@ -1469,7 +1469,7 @@ void ScreenRecorder::generateAudioStream() {
     outAudioCodecContext->sample_fmt = (outAudioCodec)->sample_fmts ? (outAudioCodec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
     outAudioCodecContext->channels = inAudioCodecContext->channels;
     outAudioCodecContext->channel_layout = av_get_default_channel_layout(outAudioCodecContext->channels);
-    outAudioCodecContext->bit_rate = 96000;
+    outAudioCodecContext->bit_rate = 90000;
     /** //#FIXME: test: metterli uguali ad audio e video **/
     // outAudioCodecContext->time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2
     // outAudioCodecContext->time_base.num = 1; 

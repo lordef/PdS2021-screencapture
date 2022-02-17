@@ -8,19 +8,100 @@ Quando si croppa, ci sta desync:
 - ragionarte su come settare timebase, fps, sample_rate, etc.
 
 Situazione attuale:
+ -      FUNZIONANTE:
 
-    VIDEO
-    time_base.num = 1
-    time_base.den = 12.5;
-    bit_rate_tolerance = 400000
-    bit_rate = 96000
-    max_b_frames = 2;
+        RISOLUZIONE 
+            massima -> 1920x1200 (L): 1920x1200=2.304.000
+        VIDEO
+            time_base.num = 1
+            time_base.den = 12.5;
+            bit_rate_tolerance = 400000
+            bit_rate = 96000
+            max_b_frames = 2;
 
-    AUDIO
-    bit_rate = 96000;
-    // outAudioCodecContext->time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2
+        AUDIO
+            bit_rate = 96000;
+            NON settato: time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2
 
 
+-      TEST: solo risoluzione diversa -> video rallentato, audio regolare ma forse troncato
+
+        RISOLUZIONE 
+            crop: cropH(700), cropW(700): 700x700= 490.000
+        VIDEO
+            time_base.num = 1
+            time_base.den = 12.5;
+            bit_rate_tolerance = 400000
+            bit_rate = 96000
+            max_b_frames = 2;
+
+        AUDIO
+            bit_rate = 96000;
+            NON settato: time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2
+
+
+-      TEST: video rallentatissimo
+        cropH(700), cropW(700) -> 700x700  -> provo a proporzionare gli fps: 2.304.000:490.000 = 12.5 : x => x=2.65
+
+        RISOLUZIONE 
+            crop: cropH(700), cropW(700)
+        VIDEO
+            time_base.num = 1
+            time_base.den = 2.65; <------------------------------------
+            bit_rate_tolerance = 400000
+            bit_rate = 96000
+            max_b_frames = 2;
+
+        AUDIO
+            bit_rate = 96000;
+            NON settato: time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2
+
+
+-      TEST: video molto veloce, registrazione di soli 3 secondi
+
+        RISOLUZIONE 
+            crop: cropH(700), cropW(700)
+        VIDEO
+            time_base.num = 1
+            time_base.den = 25; <------------------------------------
+            bit_rate_tolerance = 400000
+            bit_rate = 96000
+            max_b_frames = 2;
+
+        AUDIO
+            bit_rate = 96000;
+            NON settato: time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2
+
+
+-      QUASI FUNZIONANTE: audio ok, video sembra veloce del doppio
+
+        RISOLUZIONE 
+            massima -> 1920x1200 (L)    <------------------------------------
+        VIDEO
+            time_base.num = 1
+            time_base.den = 25;         <------------------------------------
+            bit_rate_tolerance = 400000
+            bit_rate = 90000            <------------------------------------
+            max_b_frames = 2;
+
+        AUDIO   
+            bit_rate = 90000            <------------------------------------
+            NON settato: time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2
+
+-      QUASI FUNZIONANTE: audio ok, video si perde solo ultimo secondo
+
+        RISOLUZIONE 
+            massima -> 1920x1200 (L)    <------------------------------------
+        VIDEO
+            time_base.num = 1
+            time_base.den = 12.5;         <------------------------------------
+            bit_rate_tolerance = 400000
+            bit_rate = 90000            <------------------------------------
+            max_b_frames = 2;
+
+        AUDIO   
+            bit_rate = 90000            <------------------------------------
+            NON settato: time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2
 
 ---------------------------------------------------------------
 CROPPING:
