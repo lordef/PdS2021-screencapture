@@ -103,6 +103,23 @@ Situazione attuale:
             bit_rate = 90000            <------------------------------------
             NON settato: time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2
 
+
+-      QUASI FUNZIONANTE: audio ok, ma video molto veloce, sembra sempre intorno al doppio
+
+        RISOLUZIONE 
+            massima -> 1920x1200 (L)    
+        VIDEO
+            time_base.num = 1
+            time_base.den = 25;         <------------------------------------
+            bit_rate_tolerance = 400000
+            bit_rate = 90000            
+            max_b_frames = 2;
+            av_opt_set(outAVCodecContext->priv_data, "preset", "veryslow", 0); <----------- era slow
+            outAVCodecContext->gop_size = 0; <----------- era 10
+            outAVCodecContext->max_b_frames = 0; <------------------ era 2
+        AUDIO   
+            bit_rate = 90000            
+            NON settato: time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2
 ---------------------------------------------------------------
 CROPPING:
 Prova1
