@@ -69,7 +69,7 @@ std::string retrieveTimestamp()
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
 ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), started(true), activeMenu(true),
-                                    magicNumber(100), cropX(0), cropY(0), cropH(1080), cropW(1920), frameCount(0), end (false)
+                                    magicNumber(3000), cropX(0), cropY(0), cropH(1080), cropW(1920), frameCount(0), end (false)
 
 // TODO: aggiustare codice seguente e sostituirlo a quello sopra                                    
 // ScreenRecorder::ScreenRecorder( bool isAudioActive = true, 
@@ -1208,7 +1208,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
 
                 #ifdef _WIN32
                     cvw.notify_one();
-                    cvw.wait(ulw, [this](){return ((ptsA - 2 > ptsV) || end); });
+                    cvw.wait(ulw, [this](){return ((ptsA - 2 >= ptsV) || end); });
                 #endif
                 
                 
@@ -1293,6 +1293,10 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
         cout << "\nError in writing av trailer";
         exit(1);
     }
+#ifdef _WIN32
+    end = true;
+    cvw.notify_one();
+#endif
     outFile.close();//Nuovo
 
     // THIS WAS ADDED LATER
@@ -1731,7 +1735,7 @@ void ScreenRecorder::captureAudio() {
                             // cvw.wait(ulw, [this]() {return ptsA <= ptsV; });
                         #elif _WIN32
                             cvw.notify_one();
-                            cvw.wait(ulw, [this]() {return ptsA - 2 <= ptsV; });
+                            cvw.wait(ulw, [this]() {return ((ptsA - 2 <= ptsV) || end); });
                         #endif
                         
                         
@@ -1767,7 +1771,6 @@ void ScreenRecorder::captureAudio() {
     }
 
     #ifdef _WIN32
-        unique_lock<mutex> ulw(write_lock);
         end = true;
         cvw.notify_one();
     #endif
@@ -1820,7 +1823,9 @@ int ScreenRecorder::toggleScreenCapture() {
     return 0;
 }
 
+
 /* Funzione che racchiude il setup base */
+/*
 void ScreenRecorder::SetUpScreenRecorder() {
     ScreenRecorder screen_record;
     screen_record.openCamera();
@@ -1828,3 +1833,4 @@ void ScreenRecorder::SetUpScreenRecorder() {
     screen_record.initOutputFile();
     screen_record.CreateThreads();
 }
+*/
