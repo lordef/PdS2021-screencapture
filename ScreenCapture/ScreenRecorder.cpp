@@ -485,21 +485,19 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     // Trova un codificatore (encoder) che matcha con l'ID_codec indicato.
     // Ritorna l'encoder in caso di successo, NULL in caso di errore
     pLocalCodec = const_cast<AVCodec*>(avcodec_find_encoder(AV_CODEC_ID_MPEG4));
-
-    if (pLocalCodec == nullptr) // Aggiornato
+    if (pLocalCodec == nullptr)
     {
         cout << "\nUnable to find the encoder";
-        exit(-8);//Aggiornato
+        exit(-8);
     }
 
     // Alloca un AVCodecContext e imposta i suoi campi sui valori predefiniti.
     // Ritorna un AVCodecContext riempito con valori predefiniti o NULL in caso di errore.
     outAVCodecContext = avcodec_alloc_context3(pLocalCodec);
-
     if (!outAVCodecContext)
     {
         cout << "\nError in allocating the codec contexts";
-        exit(-7); //Aggiornato
+        exit(-7);
     }
 
     // Aggiunge un nuovo stream al file media
@@ -508,10 +506,10 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     if (!video_st) // Effettuo un check
     {
         cout << "\nError in creating a av format new stream";
-        exit(-6);//Aggiornato
+        exit(-6);
     }
 
-    value = avcodec_parameters_to_context(outAVCodecContext, video_st->codecpar); //Aggiornata
+    value = avcodec_parameters_to_context(outAVCodecContext, video_st->codecpar);
     if (value < 0) // Eseguo check
     {
         cout << "\nUnable to set the parameter of the codec";
@@ -521,29 +519,23 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     outAVCodecContext->codec_id = AV_CODEC_ID_MPEG4; // AV_CODEC_ID_MPEG4; // AV_CODEC_ID_H264 // AV_CODEC_ID_MPEG1VIDEO
     outAVCodecContext->codec_type = AVMEDIA_TYPE_VIDEO;
     outAVCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
+    outAVCodecContext->width = cropW;
+    outAVCodecContext->height = cropH; 
+
+    //a --> 10000000
 #ifdef __linux__
     outAVCodecContext->bit_rate = 90000; //FIXME: era 10 000 000, G: 96000
-
-    // int he, wi; //height, width
-    // tie(he, wi) = retrieveDisplayDimention();
-    // outAVCodecContext->width = wi;    //#TODO: questo parametro deve essere dinamico (su macchina virtuale funziona con 1280x800)
-    // outAVCodecContext->height = he;      // ora questi valori rappresentano la risoluzione massima dello schermo
-    outAVCodecContext->width = cropW;    //#TODO: questo parametro deve essere dinamico (su macchina virtuale funziona con 1280x800)
-    outAVCodecContext->height = cropH;      // ora questi valori rappresentano la risoluzione massima dello schermo
 #elif _WIN32
     outAVCodecContext->bit_rate = 10000000;
-
-    // outAVCodecContext->width = 1920;    //#TODO: questo parametro deve essere dinamico
-    // outAVCodecContext->height = 1080;
-    outAVCodecContext->width = cropW;    //#TODO: testare su windows
-    outAVCodecContext->height = cropH;
 #endif
     outAVCodecContext->gop_size = 10; //aggiornato -> era 3
     outAVCodecContext->global_quality = 500; //Nuovo
     outAVCodecContext->max_b_frames = 2;
     outAVCodecContext->time_base.num = 1;
+
+    //a --> 33
     #ifdef __linux__
-        outAVCodecContext->time_base.den = 12.5;// 15fps //#TODO: TESTING values
+        outAVCodecContext->time_base.den = 12.5;// 15fps 
         // outAVCodecContext->time_base.den = 25;// 15fps
 
     #elif _WIN32
@@ -551,9 +543,10 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
         // outAVCodecContext->time_base.den = 25*((1920*1080)/(cropH*cropW));// 15fps //#TODO: ragionarci
 
     #endif
-    outAVCodecContext->bit_rate_tolerance = 400000;
+    outAVCodecContext->bit_rate_tolerance = 400000; //a --> 400000
 
-    if (outAVCodecContext->codec_id == AV_CODEC_ID_H264)//Aggiornato
+
+    if (outAVCodecContext->codec_id == AV_CODEC_ID_H264)
     {
         // This function set the field of obj with the given name to value.
         av_opt_set(outAVCodecContext->priv_data, "preset", "slow", 0);
@@ -574,8 +567,9 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
         cout << "\nError in opening the avcodec";
         exit(-9);
     }
-    //Da qui
+
     outVideoStreamIndex = -1;
+    /*Cerca lo stream di output basandosi su quale abbia come codec_type AVMEDIA_TYPE_UNKOWN*/
     for (int i = 0; i < outAVFormatContext->nb_streams; i++) {
         if (outAVFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_UNKNOWN) {
             outVideoStreamIndex = i;
@@ -586,120 +580,6 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
         exit(-1);
     }
     avcodec_parameters_from_context(outAVFormatContext->streams[outVideoStreamIndex]->codecpar, outAVCodecContext);
-    //A QUI
-
-    /*
-    outAVFormatContext = NULL;
-    value = 0;
-    output_file = "../media/output.mp4";
-    */
-    /* //#FIXME: dovrebbe inserire la data all'interno del nome del file */
-    // string format_output_file = "../media/output_";
-
-    /* Setting name of the output file */
-    // declaring argument of time()
-        // time_t my_time = time(NULL);
-    // ctime() used to give the present time
-        // string current_time = ctime(&my_time);   
-        // format_output_file.append(current_time);
-        // format_output_file.append(".mp4");
-        // output_file = format_output_file; //ERRORE qui, potrebbe essere perchè non accetta una stringa essendo const char*
-
-
-    // Assegna un AVFormatContext per un formato di output.
-    // Il primo parametro è settato sul format context creato o su NULL in caso di errore
-    // L'ultimo parametro indica il nome del filename da usare per allocare il context
-    /*
-    avformat_alloc_output_context2(&outAVFormatContext, NULL, NULL, output_file);
-
-    if (!outAVFormatContext) // Effettuo un check
-    {
-        cout << "\nError in allocating av format output context";
-        exit(1);
-    }
-    */
-
-    /*
-    Ritorna il formato di output nell'elenco dei formati di output registrati
-    che matcha meglio con i parametri forniti.
-    Se non c'è alcun match ritorna NULL
-     */
-     /*
-     output_format = const_cast<AVOutputFormat*>(av_guess_format(NULL, output_file, NULL));
-
-     // cout << "\nav_guess_format: "<< av_guess_format<<"\n";
-
-     if (!output_format) // Effettuo un check
-     {
-         cout << "\nError in guessing the video format. try with correct format";
-         exit(1);
-     }
-
-
-     */
-
-
-
-
-     /* set property of the video file */
-     // outAVCodecContext = video_st->codec; //video_st non ha più un campo codec
-     // Risolvo il problema con le seguenti righe di codice //#FIXME è da aggiustare?
-     // video_st->time_base = { 1, 30 }; //spostata alla riga 325 circa
-     // video_st->codecpar->codec_id = AV_CODEC_ID_MPEG4;
-
-     //video_st->time_base = { 1, 30 };
-
-     //#FIXME: rimuovere da qui? Spostato alla riga 260 circa
-     /*
-     outAVCodec = avcodec_find_encoder(AV_CODEC_ID_MPEG4);
-     //Trova un codificatore (encoder) che matcha con l'ID_codec indicato.
-     //Ritorna l'encoder in caso di successo, NULL in caso di errore
-     if( !outAVCodec ) //Effettuo un check
-     {
-         cout<<"\nError in finding the av codecs. try again with correct codec";
-         exit(1);
-     }
-     */
-
-     // cout << outAVCodecContext;
-     /* create empty video file */
-
-     //if (!(outAVFormatContext->flags & AVFMT_NOFILE)) // Mi assicuro che i flag siano settati secondo i valori indicati da AVFMT_NOFILE
-     //{
-         /*
-          * Crea e inizializza un AVIOContext (di cui si salva poi il puntatore nel primo parametro)
-          * per accedere alle risorse indicate da "output_file".
-          * In caso di fallimento la funzione ritorna un valore <0.
-          * NB: Quando le risorse indicate da "output_file" sono aperte in read+write,
-          * l'AVIOContext può essere usato solo in scrittura.
-          */
-          /*if (avio_open2(&outAVFormatContext->pb, output_file, AVIO_FLAG_WRITE, NULL, NULL) < 0)
-          {
-              cout << "\nError in creating the video file";
-              exit(1);
-          }
-      }
-
-      if (!outAVFormatContext->nb_streams) // Effettuo un check sul numero di stream
-      {
-          cout << "\nOutput file does not contain any stream";
-          exit(1);
-      }*/
-
-      /* imp: mp4 container or some advanced container file required header information*/
-      // Alloca i dati privati dello stream e scrive l'header dello stream in un file multimediale di output.
-      /*value = avformat_write_header(outAVFormatContext, &options);
-      if (value < 0) // Controllo che avformat_write_header abbia avuto successo
-      {
-          cout << "\nError in writing the header context";
-          exit(1);
-      }*/
-
-      /*
-      // uncomment here to view the complete video file informations
-      cout<<"\n\nOutput file information :\n\n";
-      av_dump_format(outAVFormatContext , 0 ,output_file ,1);
-      */
 }
 
 

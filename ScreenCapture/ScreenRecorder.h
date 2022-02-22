@@ -199,8 +199,8 @@ public:
 	int openVideoDevice();
 	int openAudioDevice();
 
-	void generateVideoStream();  // <-- doing
-	void generateAudioStream(); 
+	void generateVideoStream();
+	void generateAudioStream(); // <-- doing
 
 	int init_fifo();
 	int add_samples_to_fifo(uint8_t** converted_input_samples, const int frame_size);
