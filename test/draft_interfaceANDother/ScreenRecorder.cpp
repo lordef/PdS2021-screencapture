@@ -312,7 +312,7 @@ if(recordAudio)
         SetError( "Error in writing the header context");
         exit(-12);
     }
-    
+
     /*Variabile utile al distruttore per chiudere correttamente il file*/
     started = true;
     return 0;
@@ -827,6 +827,8 @@ int ScreenRecorder::CaptureVideoFrames() {
             avformat_close_input(&pAVFormatContext);
             closedVideoRecording = true;
         }
+
+
         std::unique_lock<std::mutex> ul(mu);
         cv.wait(ul, [this]() { return !pauseCapture; });   //pause capture (not busy waiting)
 
@@ -845,6 +847,8 @@ int ScreenRecorder::CaptureVideoFrames() {
             closedVideoRecording = false;
         }
         ul.unlock();
+
+
         if (av_read_frame(pAVFormatContext, pAVPacket) >= 0 && pAVPacket->stream_index == VideoStreamIndx) {
             av_packet_rescale_ts(pAVPacket, pAVFormatContext->streams[VideoStreamIndx]->time_base, pAVCodecContext->time_base);
 
@@ -922,9 +926,11 @@ int ScreenRecorder::CaptureVideoFrames() {
                         cout <<  "Error in writing video frame" << endl;
                     }
                     ulw.unlock();
+
                     /*Una volta scritto il frame, libero il pacchetto*/
                     av_packet_free(&outPacket);
                 }
+
                 /*Libero la memoria*/
                 av_packet_free(&outPacket);
                 av_packet_free(&pAVPacket);
@@ -1112,15 +1118,19 @@ void ScreenRecorder::StopAudio()
     std::unique_lock lk(stop_lockA);
     stopCaptureAudio = true;
 }
+
 /*Funzione per leggere la variabile di stop del video in accesso esclusivo*/
 bool ScreenRecorder::ShouldStopVideo()
 {
     bool return_value;
+
     std::unique_lock lk(stop_lockV);
     return_value = stopCaptureVideo;
     lk.unlock();
+
     return return_value;
 }
+
 /*Funzione per impostare lo stop del video in accesso esclusivo*/
 void ScreenRecorder::StopVideo()
 {

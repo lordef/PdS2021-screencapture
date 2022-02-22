@@ -194,8 +194,8 @@ public:
 
 	/* Function to initiate communication with display library */
 	int initOutputFile(); 
-	int captureVideoFrames(); // <---
-	int openCamera();
+	int captureVideoFrames();
+	int openCamera(); // <--
 
 	int openVideoDevice();
 	int openAudioDevice();
@@ -252,7 +252,7 @@ public:
 	// void PauseRecording(); //a
 	// void CloseRecorder(); //a
 	// bool ShouldStopAudio(); //a
-	// bool ShouldStopVideo(); //a
+	// bool ShouldStopVideo(); //a  <-- da copiare
 	// void StopVideo(); //a
 	// void StopAudio(); //a
 	// void SetError(std::string error); //a

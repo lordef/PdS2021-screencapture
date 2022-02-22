@@ -822,17 +822,16 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     int frameFinished = 0;
     // bool endPause = false; //#TODO: dovrebbe essere inutile, perché è il contrario di pauseSC
     int numPause = 0;
-    AVFrame* croppedFrame; //#TODO: questa variabile non viene usata
 
-#ifdef __linux__
-#if RUN == 1 
-    ofstream outFile{ "media/" + timestamp + "_log.txt", ios::app }; // RUN  //FIXME: capire se va bene altrimenti mettere out inceve di app
-#else  
-    ofstream outFile{ "../media/" + timestamp + "_log.txt", ios::app }; // DEBUG
-#endif 
-#elif _WIN32
-    ofstream outFile{ "..\\media\\" + timestamp + "_log.txt", ios::app };
-#endif
+    #ifdef __linux__
+    #if RUN == 1 
+        ofstream outFile{ "media/" + timestamp + "_log.txt", ios::app }; // RUN  //FIXME: capire se va bene altrimenti mettere out inceve di app
+    #else  
+        ofstream outFile{ "../media/" + timestamp + "_log.txt", ios::app }; // DEBUG
+    #endif 
+    #elif _WIN32
+        ofstream outFile{ "..\\media\\" + timestamp + "_log.txt", ios::app };
+    #endif
 
     int frameIndex = 0;
     // int flag;
@@ -848,10 +847,10 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
      // int frame_index = 0;
     value = 0;
 
-    // av_packet_alloc alloca un AVPacket e imposta i suoi campi sui valori predefiniti.
+    /* av_packet_alloc alloca un AVPacket e imposta i suoi campi sui valori predefiniti. */
     pAVPacket = av_packet_alloc();
     if (!pAVPacket)
-        exit(1);
+        exit(1); //( "Error in allocating AVPacket")
     // cout<<""<<pAVPacket->
 
     // Le successive 2 righe di codice son deprecate commentate perchè av_init_packet è stato deprecato
@@ -878,7 +877,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
 
     if (!pAVFrame) // Verifichiamo che l'operazione svolta da "av_frame_alloc()" abbia avuto successo
     {
-        cout << "\nUnable to release the avframe resources";
+        cout << "\nError: Unable to release the avframe resources";
         exit(1);
     }
 
@@ -886,12 +885,12 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     outFrame = av_frame_alloc(); //#TODO: dovrebbe essere av_frame_free() ??? --> a cosa serve questa riga
     if (!outFrame)
     {
-        cout << "\nUnable to release the avframe resources for outframe";
+        cout << "\nError: Unable to release the avframe resources for outframe";
         exit(1);
     }
 
 
-    int video_outbuf_size; //#FIXME: non viene utilizzata, deve essere inutile
+    int video_outbuf_size; //utile? #FIXME: non viene utilizzata, deve essere inutile
 
     /*"av_image_get_buffer_size" restituisce il numero di byte necessari per memorizzare un'immagine.
      * NB: Le specifiche dell'immagine sono indicate tra parentesi*/
@@ -918,8 +917,8 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
      * "outAVCodecContext->width" e "outAVCodecContext->height" indicano rispettivamente la larghezza e l'altezza dell'immagine in pixel
      * L'ultimo parametro indica il valore usato per allineare le linesizes
      */
-    value = av_image_fill_arrays(outFrame->data, outFrame->linesize, video_outbuf, AV_PIX_FMT_YUV420P, outAVCodecContext->width, outAVCodecContext->height, 1);
-    // #TODO: il terzo parametro dovrebbe esser preso da qui: outAVCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
+    // value = av_image_fill_arrays(outFrame->data, outFrame->linesize, video_outbuf, AV_PIX_FMT_YUV420P, outAVCodecContext->width, outAVCodecContext->height, 1);
+    value = av_image_fill_arrays(outFrame->data, outFrame->linesize, video_outbuf, outAVCodecContext->pix_fmt, outAVCodecContext->width, outAVCodecContext->height, 1);
 
     if (value < 0) // Verifico che non ci siano errori
     {
@@ -930,7 +929,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
 
     // Allocate and return swsContext.
     // a pointer to an allocated context, or NULL in case of error
-    SwsContext* swsCtx_;//Aggiornato
+    SwsContext* swsCtx_;
     if (!(swsCtx_ = sws_alloc_context()))
     {
         cout << "\nError nell'allocazione del SwsContext";
@@ -958,7 +957,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     value = sws_init_context(swsCtx_, NULL, NULL);
     if (value < 0)
     {
-        cout << "\nError nell'inizializzazione del SwsContext";
+        cout << "\nErrore nell'inizializzazione del SwsContext";
         exit(1);
     }
 
@@ -969,7 +968,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
         outAVCodecContext->width,
         outAVCodecContext->height,
         outAVCodecContext->pix_fmt,
-        SWS_BILINEAR, NULL, NULL, NULL);//Aggiornata
+        SWS_BILINEAR, NULL, NULL, NULL);
 
 // cout << "\nswsCtx_: " << swsCtx_ <<"\n";
     if (avcodec_open2(pAVCodecContext, pAVCodec, &options) < 0) { //NUOVA
@@ -990,8 +989,8 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     //outPacket = av_packet_alloc();
     int got_picture;
 
-    time_t startTime; //Nuovo
-    time(&startTime); //Nuovo
+    time_t startTime; 
+    time(&startTime);
 
 
     /*av_read_frame è una funzione che ad ogni chiamata trasmette un frame preso da uno stream.
@@ -1008,7 +1007,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
          *  In caso di errore, pAVPacket sarà vuoto (come se provenisse da av_packet_alloc()).
          *  NB:pAVPacket verrà inizializzato, quindi potrebbe essere necessario terminarlo anche se non contiene dati.
     */
-    while (pAVCodecContext->frame_number < magicNumber)//Aggiornata
+    while (pAVCodecContext->frame_number < magicNumber) //a --> variabile stop solo per video e funzione !ShouldStopVideo()  
     {
         /*
         cout << "\npAVPacket->buf: " << pAVPacket->buf;
@@ -1023,7 +1022,6 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     
         /*********************************/
 
-        //Da qui
         if (pauseSC) {
             cout << "Pause" << endl;
             outFile << "///////////////////   Pause  ///////////////////" << endl;
@@ -1064,7 +1062,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
 
         /* Prendiamo il prossimo frame di uno stream
         da pAVFormatContext a pAVPacket*/
-        if (av_read_frame(pAVFormatContext, pAVPacket) >= 0 && pAVPacket->stream_index == VideoStreamIndx)//Aggiornata
+        if (av_read_frame(pAVFormatContext, pAVPacket) >= 0 && pAVPacket->stream_index == VideoStreamIndx)
         {
             // char buf[1024];
 
@@ -1134,6 +1132,8 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 // break;
                 exit(1);
             }
+            //Frame decodificato con successo
+
 
             // av_init_packet(&outPacket); funzione deprecata
             outPacket = av_packet_alloc();
@@ -1200,9 +1200,9 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                     * "av_write_frame" serve per scrivere un pacchetto (outpacket) in un file multimediale di output.
                      * Ritorna 0 se tutto è ok, un valore <0 se ci sono errori, 1 se è stato flushato
                 */
-
-                //DA QUI
                 
+
+                /* //utile?
                 time_t timer;
                 double seconds;
 
@@ -1219,18 +1219,22 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                         << std::setw(2) << std::setfill('0') << m << ':'
                         << std::setw(2) << std::setfill('0') << s << std::flush;
                 }
-                mu.unlock();
 
+                mu.unlock();
+                */ //utile?  end
+
+
+                /* Acquisisco write lock per scrivere il frame video sul file */
                 unique_lock<mutex> ulw(write_lock);
+
                 //Effettuo conversione dei pts 
                 ptsV = outPacket->pts / video_st->time_base.den;
 
                 #ifdef _WIN32
+                    /* Per sincronizzare video e audio */
                     cvw.notify_one();
                     cvw.wait(ulw, [this](){return ((ptsA - 2 >= ptsV) || end); });
                 #endif
-                
-                
                 
                 outFile << "Scrivo VIDEO-PTS_TIME: " << ptsV << "\n" << endl;
                 //cout << outPacket << endl;
@@ -1243,27 +1247,30 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 Da outPacket a outAVFormatContext*/
                 if (av_interleaved_write_frame(outAVFormatContext, outPacket) != 0)
                 {
-                    cout << "\nError in writing video frame";
+                    cout << "\nError in writing video frame" << endl;
                 }
 
                 ulw.unlock();
 
+
+                /* Una volta scritto il frame, libero il pacchetto*/
                 av_packet_free(&outPacket);
-                //A QUI
-               // av_packet_unref(&outPacket);
+
                /*
                 * Pulisce il pacchetto.
                 * Elimina il riferimento al buffer a cui fa riferimento il pacchetto e resetta
                 * i rimanenti campi del pacchetto ai loro valori predefiniti.
                 */
-                cout.flush();
+                // av_packet_unref(&outPacket); //utile?
+
+
+                cout.flush(); //utile?
 
             } // got_picture
 
-            // av_packet_unref(&outPacket);
+            /* Deallocazione e riallocazione della memoria, per evitare memory leakage */
+            // av_packet_unref(&outPacket); //utile?
             av_packet_free(&outPacket);
-
-            /* #TODO: sezione non capita da I e L */
             av_packet_free(&pAVPacket);
             pAVPacket = av_packet_alloc();
             if (!pAVPacket)
@@ -1285,28 +1292,30 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 exit(1);
             }
 
-            //TODO: il prossimo passaggio è un errore di copia e incolla?
             value = av_image_fill_arrays(outFrame->data, outFrame->linesize, video_outbuf, AV_PIX_FMT_YUV420P, outAVCodecContext->width, outAVCodecContext->height, 1);
             if (value < 0) // Verifico che non ci siano errori
             {
                 cout << "\nError in filling image array";
                 exit(1);
             }
-            /******Fine sezione non capita *********/
-
         }
 
     } // End of while-loop
 
-    stopSC = true; //#TODO: ha senso settarla qui? Non dovrebbe settarsi a true una volta finiti entrambi i thread Video e Audio?
+    // stopSC = true; //#TODO: ha senso settarla qui? Non dovrebbe settarsi a true una volta finiti entrambi i thread Video e Audio?
 
-    av_packet_free(&outPacket);//Nuovo
+
+    /* Conclusione della registrazione, 
+        ora si liberano le strutture di memoria e 
+        si chiude il file
+    */
+
+    av_packet_free(&outPacket);
     /*
      * Scrive il trailer dello stream in un file multimediale di output e
      * libera i dati privati ​​del file. Se non ci sono stati errori, ritorna 0.
      */
     value = av_write_trailer(outAVFormatContext);
-
     if (value < 0)
     {
         cout << "\nError in writing av trailer";
@@ -1314,21 +1323,18 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     }
 
     #ifdef _WIN32
+        /* Notifica la fine della registrazione al thread audio per evitare deadlock */
         end = true; //FIXME: utilizzare variabile stopSC? - utile e funzionante per linux
         cvw.notify_one();
     #endif
 
-    outFile.close();//Nuovo
+    outFile.close();
 
-    // THIS WAS ADDED LATER
 
     av_packet_free(&pAVPacket);
     sws_freeContext(swsCtx_);
-    /* #TODO: sezione non capita da I e L */
-
     av_frame_free(&pAVFrame);
     av_frame_free(&outFrame);
-    /******Fine sezione non capita *********/
     /*
      * Libera un blocco di memoria che è stato allocato con av_malloc (z) () o av_realloc ().
      * Riceve come parametro il puntatore al blocco di memoria che deve essere liberato.
