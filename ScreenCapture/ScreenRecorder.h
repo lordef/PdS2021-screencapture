@@ -202,8 +202,8 @@ public:
 	void generateVideoStream();
 	void generateAudioStream(); 
 
-	int init_fifo(); // <-- doing
-	int add_samples_to_fifo(uint8_t** converted_input_samples, const int frame_size);
+	int init_fifo(); 
+	int add_samples_to_fifo(uint8_t** converted_input_samples, const int frame_size); 
 	int initConvertedSamples(uint8_t*** converted_input_samples, AVCodecContext* output_codec_context, int frame_size);
 	
 	void captureAudio(); 
@@ -225,7 +225,7 @@ public:
 
 	/* Activate and stop the recording process */
 	//#TODO: bisogna capie se sfruttare unique_lock o meccanismi del genere
-	int stopScreenCapture();
+	int stopScreenCapture(); // <-- doing
 
 	/* Temporarily pause and subsequently resume it */
 	//#TODO: bisogna capie se sfruttare unique_lock o meccanismi del genere
@@ -250,7 +250,7 @@ public:
 	// void StopRecording(); //a
 	// void PauseRecording(); //a
 	// void CloseRecorder(); //a
-	// bool ShouldStopAudio(); //a
+	// bool ShouldStopAudio(); //a  <-- da copiare
 	// bool ShouldStopVideo(); //a  <-- da copiare
 	// void StopVideo(); //a
 	// void StopAudio(); //a
