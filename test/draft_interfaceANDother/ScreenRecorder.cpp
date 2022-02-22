@@ -1095,6 +1095,7 @@ void ScreenRecorder::SetError(std::string error)
     std::unique_lock lk(error_lock);
     error_msg = error;
 }
+
 /*Funzione per leggere la stringa col messaggio di errore in accesso esclusivo*/
 std::string ScreenRecorder::GetErrorString()
 {

@@ -225,7 +225,7 @@ public:
 
 	/* Activate and stop the recording process */
 	//#TODO: bisogna capie se sfruttare unique_lock o meccanismi del genere
-	int stopScreenCapture(); // <-- doing
+	int stopScreenCapture();
 
 	/* Temporarily pause and subsequently resume it */
 	//#TODO: bisogna capie se sfruttare unique_lock o meccanismi del genere
