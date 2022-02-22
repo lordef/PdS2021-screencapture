@@ -1,8 +1,11 @@
 ﻿#include "ScreenRecorder.h"
-#include <cassert> //Nuovo
+#include <cassert>
+
+// #include <qdebug.h> //i
+// #include <QMessageBox> //i
 
 using namespace std;
-static int64_t last_pts = AV_NOPTS_VALUE; //Nuovo
+// static int64_t last_pts = AV_NOPTS_VALUE; //utile?
 
 /******* #TODO: Funzioni utili da spostare *****************/
 #include <bits/stdc++.h>
@@ -92,6 +95,11 @@ ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(f
         // int cropH, cropW; //height, width
         tie(cropH, cropW) = retrieveDisplayDimention(); //FIXME: commentare perché sovrascrive crop passati
     /*****************/
+    #elif WIN32
+        //a
+        // TODO: da testare
+        // cropW = GetSystemMetrics(SM_CXSCREEN);
+        // cropH = GetSystemMetrics(SM_CYSCREEN);
     #endif
 
     // av_register_all(); //Funzione di inizializzazione deprecata. Può essere tranquillamente omessa.
@@ -101,6 +109,9 @@ ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(f
     /* Set timestamp */
     timestamp = retrieveTimestamp();
 
+    /* Set output path */
+    //TODO: RecordingPath = RecPath; //a -> altro costruttore
+
     cout << "\nAll required functions are registered successfully\n";
 }
 
@@ -109,7 +120,7 @@ ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(f
 ScreenRecorder::~ScreenRecorder()
 {
     if (started) {
-        /*value = av_write_trailer(outAVFormatContext);
+        /*value = av_write_trailer(outAVFormatContext); //a
         if (value < 0) {
             cerr << "Error in writing av trailer" << endl;
             exit(-1);
@@ -802,7 +813,7 @@ e rilasciando automaticamente la memoria
 */
 int ScreenRecorder::captureVideoFrames() //Da sistemare
 {
-    int64_t pts = 0;
+    int64_t pts = 0; //utile? -> creata nel .h
     int flag;
     int frameFinished = 0;
     // bool endPause = false; //#TODO: dovrebbe essere inutile, perché è il contrario di pauseSC

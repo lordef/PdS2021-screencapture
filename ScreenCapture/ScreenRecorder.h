@@ -167,7 +167,7 @@ private:
 
 	// bool closedAudioRecording = false; //a
 	// bool closedVideoRecording = false; //a
-	// int64_t pts = 0; //a
+	int64_t pts = 0;
 
 
 	int width, height; //ancora utile?
@@ -187,8 +187,8 @@ public:
 	// ScreenRecorder( bool isAudioActive, int cropX, int cropY, int cropH, int cropW,
 	// 				int magicNumber, bool activeMenu); // #TODO: valutare se sopprimere magicNumber e activeMenu 
 
-	// ScreenRecorder(std::string RecPath); //a
-	// ScreenRecorder(const ScreenRecorder& p1); //a
+	// ScreenRecorder(std::string RecPath); //a //utile?
+	// ScreenRecorder(const ScreenRecorder& p1); //a //utile?
 
 	~ScreenRecorder();
 

@@ -26,6 +26,7 @@ ScreenRecorder::ScreenRecorder() : pauseCapture(false), started(false), activeMe
     cropW = scrn->width;
 #endif
 }
+
 /*Costruttore con parametro stringa di destinazione*/
 ScreenRecorder::ScreenRecorder(std::string RecPath) : pauseCapture(false), started(false), activeMenu(true), pts(0) {
     /*Funzione di FFMPEG per inizializzare libavdevice
