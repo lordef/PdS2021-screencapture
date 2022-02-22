@@ -615,7 +615,7 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     outAVCodecContext->codec_type = AVMEDIA_TYPE_VIDEO;
     outAVCodecContext->pix_fmt = AV_PIX_FMT_YUV420P;
 #ifdef __linux__
-    outAVCodecContext->bit_rate = 90000; //FIXME: era 10 000 000
+    outAVCodecContext->bit_rate = 90000; //FIXME: era 10 000 000, G: 96000
 
     // int he, wi; //height, width
     // tie(he, wi) = retrieveDisplayDimention();
@@ -641,6 +641,8 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
 
     #elif _WIN32
         outAVCodecContext->time_base.den = 25;// 15fps
+        // outAVCodecContext->time_base.den = 25*((1920*1080)/(cropH*cropW));// 15fps //#TODO: ragionarci
+
     #endif
     outAVCodecContext->bit_rate_tolerance = 400000;
 
@@ -1210,7 +1212,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
 
                 #ifdef _WIN32
                     cvw.notify_one();
-                    cvw.wait(ulw, [this](){return ((ptsA - 2 > ptsV) || end); });
+                    cvw.wait(ulw, [this](){return ((ptsA - 2 >= ptsV) || end); });
                 #endif
                 
                 
@@ -1295,6 +1297,12 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
         cout << "\nError in writing av trailer";
         exit(1);
     }
+
+    #ifdef _WIN32
+        end = true; //FIXME: utilizzare variabile stopSC? - utile e funzionante per linux
+        cvw.notify_one();
+    #endif
+
     outFile.close();//Nuovo
 
     // THIS WAS ADDED LATER
@@ -1469,7 +1477,7 @@ void ScreenRecorder::generateAudioStream() {
     outAudioCodecContext->sample_fmt = (outAudioCodec)->sample_fmts ? (outAudioCodec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
     outAudioCodecContext->channels = inAudioCodecContext->channels;
     outAudioCodecContext->channel_layout = av_get_default_channel_layout(outAudioCodecContext->channels);
-    outAudioCodecContext->bit_rate = 90000;
+    outAudioCodecContext->bit_rate = 90000; // G: 96000
     /** //#FIXME: test: metterli uguali ad audio e video **/
     // outAudioCodecContext->time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2
     // outAudioCodecContext->time_base.num = 1; 
@@ -1738,7 +1746,7 @@ void ScreenRecorder::captureAudio() {
                             // cvw.wait(ulw, [this]() {return ptsA <= ptsV; });
                         #elif _WIN32
                             cvw.notify_one();
-                            cvw.wait(ulw, [this]() {return ptsA - 2 <= ptsV; });
+                            cvw.wait(ulw, [this]() {return ((ptsA - 2 <= ptsV) || end); }); //FIXME: stopSC invece di end?
                         #endif
                         
                         
@@ -1775,7 +1783,7 @@ void ScreenRecorder::captureAudio() {
 
     #ifdef _WIN32
         unique_lock<mutex> ulw(write_lock);
-        end = true;
+        end = true; //FIXME: stopSC invece di end?
         cvw.notify_one();
     #endif
 
