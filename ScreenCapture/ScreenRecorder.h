@@ -17,7 +17,7 @@
 #ifdef _WIN32
 	#include <Windows.h>
 	#include <WinUser.h>
-	// #include "ListAVDevices.h" //TODO: NON dovrebbe servire - no a
+	#include "ListAVDevices.h" //TODO: NON dovrebbe servire - no a
 #endif
 
 
@@ -256,7 +256,7 @@ public:
 	// void StopAudio(); //a
 	// void SetError(std::string error); //a
 	// std::string GetErrorString(); //a
-	#if WIN32
+	#if _WIN32
 		void SetCaptureSystemKey(int valueToSet, LPCWSTR keyToSet);
 		// std::string RecordingPath = "..\\media\\output.mp4";
 	#endif

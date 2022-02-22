@@ -72,7 +72,7 @@ std::string retrieveTimestamp()
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
 ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), /* started(true), */ activeMenu(true),
-                                    magicNumber(100), cropX(0), cropY(0), cropH(700), cropW(700), frameCount(0), end (false)
+                                    magicNumber(300), cropX(0), cropY(0), cropH(1080), cropW(1920), frameCount(0), end (false)
 
 // TODO: aggiustare codice seguente e sostituirlo a quello sopra                                    
 // ScreenRecorder::ScreenRecorder( bool isAudioActive = true, 
@@ -95,7 +95,7 @@ ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(f
         // int cropH, cropW; //height, width
         tie(cropH, cropW) = retrieveDisplayDimention(); //FIXME: commentare perché sovrascrive crop passati
     /*****************/
-    #elif WIN32
+    #elif _WIN32
         //a
         // TODO: da testare
         // cropW = GetSystemMetrics(SM_CXSCREEN);
@@ -1670,7 +1670,7 @@ void ScreenRecorder::SetUpScreenRecorder() {
 }
 
 
-#if WIN32
+#if _WIN32
 void ScreenRecorder::SetCaptureSystemKey(int valueToSet, LPCWSTR keyToSet) {
     HKEY hKey;
     char hexString[20];
@@ -1681,7 +1681,10 @@ void ScreenRecorder::SetCaptureSystemKey(int valueToSet, LPCWSTR keyToSet) {
             TEXT("SOFTWARE\\screen-capture-recorder\\"),
             0, NULL, 0,
             KEY_WRITE, NULL,
-            &hKey, &value) != ERROR_SUCCESS) SetError("Errore nel settare la chiave di registro");
+            &hKey, &value) != ERROR_SUCCESS) 
+            cout<<"Errore nel settare la chiave di registro"<<endl;
+
+    // SetError("Errore nel settare la chiave di registro");
     RegSetValueEx(hKey, keyToSet, 0, REG_DWORD, (const BYTE*)&value, sizeof(value));
     RegCloseKey(hKey);
 }
