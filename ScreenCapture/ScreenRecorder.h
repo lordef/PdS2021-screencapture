@@ -7,25 +7,24 @@
 #include <fstream>
 #include <cstring>
 #include <math.h>
-#include <string>//Aggiornato -> era #include <string.h>
+#include <string>
 
-#include <thread>//Nuovo
-#include <mutex>//Nuovo
-#include <iomanip>//Nuovo
+#include <thread>
+#include <mutex>
+#include <iomanip>
 
-#ifdef __linux__
-	#include <condition_variable> //#TODO: dovrebbe serveire anche per Windows
-#elif _WIN32
-	#include <Windows.h>//Nuovo
-	#include <WinUser.h>//Nuovo
-	#include "ListAVDevices.h"
+#include <condition_variable>
+#ifdef _WIN32
+	#include <Windows.h>
+	#include <WinUser.h>
+	// #include "ListAVDevices.h" //TODO: NON dovrebbe servire - no a
 #endif
 
 
-#include <ctime>//Nuovo
-#include <sstream>//Nuovo
+#include <ctime>
+#include <sstream>
 
-
+// #define QT 1 //a
 // #define AUDIO 1 //TODO: ora inutile -> sostituita da isAudioActive
 #define RUN 1 //#TODO: utile per debuggare, eliminare prima della consegna -> cerca nel codice "#if RUN == 1" ed elimianre
 
@@ -54,7 +53,7 @@ extern "C"
 #include "libavformat/avio.h"
 
 	// libav resample
-
+// #include "libavutil/avutil.h" //a //TODO: non dovrebbe servire
 #include "libavutil/opt.h"
 #include "libavutil/common.h"
 #include "libavutil/channel_layout.h"
@@ -79,43 +78,43 @@ class ScreenRecorder
 private:
 	AVInputFormat* pAVInputFormat;
 	AVOutputFormat* output_format;
-	AVInputFormat* audioInputFormat; //Nuovo
+	AVInputFormat* audioInputFormat;
 	
 	AVCodecContext* pAVCodecContext;
-	AVCodecContext* inAudioCodecContext; //Nuovo
-	AVCodecContext* outAudioCodecContext; //Nuovo
+	AVCodecContext* inAudioCodecContext; 
+	AVCodecContext* outAudioCodecContext;
 	AVFormatContext* pAVFormatContext;
 
 	AVFrame* pAVFrame;
 	AVFrame* outFrame;
 
-	AVCodec* outVideoCodec; //Nuovo
+	AVCodec* outVideoCodec;
 	AVCodec* pAVCodec;
 	AVCodec* outAVCodec;
 	AVCodec* pLocalCodec;
-	AVCodec* inAudioCodec; //Nuovo
-	AVCodec* outAudioCodec; //Nuovo
+	AVCodec* inAudioCodec;
+	AVCodec* outAudioCodec;
 	AVCodecParameters* pCodecParameters;
-	AVCodecParameters* pAVCodecParameters; //Nuovo
+	AVCodecParameters* pAVCodecParameters;
 
 	AVPacket* pAVPacket;
 	AVPacket* packet;
 
 	AVDictionary* options;
-	AVDictionary* audioOptions; //Nuovo
+	AVDictionary* audioOptions;
 
-	AVOutputFormat* outputAVFormat; //Aggiornato
+	AVOutputFormat* outputAVFormat;
 	AVFormatContext* outAVFormatContext;
 
-	AVFormatContext* inAudioFormatContext; //Nuovo
+	AVFormatContext* inAudioFormatContext;
 	AVCodecContext* outAVCodecContext;
-	AVCodecContext* outCodecContext; //Non usato?
-	//AVCodecContext* outVideoCodecContext; //Nuovo
+	AVCodecContext* outCodecContext; //TODO: Non usato?
+	//AVCodecContext* outVideoCodecContext;
 
 	AVAudioFifo* fifo;//Nuovo
 
 	AVStream* video_st;
-	AVStream* audio_st;
+	AVStream* audio_st; // TODO: no a 
 	AVFrame* outAVFrame; //#TODO: questa variabile non viene utilizzata -> sarebbe outFrame?
 
 
@@ -130,7 +129,7 @@ private:
 	int ptsA;
 	int ptsV;
 	
-	int magicNumber; //TODO: cosa sta a rappresentare
+	int magicNumber; //TODO: eliminare prima di consegna
 	int cropX; 
 	int cropY; 
 	int cropH; 
@@ -142,53 +141,74 @@ private:
 	int value2;
 	int value3;
 	int VideoStreamIndx;
-	int audioStreamIndx; //Nuovo
-	int outVideoStreamIndex; //Nuovo
-	int outAudioStreamIndex; //Nuovo
-	bool threading; //Nuovo
+	int audioStreamIndx;
+	int outVideoStreamIndex;
+	int outAudioStreamIndex;
+	bool threading;
 	std::thread* demux;
 	std::thread* rescale;
 	std::thread* mux;
+	// std::mutex stop_lockA; //a
+	// std::mutex stop_lockV; //a
+	// std::mutex error_lock; //a
+	// std::string error_msg; //a
+	// std::thread videoThread, audioThread; //a
 	
 	bool isAudioActive;
 	bool pauseSC = false; // utile a mettere in pausa la registrazione
+
 	bool stopSC = false; // utile a terminare la registrazione
+	// bool stopCaptureAudio = false; //a
+	// bool stopCaptureVideo = false; //a
+
 	bool started = true; // utile per deallocare quando ScreenRecoder muore
-	bool activeMenu; //Nuovo
+	bool activeMenu;
 	bool end = false; //#FIXME: variabile che potrebbe andare in contrasto con stopSC => CONTROLLARE
 
+	// bool closedAudioRecording = false; //a
+	// bool closedVideoRecording = false; //a
+	// int64_t pts = 0; //a
 
-	int width, height; //Nuovo
-	int w, h; //Nuovo
-	std::string timestamp;//Nuovo
+
+	int width, height; //ancora utile?
+	int w, h; //ancora utile?
+	std::string timestamp;
 	std::string deviceName;
 	uint64_t frameCount = 0;
 	double fps;
+
+	// #if linux //a
+	// 	std::string url;
+	// 	std::string dimension;
+	// #endif
 
 public:
 	ScreenRecorder();
 	// ScreenRecorder( bool isAudioActive, int cropX, int cropY, int cropH, int cropW,
 	// 				int magicNumber, bool activeMenu); // #TODO: valutare se sopprimere magicNumber e activeMenu 
 
+	// ScreenRecorder(std::string RecPath); //a
+	// ScreenRecorder(const ScreenRecorder& p1); //a
+
 	~ScreenRecorder();
 
 	/* Function to initiate communication with display library */
-	int initOutputFile(); //Aggiornato
+	int initOutputFile(); 
 	int captureVideoFrames();
 	int openCamera();
 
-	int openVideoDevice(); //Nuovo
-	int openAudioDevice(); //Nuovo
+	int openVideoDevice();
+	int openAudioDevice();
 
-	void generateVideoStream(); //Nuovo
-	void generateAudioStream(); //Nuovo
+	void generateVideoStream(); 
+	void generateAudioStream(); 
 
-	int init_fifo(); //Nuovo
-	int add_samples_to_fifo(uint8_t** converted_input_samples, const int frame_size); //Nuovo
-	int initConvertedSamples(uint8_t*** converted_input_samples, AVCodecContext* output_codec_context, int frame_size); //Nuovo
+	int init_fifo();
+	int add_samples_to_fifo(uint8_t** converted_input_samples, const int frame_size);
+	int initConvertedSamples(uint8_t*** converted_input_samples, AVCodecContext* output_codec_context, int frame_size);
 	
-	void captureAudio(); //Nuovo
-	void CreateThreads(); //Nuovo
+	void captureAudio(); 
+	void CreateThreads();
 	
 	/*** API ancora da implementare/testare ***/
 
@@ -227,6 +247,20 @@ public:
 
 	/* Avvia le funzioni principali */
 	static void SetUpScreenRecorder();
+
+	// void StopRecording(); //a
+	// void PauseRecording(); //a
+	// void CloseRecorder(); //a
+	// bool ShouldStopAudio(); //a
+	// bool ShouldStopVideo(); //a
+	// void StopVideo(); //a
+	// void StopAudio(); //a
+	// void SetError(std::string error); //a
+	// std::string GetErrorString(); //a
+	// #if WIN32 //a
+	// void SetCaptureSystemKey(int valueToSet, LPCWSTR keyToSet);
+	// std::string RecordingPath = "..\\media\\output.mp4";
+	// #endif
 };
 
 #endif
