@@ -197,9 +197,9 @@ public:
 	int captureVideoFrames();
 
 	int openVideoDevice();
-	int openAudioDevice(); // <-- doing
+	int openAudioDevice();
 
-	void generateVideoStream(); 
+	void generateVideoStream();  // <-- doing
 	void generateAudioStream(); 
 
 	int init_fifo();

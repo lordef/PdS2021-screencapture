@@ -1248,6 +1248,7 @@ int ScreenRecorder::openAudioDevice() {
 
     inAudioFormatContext = avformat_alloc_context();
 
+    /*Setta le options con valori quali il sample rate e altri*/
     value = av_dict_set(&audioOptions, "sample_rate", "44100", 0);
     if (value < 0) {
         cerr << "Error: cannot set audio sample rate" << endl;
@@ -1260,15 +1261,12 @@ int ScreenRecorder::openAudioDevice() {
     }
 
 #ifdef __linux__
-    // audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("alsa")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
-    // value = avformat_open_input(&inAudioFormatContext, "default", audioInputFormat, &audioOptions); // #TODO: ci stava hw:1, potrebbe essere hw:0
     //Questi comandi funzionano: 
     // ffmpeg -f alsa -i default -t 30 out.wav
     // ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0 output.mp4
     // Il seguente comando è una combianzione dei precedenti, funziona ed è sincronizzato:
     // ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0 -f alsa -i default -t 30 av_output.mp4
 
-    // #TODO: capire se utilizzare 'pulse' invece di alsa
     audioInputFormat = const_cast<AVInputFormat*>(av_find_input_format("alsa")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato   
 
     // const char* url = "alsa_input.pci-0000_00_1f.3.analog-stereo"; //funziona con pulse
@@ -1279,19 +1277,6 @@ int ScreenRecorder::openAudioDevice() {
     // value = avformat_open_input(&inAudioFormatContext, "alsa_input.pci-0000_00_1f.3.analog-stereo", audioInputFormat, &audioOptions); //così funziona
     // value = avformat_open_input(&inAudioFormatContext, url, audioInputFormat, &audioOptions); //così funziona
     value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions); //così funziona
-
-
-    // FIXME: invece di mettere alsa_input.pci... 
-    // ritrovato da comando bash: pacmd list-sources | grep -e 'index:' -e device.string -e 'name:': 
-    //Provare a utilizzare un'API di PulseAudio tramite qaulcosa di simile:
-    /* vedi: https://stackoverflow.com/questions/67627232/fetching-device-description-using-alsa-soundlib-in-c
-    #include <pulse/proplist.h> // aggiungere libpulse a tasks.json
-    pa_proplist* test = pa_card_info::proplist;
-
-    */
-
-
-
     if (value != 0) {
         cerr << "Error in opening input device (audio)" << endl;
         exit(-1);
@@ -1314,6 +1299,7 @@ int ScreenRecorder::openAudioDevice() {
     }
 #endif
 
+    /* Lettura  pacchetti dello stream per ottenerne informazioni */
     value = avformat_find_stream_info(inAudioFormatContext, nullptr);
     if (value != 0) {
         cerr << "Error: cannot find the audio stream information" << endl;
