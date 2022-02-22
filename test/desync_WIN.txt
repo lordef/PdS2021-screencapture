@@ -1,0 +1,25 @@
+#TODO: cancella questo file
+
+
+Configurazioni: 
+- alsa -i default
+ 
+Quando si croppa, ci sta desync:
+- ragionarte su come settare timebase, fps, sample_rate, etc.
+
+Situazione attuale:
+ -      FUNZIONANTE:
+
+        RISOLUZIONE 
+            massima ->  (G): 
+        VIDEO
+            time_base.num = 1
+            time_base.den = 25;
+            bit_rate_tolerance = 400000
+            bit_rate = 10000000
+            max_b_frames = 2;
+
+        AUDIO
+            bit_rate = 96000;
+            NON settato: time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2
+
