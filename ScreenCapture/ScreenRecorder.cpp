@@ -1245,6 +1245,9 @@ void ScreenRecorder::generateAudioStream() {
         exit(1);
     }
 
+    /*Cerca nei sample rate supportati dal codec dello stream di output dell'audio
+    Se il sample rate supportato è uguale a quello del context di input, setta il sample rate
+    del codec di output pari a quello di input*/
     if ((outAudioCodec)->supported_samplerates) {
         outAudioCodecContext->sample_rate = (outAudioCodec)->supported_samplerates[0];
         for (i = 0; (outAudioCodec)->supported_samplerates[i]; i++) {
@@ -1277,6 +1280,7 @@ void ScreenRecorder::generateAudioStream() {
 
     //find a free stream index
     outAudioStreamIndex = -1;
+    /* Trova lo stream basandosi su quale ha il codec type AVMEDIA_TYPE_UNKNOWN*/
     for (i = 0; i < outAVFormatContext->nb_streams; i++) {
         if (outAVFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_UNKNOWN) {
             outAudioStreamIndex = i;
