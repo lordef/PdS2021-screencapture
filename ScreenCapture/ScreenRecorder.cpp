@@ -248,17 +248,17 @@ int ScreenRecorder::initOutputFile() {
 
 /* Establishing the connection between camera or screen through its respective folder */
 //int ScreenRecorder::openCamera() throw() //#FIXME
-int ScreenRecorder::openCamera()
+int ScreenRecorder::openVideoDevice()
 {
 
     value = 0; // valore di ritorno per valutare esito delle operazioni
-    options = nullptr; // Nuovo
-    pAVFormatContext = nullptr; //Nuovo
+    options = nullptr;
+    pAVFormatContext = nullptr;
 
-    //DA QUI
+    /* Alloca pAVFormatContext, che è un AVFormatContext */
     pAVFormatContext = avformat_alloc_context();
 
-    /*****/
+    /*****/ //utile?
     //#TODO; sezione utilizzata solo da linux - in Windows si agisce con le funzioni _itoa_s
     // string dimension = to_string(width) + "x" + to_string(height);
     //av_dict_set(&options, "video_size", dimension.c_str(), 0);   //option to set the dimension of the screen section to record
@@ -289,59 +289,18 @@ int ScreenRecorder::openCamera()
         exit(-1);
     }
 
-    //A QUI
-
-    //DA QUI
     /*Questa sezione di codice serve per selezionare la finestra del desktop da registrare. Per fare ciò vado a settare i registri nella maniera più opportuna
      * Con CropX e CropY indico le coordinate del vertice in alto a sinistra della finestra dello schermo che va registrata.
      * Con CropW e CropH vado ad indicare quanto deve essere grande questa finestra
      */
 #ifdef _WIN32
-    HKEY hKey;
-    char hexString[20];
-    _itoa_s(cropX, hexString, 16);
-    DWORD value = strtoul(hexString, NULL, 16);
-    if (RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("SOFTWARE\\screen-capture-recorder\\"), 0, KEY_ALL_ACCESS, &hKey) != ERROR_SUCCESS)
-        if (RegCreateKeyEx(HKEY_LOCAL_MACHINE,
-            TEXT("SOFTWARE\\screen-capture-recorder\\"),
-            0, NULL, 0,
-            KEY_WRITE, NULL,
-            &hKey, &value) != ERROR_SUCCESS) cout << "errore registro" << endl;
-    RegSetValueEx(hKey, TEXT("start_x"), 0, REG_DWORD, (const BYTE*)&value, sizeof(value));
-    RegCloseKey(hKey);
-    _itoa_s(cropY, hexString, 16);
-    value = strtoul(hexString, NULL, 16);
-    if (RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("SOFTWARE\\screen-capture-recorder\\"), 0, KEY_ALL_ACCESS, &hKey) != ERROR_SUCCESS)
-        if (RegCreateKeyEx(HKEY_LOCAL_MACHINE,
-            TEXT("SOFTWARE\\screen-capture-recorder\\"),
-            0, NULL, 0,
-            KEY_WRITE, NULL,
-            &hKey, &value) != ERROR_SUCCESS) cout << "errore registro" << endl;
-    RegSetValueEx(hKey, TEXT("start_y"), 0, REG_DWORD, (const BYTE*)&value, sizeof(value));
-    RegCloseKey(hKey);
-    _itoa_s(cropW, hexString, 16);
-    value = strtoul(hexString, NULL, 16);
-    if (RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("SOFTWARE\\screen-capture-recorder\\"), 0, KEY_ALL_ACCESS, &hKey) != ERROR_SUCCESS)
-        if (RegCreateKeyEx(HKEY_LOCAL_MACHINE,
-            TEXT("SOFTWARE\\screen-capture-recorder\\"),
-            0, NULL, 0,
-            KEY_WRITE, NULL,
-            &hKey, &value) != ERROR_SUCCESS) cout << "errore registro" << endl;
-    RegSetValueEx(hKey, TEXT("capture_width"), 0, REG_DWORD, (const BYTE*)&value, sizeof(value));
-    RegCloseKey(hKey);
-    _itoa_s(cropH, hexString, 16);
-    value = strtoul(hexString, NULL, 16);
-    if (RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("SOFTWARE\\screen-capture-recorder\\"), 0, KEY_ALL_ACCESS, &hKey) != ERROR_SUCCESS)
-        if (RegCreateKeyEx(HKEY_LOCAL_MACHINE,
-            TEXT("SOFTWARE\\screen-capture-recorder\\"),
-            0, NULL, 0,
-            KEY_WRITE, NULL,
-            &hKey, &value) != ERROR_SUCCESS) cout << "errore registro" << endl;
-    RegSetValueEx(hKey, TEXT("capture_height"), 0, REG_DWORD, (const BYTE*)&value, sizeof(value));
-    RegCloseKey(hKey);
+    SetCaptureSystemKey(cropX, TEXT("start_x"));
+    SetCaptureSystemKey(cropY, TEXT("start_y"));
+    SetCaptureSystemKey(cropW, TEXT("capture_width"));
+    SetCaptureSystemKey(cropH, TEXT("capture_height"));
 
-
-    //pAVInputFormat = av_find_input_format("gdigrab");
+    /*Apertura dello stream di input*/
+    //pAVInputFormat = av_find_input_format("gdigrab"); //utile?
     pAVInputFormat = av_find_input_format("dshow"); //Uso dshow e non dgrab!!
     //if (avformat_open_input(&pAVFormatContext, "desktop", pAVInputFormat, &options) != 0) {
     if (avformat_open_input(&pAVFormatContext, "video=screen-capture-recorder", pAVInputFormat, &options) != 0) {
@@ -360,18 +319,23 @@ int ScreenRecorder::openCamera()
          controllare che i valori passati rispettino la risoluzione del pc su cui gira il codice
      */
      /*****************/
-
+    if (cropW==0 || cropH ==0){
+        //Set dimensione massima del display
+        tie(cropH, cropW) = retrieveDisplayDimention();
+    }
     string resolutionS = to_string(cropW) + "x" + to_string(cropH);
+
     //option to set the dimension of the screen section to record
-    value = av_dict_set(&options, "video_size", resolutionS.c_str(), 0);
+    value = av_dict_set(&options, "video_size", resolutionS.c_str(), 0); // TODO: sezione utile a _WIN32 ?
     if (value < 0)
     {
         cout << "\nError in setting video_size values";
         exit(1);
     }
 
+    //custom string to set the start point of the screen section
     // int offset_x = 0, offset_y = 0;
-    string url = ":0.0+" + to_string(cropX) + "," + to_string(cropY);  //custom string to set the start point of the screen section
+    string url = ":0.0+" + to_string(cropX) + "," + to_string(cropY);  
 
     pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
 
@@ -380,7 +344,7 @@ int ScreenRecorder::openCamera()
         cerr << "Error in opening input device (video)" << endl;
         exit(-1);
     }
-#else
+#else //utile?
 
     value = av_dict_set(&options, "pixel_format", "0rgb", 0);
     if (value < 0) {
@@ -403,35 +367,6 @@ int ScreenRecorder::openCamera()
     }
 
 #endif
-    //A QUI
-
-
-    // X11 video input device.
-    // To enable this input device during configuration you need libxcb installed on your system.
-    // It will be automatically detected during configuration.
-    // This device allows one to capture a region of an X11 display.
-    // refer : https://www.ffmpeg.org/ffmpeg-devices.html#x11grab
-    // #TODO: test x11grab con --> ffmpeg -video_size 1024x768 -framerate 25 -f x11grab -i :0.0 output.mp4
-
-
-    /* current below is for screen recording. To connect with camera use v4l2 as a input parameter for av_find_input_format */
-    /*
-        #TODO: vedi QTglobal library e anche come input:
-            - https://cpp.hotexamples.com/examples/-/-/av_find_input_format/cpp-av_find_input_format-function-examples.html
-            - q_os_linux
-                - https://stackoverflow.com/questions/45794885/add-conditional-macro-depending-on-qt-version
-                - https://doc.qt.io/qt-5/qtglobal.html
-                - https://stackoverflow.com/questions/34165675/determine-operating-system-during-compile-time
-    */
-
-    // av_find_input_format trova un AVInputFormat in base al nome breve del formato di input.
-    // #ifdef __linux__
-    //     // const_cast to solve -> Error: a value of type "const AVInputFormat *" cannot be assigned to an entity of type "AVInputFormat *"
-    //     // pAVInputFormat = av_find_input_format("x11grab");
-    //     pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("x11grab")); //un dispositivo alternativo potrebbe essere xcbgrab, non testato       
-    // #elif _WIN32
-    //     pAVInputFormat = const_cast<AVInputFormat*>(av_find_input_format("gdigrab"));
-    // #endif
 
     /*
      * Con av_dict_set passo determinati parametri a options che mi servirà, dopo, per settare alcuni parametri di
@@ -441,6 +376,8 @@ int ScreenRecorder::openCamera()
      */
      /*
 
+    //a --> attivata questa sezione
+    /******************************************/ /*
      value = av_dict_set(&options, "framerate", "15", 0); // inizialmente era fissato a 30 su linux
      if (value < 0) // Controllo che non ci siano stati errori con av_dict_set
      {
@@ -455,54 +392,11 @@ int ScreenRecorder::openCamera()
          exit(1);
      }
 
-     #ifdef __linux__
-         int h, w; //height, width
-         tie(h, w)=retrieveDisplayDimention();
-         string resolutionS=to_string(w)+"x"+to_string(h);
-         char * resolutionC = new char[resolutionS.length() + 1];
-         std::strcpy(resolutionC,resolutionS.c_str());
-
-         value = av_dict_set(&options, "video_size", resolutionC, 0); //TODO: questo valore deve essere dinamico ed è collegato alla riga 302
-                                                                     // ora su linux prende la risoluzione massima dello schermo
-     #elif _WIN32
-         value = av_dict_set(&options, "video_size", "1920x1080", 0); //TODO: questo valore deve essere dinamico ed è collegato alla riga 302
-     #endif
-     if (value < 0)
-     {
-         cout << "\nError in setting preset values";
-         exit(1);
-     }
-
-     value = av_dict_set(&options, "probesize", "20M", 0);
-     if (value < 0)
-     {
-         cout << "\nError in setting preset values";
-         exit(1);
-     }*/
-
-     //pAVFormatContext = avformat_alloc_context(); // Allocate an AVFormatContext
-
-
+    */ 
+    /******************************************/
 
      //La seuente riga è da utilizzare con dshow
      //value = avformat_open_input(&pAVFormatContext, "video=screen-capture-recorder", pAVInputFormat, &options);
-
-     // avformat_open_input apre uno stream di input e legge l'header.
-     // NB: I codec non vengono aperti. Lo stream, inoltre, deve essere chiuso con avformat_close_input().
-     // Ritorna 0 in caso di successo, un valore <0 in caso di fallimento.
-     //AGGIORNATA la avformat
-     /*
-     #ifdef __linux__
-         value = avformat_open_input(&pAVFormatContext, ":0.0", pAVInputFormat, &options); //display -> :0.0
-     #elif _WIN32
-         //La seuente riga è da utilizzare con dshow
-         //value = avformat_open_input(&pAVFormatContext, "video=screen-capture-recorder", pAVInputFormat, &options);
-         value = avformat_open_input(&pAVFormatContext, "desktop", pAVInputFormat, &options);
-     #endif    if (value != 0) // Controllo che non ci siano stati errori con avformat_open_input
-     {
-         cout << "\nError in opening input device\n";
-         exit(1);
-     }*/
 
      // cout << "\Framerate: " << pAVFormatContext;
 
@@ -510,7 +404,7 @@ int ScreenRecorder::openCamera()
     if (value < 0)
     {
         cout << "\nUnable to find the stream information";
-        exit(-1); //Aggiornato
+        exit(-1);
     }
 
     VideoStreamIndx = -1;
@@ -520,27 +414,26 @@ int ScreenRecorder::openCamera()
     {
         if (pAVFormatContext->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
         {
-            VideoStreamIndx = i; //Aggiornato
-
+            VideoStreamIndx = i;
             break;
         }
     }
 
     if (VideoStreamIndx == -1)
     {
-        cout << "\nUnable to find the video stream index. (-1)";
+        cout << "\nError: Unable to find the video stream index. (-1)";
         exit(1);
     }
-    pCodecParameters = pAVFormatContext->streams[VideoStreamIndx]->codecpar;
-    pAVCodec = const_cast<AVCodec*>(avcodec_find_decoder(pAVFormatContext->streams[VideoStreamIndx]->codecpar->codec_id));
-    fps = av_q2d(pAVFormatContext->streams[VideoStreamIndx]->r_frame_rate); //TODO: test on linux
-    cout << "\nfps= " << fps << endl;
 
+    pCodecParameters = pAVFormatContext->streams[VideoStreamIndx]->codecpar;
+
+    pAVCodec = const_cast<AVCodec*>(avcodec_find_decoder(pAVFormatContext->streams[VideoStreamIndx]->codecpar->codec_id));
     if (pAVCodec == nullptr)
     {
         cout << "\nUnable to find the decoder";
         exit(1);
     }
+
     /* #TODO: inutile perchè avcodec_find_decoder fatto all'interno del ciclo a riga 149 circa?
     pAVCodec = avcodec_find_decoder(pAVCodecContext->codec_id);// avcodec_find_decoder ha un ritorno di tipo const
     pAVCodec = const_cast<AVCodec *>(avcodec_find_decoder(pAVCodecContext->codec_id));
@@ -563,7 +456,6 @@ int ScreenRecorder::openCamera()
     // Riempie il CodecContext in base ai valori dei parametri forniti.
     // Ritorna un valore >=0 in caso di successo.
     value = avcodec_parameters_to_context(pAVCodecContext, pCodecParameters);
-
     if (value < 0)
     {
         cout << "\nUnable to set the parameters of the codec";
@@ -1856,11 +1748,34 @@ int ScreenRecorder::toggleScreenCapture() {
     return 0;
 }
 
+
+/*******************************************/
+/*******************************************/
+/* Altre funzioni accessorie */
+
 /* Funzione che racchiude il setup base */
 void ScreenRecorder::SetUpScreenRecorder() {
     ScreenRecorder screen_record;
-    screen_record.openCamera();
+    screen_record.openVideoDevice();
     screen_record.openAudioDevice();
     screen_record.initOutputFile();
     screen_record.CreateThreads();
 }
+
+
+#if WIN32
+void ScreenRecorder::SetCaptureSystemKey(int valueToSet, LPCWSTR keyToSet) {
+    HKEY hKey;
+    char hexString[20];
+    _itoa_s(valueToSet, hexString, 16);
+    DWORD value = strtoul(hexString, NULL, 16);
+    if (RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("SOFTWARE\\screen-capture-recorder\\"), 0, KEY_ALL_ACCESS, &hKey) != ERROR_SUCCESS)
+        if (RegCreateKeyEx(HKEY_LOCAL_MACHINE,
+            TEXT("SOFTWARE\\screen-capture-recorder\\"),
+            0, NULL, 0,
+            KEY_WRITE, NULL,
+            &hKey, &value) != ERROR_SUCCESS) SetError("Errore nel settare la chiave di registro");
+    RegSetValueEx(hKey, keyToSet, 0, REG_DWORD, (const BYTE*)&value, sizeof(value));
+    RegCloseKey(hKey);
+}
+#endif

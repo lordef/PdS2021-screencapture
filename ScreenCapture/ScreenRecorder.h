@@ -195,10 +195,9 @@ public:
 	/* Function to initiate communication with display library */
 	int initOutputFile(); 
 	int captureVideoFrames();
-	int openCamera(); // <--
 
 	int openVideoDevice();
-	int openAudioDevice();
+	int openAudioDevice(); // <-- doing
 
 	void generateVideoStream(); 
 	void generateAudioStream(); 
@@ -257,10 +256,10 @@ public:
 	// void StopAudio(); //a
 	// void SetError(std::string error); //a
 	// std::string GetErrorString(); //a
-	// #if WIN32 //a
-	// void SetCaptureSystemKey(int valueToSet, LPCWSTR keyToSet);
-	// std::string RecordingPath = "..\\media\\output.mp4";
-	// #endif
+	#if WIN32
+		void SetCaptureSystemKey(int valueToSet, LPCWSTR keyToSet);
+		// std::string RecordingPath = "..\\media\\output.mp4";
+	#endif
 };
 
 #endif

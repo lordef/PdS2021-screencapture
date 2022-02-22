@@ -10,7 +10,7 @@ int main()
 	/*Vedi SetUpScreenRecorder() */
 	ScreenRecorder screen_record;
 
-	screen_record.openCamera();
+	screen_record.openVideoDevice();
 	screen_record.openAudioDevice();
 
 	screen_record.initOutputFile();
