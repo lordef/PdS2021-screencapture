@@ -71,7 +71,7 @@ std::string retrieveTimestamp()
 
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
-ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), started(true), activeMenu(true),
+ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), /* started(true), */ activeMenu(true),
                                     magicNumber(100), cropX(0), cropY(0), cropH(700), cropW(700), frameCount(0), end (false)
 
 // TODO: aggiustare codice seguente e sostituirlo a quello sopra                                    
@@ -119,7 +119,8 @@ ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(f
 /* uninitialize the resources */
 ScreenRecorder::~ScreenRecorder()
 {
-    if (started) {
+    // if (started) { //utile?
+        
         /*value = av_write_trailer(outAVFormatContext); //a
         if (value < 0) {
             cerr << "Error in writing av trailer" << endl;
@@ -164,7 +165,7 @@ ScreenRecorder::~ScreenRecorder()
             cerr << "Error: unable to free VideoFormatContext" << endl;
             exit(1);
         }
-    }
+    // } //end - started
 
 }
 
@@ -180,7 +181,7 @@ int ScreenRecorder::initOutputFile() {
     // timestamp = ss.str();
 
     string outputName = timestamp + "_output.mp4";
-
+    // Setting formato del file
     outputAVFormat = const_cast<AVOutputFormat*>(av_guess_format(nullptr, outputName.c_str(), nullptr));
 
     if (outputAVFormat == nullptr) {
@@ -188,24 +189,24 @@ int ScreenRecorder::initOutputFile() {
         exit(-5);
     }
 
-#ifdef __linux__
-    /*
-        N.B.:   IN DEBUG la cartella di partenza è quella in cui di trova questo file stesso
-                IN RUN la cartella di partenza è quella del progetto in sé
-    */
-    // string completeName = "../media/" + outputName; // DEBUG
-    // string completeName = "media/output.mp4"; // RUN   
-    // string completeName = "../media/" + outputName; // DEBUG  
-#if RUN == 1
-    string completeName = "media/" + outputName; // RUN 
-#else
-    string completeName = "../media/" + outputName; // DEBUG 
-#endif   
-#elif _WIN32
-    string completeName = "..\\media\\" + outputName;
-#endif
+    #ifdef __linux__
+        /*
+            N.B.:   IN DEBUG la cartella di partenza è quella in cui di trova questo file stesso
+                    IN RUN la cartella di partenza è quella del progetto in sé
+        */
+        // string outputPath = "../media/" + outputName; // DEBUG
+        // string outputPath = "media/output.mp4"; // RUN   
+        // string outputPath = "../media/" + outputName; // DEBUG  
+    #if RUN == 1
+        string outputPath = "media/" + outputName; // RUN 
+    #else
+        string outputPath = "../media/" + outputName; // DEBUG 
+    #endif   
+    #elif _WIN32
+        string outputPath = "..\\media\\" + outputName;
+    #endif
 
-    avformat_alloc_output_context2(&outAVFormatContext, outputAVFormat, outputAVFormat->name, completeName.c_str());
+    avformat_alloc_output_context2(&outAVFormatContext, outputAVFormat, outputAVFormat->name, outputPath.c_str());
     if (outAVFormatContext == nullptr) {
         cerr << "Error in allocating outAVFormatContext" << endl;
         exit(-4);
@@ -217,20 +218,23 @@ int ScreenRecorder::initOutputFile() {
     if (isAudioActive)
         this->generateAudioStream();
 
-    //create an empty video file
+    //Create an empty video file
     if (!(outAVFormatContext->flags & AVFMT_NOFILE)) {
-        //int ret_avio = avio_open2(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE, nullptr, nullptr);
-        int ret_avio = avio_open(&outAVFormatContext->pb, completeName.c_str(), AVIO_FLAG_WRITE);
+        //int ret_avio = avio_open2(&outAVFormatContext->pb, outputPath.c_str(), AVIO_FLAG_WRITE, nullptr, nullptr);
+        int ret_avio = avio_open(&outAVFormatContext->pb, outputPath.c_str(), AVIO_FLAG_WRITE);
         if (ret_avio < 0) {
             cerr << "Error in creating the video file" << endl;
             exit(-10);
         }
     }
 
+    /* Controlla che il file di output contenga almeno uno stream */
     if (outAVFormatContext->nb_streams == 0) {
         cerr << "Output file does not contain any stream" << endl;
         exit(-11);
     }
+
+    /* Alloca i dati dello stream e scrive l'header dello stream al file di output. */
     value = avformat_write_header(outAVFormatContext, &options);
     if (value < 0) {
         cerr << "Error in writing the header context" << endl;

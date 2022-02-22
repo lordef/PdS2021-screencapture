@@ -312,6 +312,7 @@ if(recordAudio)
         SetError( "Error in writing the header context");
         exit(-12);
     }
+    
     /*Variabile utile al distruttore per chiudere correttamente il file*/
     started = true;
     return 0;

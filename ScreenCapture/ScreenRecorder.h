@@ -161,7 +161,7 @@ private:
 	// bool stopCaptureAudio = false; //a
 	// bool stopCaptureVideo = false; //a
 
-	bool started = true; // utile per deallocare quando ScreenRecoder muore
+	bool started; //utile? utile per deallocare quando ScreenRecoder muore
 	bool activeMenu;
 	bool end = false; //#FIXME: variabile che potrebbe andare in contrasto con stopSC => CONTROLLARE
 
@@ -187,14 +187,14 @@ public:
 	// ScreenRecorder( bool isAudioActive, int cropX, int cropY, int cropH, int cropW,
 	// 				int magicNumber, bool activeMenu); // #TODO: valutare se sopprimere magicNumber e activeMenu 
 
-	// ScreenRecorder(std::string RecPath); //a //utile?
+	// ScreenRecorder(std::string RecPath); //a //utile? -> settaggio dell'outputPath
 	// ScreenRecorder(const ScreenRecorder& p1); //a //utile?
 
 	~ScreenRecorder();
 
 	/* Function to initiate communication with display library */
 	int initOutputFile(); 
-	int captureVideoFrames();
+	int captureVideoFrames(); // <---
 	int openCamera();
 
 	int openVideoDevice();
