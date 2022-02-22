@@ -1352,15 +1352,16 @@ void ScreenRecorder::captureAudio() {
     AVFrame* rawFrame, * scaledFrame;
     uint8_t** resampledData;
     init_fifo();
-#ifdef __linux__
-#if RUN == 1 
-    ofstream outFile{ "media/" + timestamp + "_log.txt", ios::app }; // RUN
-#else  
-    ofstream outFile{ "../media/" + timestamp + "_log.txt", ios::app }; // DEBUG
-#endif 
-#elif _WIN32
-    ofstream outFile{ "..\\media\\" + timestamp + "_log.txt", ios::app };
-#endif
+
+    #ifdef __linux__
+    #if RUN == 1 
+        ofstream outFile{ "media/" + timestamp + "_log.txt", ios::app }; // RUN
+    #else  
+        ofstream outFile{ "../media/" + timestamp + "_log.txt", ios::app }; // DEBUG
+    #endif 
+    #elif _WIN32
+        ofstream outFile{ "..\\media\\" + timestamp + "_log.txt", ios::app };
+    #endif
 
     //allocate space for a packet
     //inPacket = (AVPacket*)av_malloc(sizeof(AVPacket));
@@ -1369,7 +1370,7 @@ void ScreenRecorder::captureAudio() {
         cerr << "Cannot allocate an AVPacket for encoded video" << endl;
         exit(1);
     }
-    //av_init_packet(inPacket);
+    //av_init_packet(inPacket); //utile?
 
     //allocate space for a packet
     rawFrame = av_frame_alloc();
@@ -1412,12 +1413,14 @@ void ScreenRecorder::captureAudio() {
     }
 
     //while (true) {
-    while (pAVCodecContext->frame_number < magicNumber) {
+    while (pAVCodecContext->frame_number < magicNumber) { //a --> variabile stop solo per video e funzione !ShouldStopAudio()  
 
         if (pauseSC) {
             cout << "Pause audio" << endl;
-            //avformat_close_input(&inAudioFormatContext); //serve per il sync dell'audio???
+            // avformat_close_input(&inAudioFormatContext); //a
+            // closedAudioRecording = true; //a
         }
+
         std::unique_lock<std::mutex> ul(mu);
         cv.wait(ul, [this]() { return !pauseSC; });
 
@@ -1425,7 +1428,34 @@ void ScreenRecorder::captureAudio() {
             break;
         }
 
-        //avformat_open_input(&inAudioFormatContext, "audio=Microphone Array (Realtek(R) Audio)", audioInputFormat, &audioOptions); //per il sync?
+        /*Se e' entrato in pausa, l'input sara' stato chiuso, quindi viene riaperto*/
+        // if (closedAudioRecording) { //a
+        // #if WIN32
+        //     if (deviceName == "") {
+        //             deviceName = DS_GetDefaultDevice("a");
+        //             if (deviceName == "") {
+        //                 throw std::runtime_error("Fail to get default audio device, maybe no microphone.");
+        //             }
+        //         }
+        //         deviceName = "audio=" + deviceName;
+        //         audioInputFormat = av_find_input_format("dshow");
+        //         //value = avformat_open_input(&inAudioFormatContext, "audio=Microfono (Realtek(R) Audio)", audioInputFormat, &audioOptions);
+        //         value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions);
+        //         if (value != 0) {
+        //             cerr << "Error in opening input device (audio)" << endl;
+        //             exit(-1);
+        //         }
+        // #elif linux
+        //     deviceName = "default";
+        //     value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions);
+        //     if (value != 0) {
+        //         cerr << "Error in opening input device (audio)" << endl;
+        //         exit(-1);
+        //     }        
+        // #endif
+        // closedAudioRecording = false;
+            // }     
+
         ul.unlock();
 
 
@@ -1455,6 +1485,7 @@ void ScreenRecorder::captureAudio() {
                     exit(1);
                 }
 
+                /*Setta lo start_time dello stream pari al pts del frame*/
                 if (outAVFormatContext->streams[outAudioStreamIndex]->start_time <= 0) {
                     outAVFormatContext->streams[outAudioStreamIndex]->start_time = rawFrame->pts;
                 }
@@ -1487,14 +1518,19 @@ void ScreenRecorder::captureAudio() {
                 scaledFrame->sample_rate = outAudioCodecContext->sample_rate;
                 av_frame_get_buffer(scaledFrame, 0);
 
-                while (av_audio_fifo_size(fifo) >= outAudioCodecContext->frame_size) {
+                while (fifo && av_audio_fifo_size(fifo) >= outAudioCodecContext->frame_size) {
                     /* Legge, dal primo paramatro, una certa quantità di dati (indicata dal terzo parametro)
 
                     da fifo a scaledFrame->data ??*/
                     ret = av_audio_fifo_read(fifo, (void**)(scaledFrame->data), outAudioCodecContext->frame_size);
+
                     scaledFrame->pts = frameCount * audio_st->time_base.den * 1024 / outAudioCodecContext->sample_rate;
                     frameCount++;
-                    //pts += scaledFrame->nb_samples;
+                    //Alternativa //a
+                    // scaledFrame->pts = pts; 
+                    // pts += scaledFrame->nb_samples; 
+
+                    
                     /*Forniamo un frame all'encoder.
                     Utilizzeremo, poi, avcodec_receive_packet() per recuperare i pacchetti di output memorizzati nel buffer.
 
@@ -1531,9 +1567,6 @@ void ScreenRecorder::captureAudio() {
                             cvw.notify_one();
                             cvw.wait(ulw, [this]() {return ((ptsA - 2 <= ptsV) || end); }); //FIXME: stopSC invece di end?
                         #endif
-                        
-                        
-                        
 
                         //cout << outPacket << endl;
                         outFile << "Scrivo AUDIO-PTS_TIME: " << ptsV << "\n" << endl;
@@ -1552,10 +1585,14 @@ void ScreenRecorder::captureAudio() {
                         }
 
                         ulw.unlock();
+
+                        /*Libera il pacchetto*/
                         av_packet_unref(outPacket);
                     }
                     ret = 0;
                 }
+                
+                /*Operazioni di liberazione di memoria*/
                 av_frame_free(&scaledFrame);
                 av_packet_unref(outPacket);
 
@@ -1570,7 +1607,7 @@ void ScreenRecorder::captureAudio() {
         cvw.notify_one();
     #endif
 
-    outFile.close();//Nuovo
+    outFile.close();
 }
 
 /***************************** FINE - AUDIO *****************************/
@@ -1581,7 +1618,7 @@ void ScreenRecorder::CreateThreads() {
     thread t2(&ScreenRecorder::captureVideoFrames, this);
     if (isAudioActive) {
         std::thread t1(&ScreenRecorder::captureAudio, this);
-        t1.join();
+        t1.join(); //a ---> join() in StopRecording
     }
     t2.join();
 }
