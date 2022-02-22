@@ -69,7 +69,7 @@ std::string retrieveTimestamp()
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
 ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), started(true), activeMenu(true),
-                                    magicNumber(3000), cropX(0), cropY(0), cropH(1080), cropW(1920), frameCount(0), end (false)
+                                    magicNumber(1000), cropX(0), cropY(0), cropH(700), cropW(700), frameCount(0), end (false)
 
 // TODO: aggiustare codice seguente e sostituirlo a quello sopra                                    
 // ScreenRecorder::ScreenRecorder( bool isAudioActive = true, 
@@ -638,7 +638,7 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     #ifdef __linux__
         outAVCodecContext->time_base.den = 12.5;// 15fps
     #elif _WIN32
-        outAVCodecContext->time_base.den = 25;// 15fps
+        outAVCodecContext->time_base.den = 25*((1920*1080)/(cropH*cropW));// 15fps
     #endif
     outAVCodecContext->bit_rate_tolerance = 400000;
 
