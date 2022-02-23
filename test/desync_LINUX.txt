@@ -204,6 +204,23 @@ FUNZIONANTE
 Prova CROP 1020x330 (wxh): 
 - CONFIGURAZIONE come gruppo a -> NOSTRA MODIFICA: video e audio ok, registrazione 10 sec 
     outAVCodecContext->time_base.den = 33;
+--------------
+FUNZIONANTE accettabile
+Prova CROP 1720x1000 (wxh): (200 in meno rispetto a massima: 1920x1200)
+- CONFIGURAZIONE come gruppo a -> NOSTRA MODIFICA: audio ok, video 9sec su 10sec => ok
+    outAVCodecContext->time_base.den = 33;
+--------------
+FUNZIONANTE accettabile
+Prova CROP 1920x1200 (wxh)
+- CONFIGURAZIONE come gruppo a -> NOSTRA MODIFICA: audio ok, video 8 sec su 10 sec
+    outAVCodecContext->time_base.den = 33;
+--------------
+Prova CROP 3072x1920 (wxh) (massima) -> 22 su 27
+- CONFIGURAZIONE come gruppo a -> NOSTRA MODIFICA: video lento, audio 22 sec su 27 sec
+    outAVCodecContext->time_base.den = 11;
+[...] -> continua qui
+
+
 
 
 
