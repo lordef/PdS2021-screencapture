@@ -159,6 +159,7 @@ time_base.den e time_base.num uguali per audio e video  -> questa prova da file 
     pts += scaledFrame->nb_samples;
 
     //a --> attivata questa sezione
+    attiavati ovvero alcuni av_dict
 
     outAVCodecContext->time_base.den = 33;//a
     outAVCodecContext->bit_rate = 10000000; //FIXME: era 10 000 000, G: 96000, LeI:90000
