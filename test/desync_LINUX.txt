@@ -175,8 +175,35 @@ time_base.den e time_base.num uguali per audio e video  -> questa prova da file 
 - CONFIGURAZIONE come gruppo a -> NOSTRA MODIFICA: audio ok, video 25 sec su 29
     outAVCodecContext->time_base.den = 12.5;
 
+FUNZIONANTE
 - CONFIGURAZIONE come gruppo a -> NOSTRA MODIFICA: audio ok, video sembra ok -> 29 su 29 circa
     outAVCodecContext->time_base.den = 11;
+-------------
+Prova CROP 700x700: 
+- CONFIGURAZIONE come gruppo a -> NOSTRA MODIFICA: video rallentato, audio per 10 sec, video per 27
+    outAVCodecContext->time_base.den = 11;
+
+- CONFIGURAZIONE come gruppo a -> NOSTRA MODIFICA: video rallentato, audio per 10 sec, video per 27 => uguale a prima
+    outAVCodecContext->time_base.den = 25;
+
+FUNZIONANTE
+- CONFIGURAZIONE come gruppo a -> NOSTRA MODIFICA: video e audio ok, registrazione 10 sec 
+    outAVCodecContext->time_base.den = 33;
+--------------
+FUNZIONANTE
+Prova CROP 100x150 (wxh): 
+- CONFIGURAZIONE come gruppo a -> NOSTRA MODIFICA: video e audio ok, registrazione 10 sec 
+    outAVCodecContext->time_base.den = 33;
+--------------
+FUNZIONANTE
+Prova CROP 700x1020 (wxh): 
+- CONFIGURAZIONE come gruppo a -> NOSTRA MODIFICA: video e audio ok, registrazione 10 sec 
+    outAVCodecContext->time_base.den = 33;
+--------------
+FUNZIONANTE
+Prova CROP 1020x330 (wxh): 
+- CONFIGURAZIONE come gruppo a -> NOSTRA MODIFICA: video e audio ok, registrazione 10 sec 
+    outAVCodecContext->time_base.den = 33;
 
 
 
