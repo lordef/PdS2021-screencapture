@@ -12,3 +12,8 @@ ffmpeg
     - ./configure --enable-libxcb --enable-libxcb-shm --enable-libxcb-xfixes --enable-libxcb-shape --enable-libpulse --enable-protocol=file 
     - make
     - sudo make install
+
+Qt (- linux)
+    Install Qt Creator from: https://www.qt.io/download-open-source?hsCtaTracking=9f6a2170-a938-42df-a8e2-a9f0b1d6cdce%7C6cb0de4f-9bb5-4778-ab02-bfb62735f3e5
+    Attenzione installare il componente Desktop Qt 6.2.3 GCC 64 bit
+        una volta effettuato il download: Tools/Options/Kits/Select Desktop Qt 6.2.3 GCC 64 bit/OK
