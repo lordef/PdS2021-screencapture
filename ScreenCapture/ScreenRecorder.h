@@ -26,7 +26,7 @@
 
 // #define QT 1 //a
 // #define AUDIO 1 //TODO: ora inutile -> sostituita da isAudioActive
-#define RUN 1 //#TODO: utile per debuggare, eliminare prima della consegna -> cerca nel codice "#if RUN == 1" ed elimianre
+#define RUN 0 //#TODO: utile per debuggare, eliminare prima della consegna -> cerca nel codice "#if RUN == 1" ed elimianre
 
 
 

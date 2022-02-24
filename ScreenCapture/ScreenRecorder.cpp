@@ -72,7 +72,7 @@ std::string retrieveTimestamp()
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
 ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), /* started(true), */ activeMenu(true),
-                                    magicNumber(300), cropX(0), cropY(0), cropH(1080), cropW(1920), frameCount(0), end (false)
+                                    magicNumber(300), cropX(0), cropY(0), cropH(1200), cropW(1920), frameCount(0), end (false)
 
 // TODO: aggiustare codice seguente e sostituirlo a quello sopra                                    
 // ScreenRecorder::ScreenRecorder( bool isAudioActive = true, 
@@ -377,8 +377,8 @@ int ScreenRecorder::openVideoDevice()
      /*
 
     //a --> attivata questa sezione
-    /******************************************/ /*
-     value = av_dict_set(&options, "framerate", "15", 0); // inizialmente era fissato a 30 su linux
+    /******************************************/
+     value = av_dict_set(&options, "framerate", "30", 0); // lo avevamo settato a 15 prima di disattivarlo
      if (value < 0) // Controllo che non ci siano stati errori con av_dict_set
      {
          cout << "\nError in setting dictionary value";
@@ -392,7 +392,7 @@ int ScreenRecorder::openVideoDevice()
          exit(1);
      }
 
-    */ 
+    
     /******************************************/
 
      //La seuente riga è da utilizzare con dshow
@@ -524,7 +524,7 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
 
     //a --> 10000000
 #ifdef __linux__
-    outAVCodecContext->bit_rate = 90000; //FIXME: era 10 000 000, G: 96000
+    outAVCodecContext->bit_rate = 10000000; //FIXME: era 10 000 000, G: 96000, LeI:90000
 #elif _WIN32
     outAVCodecContext->bit_rate = 10000000;
 #endif
@@ -535,9 +535,9 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
 
     //a --> 33
     #ifdef __linux__
-        outAVCodecContext->time_base.den = 12.5;// 15fps 
+        // outAVCodecContext->time_base.den = 12.5;// 15fps 
         // outAVCodecContext->time_base.den = 25;// 15fps
-
+        outAVCodecContext->time_base.den = 33;//a
     #elif _WIN32
         outAVCodecContext->time_base.den = 25;// 15fps
         // outAVCodecContext->time_base.den = 25*((1920*1080)/(cropH*cropW));// 15fps //#TODO: ragionarci
@@ -1000,7 +1000,7 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 unique_lock<mutex> ulw(write_lock);
 
                 //Effettuo conversione dei pts 
-                ptsV = outPacket->pts / video_st->time_base.den;
+                // ptsV = outPacket->pts / video_st->time_base.den;
 
                 #ifdef _WIN32
                     /* Per sincronizzare video e audio */
@@ -1008,9 +1008,9 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                     cvw.wait(ulw, [this](){return ((ptsA - 2 >= ptsV) || end); });
                 #endif
                 
-                outFile << "Scrivo VIDEO-PTS_TIME: " << ptsV << "\n" << endl;
+                outFile << "Scrivo VIDEO-PTS_TIME: " << pts << "\n" << endl;
                 //cout << outPacket << endl;
-                cout << "\n Scrivo VIDEO-PTS_TIME: " << ptsV << endl;
+                cout << "\n Scrivo VIDEO-PTS_TIME: " << pts << endl;
                 /*Scriviamo il pacchetto in un output media file.
                 NB: Per l'audio viene usato av_interleaved_write_frame()...come mai?
                 NB: A differenza di av_interleaved_write_frame(), av_write_frame non effettua nessuna copia
@@ -1259,7 +1259,7 @@ void ScreenRecorder::generateAudioStream() {
     outAudioCodecContext->sample_fmt = (outAudioCodec)->sample_fmts ? (outAudioCodec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
     outAudioCodecContext->channels = inAudioCodecContext->channels;
     outAudioCodecContext->channel_layout = av_get_default_channel_layout(outAudioCodecContext->channels);
-    outAudioCodecContext->bit_rate = 90000; // G: 96000
+    outAudioCodecContext->bit_rate = 96000; // G: 96000, L&I:90000
     /** //#FIXME: test: metterli uguali ad audio e video **/
     // outAudioCodecContext->time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2
     // outAudioCodecContext->time_base.num = 1; 
@@ -1524,11 +1524,11 @@ void ScreenRecorder::captureAudio() {
                     da fifo a scaledFrame->data ??*/
                     ret = av_audio_fifo_read(fifo, (void**)(scaledFrame->data), outAudioCodecContext->frame_size);
 
-                    scaledFrame->pts = frameCount * audio_st->time_base.den * 1024 / outAudioCodecContext->sample_rate;
-                    frameCount++;
+                    // scaledFrame->pts = frameCount * audio_st->time_base.den * 1024 / outAudioCodecContext->sample_rate;
+                    // frameCount++;
                     //Alternativa //a
-                    // scaledFrame->pts = pts; 
-                    // pts += scaledFrame->nb_samples; 
+                    scaledFrame->pts = pts; 
+                    pts += scaledFrame->nb_samples; 
 
                     
                     /*Forniamo un frame all'encoder.
@@ -1559,7 +1559,7 @@ void ScreenRecorder::captureAudio() {
 
                         unique_lock<mutex> ulw(write_lock);   
                         //Effettuo conversione dei pts
-                        ptsA = outPacket->pts / outAudioCodecContext->sample_rate;
+                        // ptsA = outPacket->pts / outAudioCodecContext->sample_rate;
 
                         #ifdef __linux__
                             // cvw.wait(ulw, [this]() {return ptsA <= ptsV; });
@@ -1569,8 +1569,8 @@ void ScreenRecorder::captureAudio() {
                         #endif
 
                         //cout << outPacket << endl;
-                        outFile << "Scrivo AUDIO-PTS_TIME: " << ptsV << "\n" << endl;
-                        cout << "\n Scrivo AUDIO-PTS_TIME: " << ptsA << endl;
+                        outFile << "Scrivo AUDIO-PTS_TIME: " << pts << "\n" << endl;
+                        cout << "\n Scrivo AUDIO-PTS_TIME: " << pts << endl;
                         
                         //cout << outAVFormatContext << " " << outPacket << endl;
                         /*Scriviamo il pacchettoin un output media file assicurandoci un corretto interleaving.
