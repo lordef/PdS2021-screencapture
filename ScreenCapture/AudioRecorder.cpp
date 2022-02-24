@@ -3,12 +3,11 @@ using namespace std;
 
 
 
-AudioRecorder::AudioRecorder() :  pauseSC(false), stopSC(false), /* started(true), */ activeMenu(true),
-                                  magicNumber(300), frameCount(0), end(false)
+AudioRecorder::AudioRecorder(mutex* mu, condition_variable* cv, mutex* write_lock, condition_variable* cvw) :  pauseSC(false),
+                             stopSC(false), /* started(true), */ activeMenu(true),
+                             magicNumber(300), frameCount(0), end(false), mux(mu), write_mux(write_lock),
+                             cvl(cv), cvwl(cvw)
 {
-    //TIMESTAMP?
-    
-    // 
     //avdevice_register_all(); // Inizializza libavdevice e registra tutti i dispositivi di input e output.
 
     //outAVFormatContext deve essere passato come parametro al costruttore

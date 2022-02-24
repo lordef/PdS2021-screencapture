@@ -53,9 +53,12 @@ private:
 	ScreenRecorder screen;
 
 	mutex* mux;
+	mutex* write_mux;
+	condition_variable* cvl;
+	condition_variable* cvwl;
 
 public:
-	AudioRecorder();
+	AudioRecorder(mutex* mu, condition_variable* cv, mutex* write_lock, condition_variable* cvw);
 	~AudioRecorder();
 	int openAudioDevice();
 	void generateAudioStream();
