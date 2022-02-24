@@ -72,7 +72,7 @@ std::string retrieveTimestamp()
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
 ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), /* started(true), */ activeMenu(true),
-                                    magicNumber(300), cropX(0), cropY(0), cropH(1080), cropW(1920), frameCount(0), end (false)
+                                    magicNumber(300), cropX(0), cropY(0), cropH(1000), cropW(3072), frameCount(0), end (false)
 
 // TODO: aggiustare codice seguente e sostituirlo a quello sopra                                    
 // ScreenRecorder::ScreenRecorder( bool isAudioActive = true, 
@@ -93,7 +93,7 @@ ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(f
     /*****************/
         // #FIXME: codice temporaneo per debuggare su pc L e I, poiché risoluzioni diverse
         // int cropH, cropW; //height, width
-        tie(cropH, cropW) = retrieveDisplayDimention(); //FIXME: commentare perché sovrascrive crop passati
+        // tie(cropH, cropW) = retrieveDisplayDimention(); //FIXME: commentare perché sovrascrive crop passati
     /*****************/
     #elif _WIN32
         //a
@@ -535,8 +535,13 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
 
     //a --> 33
     #ifdef __linux__
-        outAVCodecContext->time_base.den = 12.5;// 15fps 
-        // outAVCodecContext->time_base.den = 25;// 15fps
+        int he, wi; 
+        tie(he, wi) = retrieveDisplayDimention();
+        if (cropW == he || cropH == wi){
+            outAVCodecContext->time_base.den = 12.5;
+        }else{
+            outAVCodecContext->time_base.den = 33;
+        }
 
     #elif _WIN32
         outAVCodecContext->time_base.den = 25;// 15fps

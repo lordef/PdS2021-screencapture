@@ -120,6 +120,55 @@ Situazione attuale:
         AUDIO   
             bit_rate = 90000            
             NON settato: time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2
+-----------------------------------------
+- 2022.02.24
+ -      FUNZIONANTE: accettabile, audio ok, video 25 sec su 26 sec
+
+        RISOLUZIONE 
+            3072x1920 (wxh) (massima L)   
+        VIDEO
+            time_base.den = 12.5;
+            bit_rate_tolerance = 400000
+            bit_rate = 90000            
+        AUDIO   
+            bit_rate = 90000            
+            NON settato: time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2   
+
+ -      FUNZIONANTE: accettabile - video ok (10 sec su 10 sec), audio leggermente in ritardo all'inizio
+
+        RISOLUZIONE 
+            700x700 (wxh)
+        VIDEO
+            time_base.den = 33; <--------------
+            bit_rate_tolerance = 400000
+            bit_rate = 90000            
+        AUDIO   
+            bit_rate = 90000            
+            NON settato: time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2   
+
+ -      FUNZIONANTE: accettabile - video ok (10 sec su 10 sec), audio leggermente in ritardo all'inizio
+
+        RISOLUZIONE 
+            400x1000 (wxh)
+        VIDEO
+            time_base.den = 33; <--------------
+            bit_rate_tolerance = 400000
+            bit_rate = 90000            
+        AUDIO   
+            bit_rate = 90000            
+            NON settato: time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2   
+
+-      FUNZIONANTE: accettabile - audio ok, video 9sec di 13
+
+        RISOLUZIONE 
+            3072x1000 (wxh)
+        VIDEO
+            time_base.den = 12.5; <--------------
+            bit_rate_tolerance = 400000
+            bit_rate = 90000            
+        AUDIO   
+            bit_rate = 90000            
+            NON settato: time_base = { 1, inAudioCodecContext->sample_rate }; //#FIXME: dovrebbe settarsi da solo nelle prossime due operaioni a detta dei colleghi; ovvero flags e avcodec_open2               
 ---------------------------------------------------------------
 CROPPING:
 Prova1
@@ -220,6 +269,8 @@ Prova CROP 3072x1920 (wxh) (massima) -> 22 su 27
 - CONFIGURAZIONE come gruppo a -> NOSTRA MODIFICA: video lento, audio 22 sec su 27 sec
     outAVCodecContext->time_base.den = 11;
 [...] -> continua qui
+
+
 
 
 
