@@ -281,6 +281,7 @@ void AudioRecorder::setValue(AVFormatContext* f){
 void AudioRecorder::captureAudio(mutex* mu, condition_variable* cv, mutex* write_lock,
                                         condition_variable* cvw, ScreenRecorder* screen) {
     int ret;
+    mux = mu;
     AVPacket* inPacket, * outPacket;
     AVFrame* rawFrame, * scaledFrame;
     uint8_t** resampledData;
@@ -355,7 +356,7 @@ void AudioRecorder::captureAudio(mutex* mu, condition_variable* cv, mutex* write
             // closedAudioRecording = true; //a
         }
 
-        std::unique_lock<std::mutex> ul(*mu);
+        std::unique_lock<std::mutex> ul(*mux);
         cv->wait(ul, [this]() { return !pauseSC; });
 
         if (stopSC) {

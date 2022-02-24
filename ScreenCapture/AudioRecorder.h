@@ -52,6 +52,8 @@ private:
 	AVDictionary* audioOptions;
 	ScreenRecorder screen;
 
+	mutex* mux;
+
 public:
 	AudioRecorder();
 	~AudioRecorder();
