@@ -144,14 +144,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AudioRecorder.cpp" />
-    <ClCompile Include="ListAVDevices.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Recorder.cpp" />
     <ClCompile Include="ScreenRecorder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AudioRecorder.h" />
     <ClInclude Include="ffmpeg.h" />
-    <ClInclude Include="ListAVDevices.h" />
+    <ClInclude Include="Recorder.h" />
     <ClInclude Include="ScreenRecorder.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

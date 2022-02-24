@@ -2,60 +2,70 @@
 #define AUDIORECORDER_AUDIORECORDER_H
 
 #ifdef __linux__
-    #include <atomic>
-    #include <thread>
+#include <atomic>
+#include <thread>
 #elif _WIN32
-    #include "ListAVDevices.h"
+//#include "ListAVDevices.h"
 #endif
 
 #include "ffmpeg.h"
 #include <string>
 #include <cstdint>
+#include <iostream>
+#include "ScreenRecorder.h"
 
+#pragma once
 
-using std::string;
-
-class AudioRecorder {
-
+class AudioRecorder
+{
 private:
-    string outfile;
-    string deviceName;
-    string failReason;
-    std::atomic_bool isRun;
+	bool pauseSC;
+	bool stopSC;
+	bool activeMenu;
+	bool end;
+	
+	int magicNumber;
+	int value;
+	int audioStreamIndx;
+	int outAudioStreamIndex;
+	int ptsA;
+	int ptsV;
+	uint64_t frameCount;
 
+	std::string deviceName;
 
-    AVFormatContext* audioInFormatCtx;
-    AVStream* audioInStream;
-    AVCodecContext* audioInCodecCtx;
+	AVAudioFifo* fifo;
 
-    SwrContext* audioConverter;
-    AVAudioFifo* audioFifo;
+	AVCodec* inAudioCodec;
+	AVCodec* outAudioCodec;
 
-    AVFormatContext* audioOutFormatCtx;
-    AVStream* audioOutStream;
-    AVCodecContext* audioOutCodecCtx;
+	AVStream* audio_st;
 
-    std::thread* audioThread;
+	AVCodecContext* inAudioCodecContext;
+	AVCodecContext* outAudioCodecContext;
 
-    void StartEncode();
+	AVFormatContext* inAudioFormatContext;
+	AVFormatContext* outAVFormatContext;
 
+	AVInputFormat* audioInputFormat;
+
+	AVDictionary* audioOptions;
+	ScreenRecorder screen;
 
 public:
+	AudioRecorder();
+	~AudioRecorder();
+	int openAudioDevice();
+	void generateAudioStream();
+	int init_fifo();
+	int add_samples_to_fifo(uint8_t** converted_input_samples, const int frame_size);
+	int initConvertedSamples(uint8_t*** converted_input_samples, AVCodecContext* output_codec_context, int frame_size);
 
-    AudioRecorder(string filepath, string device)
-        :outfile(filepath), deviceName(device), failReason(""), isRun(false) {}
+	void setValue(AVFormatContext* f);
+	void captureAudio(mutex* mu, condition_variable* cv, mutex* write_lock,
+						condition_variable* cvw, ScreenRecorder* screen);
+	int getPtsA();
 
-    void Open();
-    void Start();
-    void Stop();
-
-    ~AudioRecorder() {
-        Stop();
-    }
-
-    std::string GetLastError() { 
-        return failReason; 
-    }
 };
-#endif //AUDIORECORDER_AUDIORECORDER_H
 
+#endif 

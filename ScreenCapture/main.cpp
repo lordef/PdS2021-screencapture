@@ -1,5 +1,5 @@
 #include <bits/stdc++.h>
-#include "ScreenRecorder.h"
+#include "Recorder.h"
 
 using namespace std;
 
@@ -8,14 +8,14 @@ int main()
 {
 	/*****Registrazione video e audio ******/
 	/*Vedi SetUpScreenRecorder() */
-	ScreenRecorder screen_record;
+	Recorder record;
 
-	screen_record.openVideoDevice();
-	screen_record.openAudioDevice();
+	//screen_record.openVideoDevice();
+	//screen_record.openAudioDevice();
 
-	screen_record.initOutputFile();
+	record.initOutputFile();
 
-	screen_record.CreateThreads();
+	record.CreateThreads();
 
 	/*fine SetUpScreenRecorder() */
 
