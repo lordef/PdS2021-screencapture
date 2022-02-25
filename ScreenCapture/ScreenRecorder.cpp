@@ -1397,7 +1397,7 @@ void ScreenRecorder::captureAudio() {
     }
 
     //while (true) {
-    while (getAudioBool()) { //a --> variabile stop solo per video e funzione !ShouldStopAudio()  
+    while (!getAudioBool()) { //a --> variabile stop solo per video e funzione !ShouldStopAudio()  
 
         if (pauseRec) {
             avformat_close_input(&inAudioFormatContext);
