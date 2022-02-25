@@ -71,8 +71,9 @@ std::string retrieveTimestamp()
 
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
-ScreenRecorder::ScreenRecorder() : isAudioActive(true), pauseSC(false), stopSC(false), /* started(true), */ activeMenu(true),
-                                    magicNumber(300), cropX(0), cropY(0), cropH(1000), cropW(3072), frameCount(0), end (false)
+ScreenRecorder::ScreenRecorder() : isAudioActive(true), stopSC(false), /* started(true), */ activeMenu(true),
+                                    magicNumber(300), cropX(0), cropY(0), cropH(1080), cropW(1920), frameCount(0), end (false),
+                                    pauseRec(false), stopRecAudio(false), stopRecVideo(false), closedVideo(false), closedAudio(false)
 
 // TODO: aggiustare codice seguente e sostituirlo a quello sopra                                    
 // ScreenRecorder::ScreenRecorder( bool isAudioActive = true, 
@@ -784,45 +785,31 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
          *  In caso di errore, pAVPacket sarà vuoto (come se provenisse da av_packet_alloc()).
          *  NB:pAVPacket verrà inizializzato, quindi potrebbe essere necessario terminarlo anche se non contiene dati.
     */
-    while (pAVCodecContext->frame_number < magicNumber) //a --> variabile stop solo per video e funzione !ShouldStopVideo()  
+    while (!getVideoBool())  
     {
-        /*
-        cout << "\npAVPacket->buf: " << pAVPacket->buf;
-        cout << "\npAVFrame->buf: " << pAVFrame->buf;
-        cout << "\noutFrame->buf: " << outFrame->buf;
-        */
-
-        /* #FIXME: Testing pause-stop etc.*/
-        // if (pAVCodecContext->frame_number == 50){
-        //     toggleScreenCapture();
-        // }
-    
-        /*********************************/
-
-        if (pauseSC) {
-            cout << "Pause" << endl;
+        
+        if (pauseRec) {
             outFile << "///////////////////   Pause  ///////////////////" << endl;
-            cout << "outAVCodecContext->time_base: " << outAVCodecContext->time_base.num << ", " << outAVCodecContext->time_base.den << endl;
+            avformat_close_input(&pAVFormatContext);
+            closedVideo = true;
         }
-
-       /* #FIXME: Testing pause-stop etc.*/
-    //     if (pAVCodecContext->frame_number == 50){
-    //        for (int iter=0; iter < 100000; iter++){
-    //            cout << "\n" << iter << endl;
-    //        }
-    //        toggleScreenCapture();
-    //    }
 
         std::unique_lock<std::mutex> ul(mu);
 
-        cv.wait(ul, [this]() { return !pauseSC; });   //pause capture (not busy waiting)
+        cv.wait(ul, [this]() { return !pauseRec; });   //pause capture (not busy waiting)
 
-        // if (endPause) {      //#TODO: dovrebbe essere inutile, perché è il contrario di pauseSC
-        //     endPause = false;
-        // }
-
-        if (stopSC)  //check if the capture has to stop
+        if (getVideoBool())  //check if the capture has to stop
             break;
+        if (closedVideo) {
+#if _WIN32
+            avformat_open_input(&pAVFormatContext, "video=screen-capture-recorder", pAVInputFormat, &options);
+#elif linux
+            dimension = to_string(cropW) + "x" + to_string(cropH);
+            av_dict_set(&options, "video_size", dimension.c_str(), 0);   //option to set the dimension of the screen section to record
+            avformat_open_input(&pAVFormatContext, url.c_str(), pAVInputFormat, &options);
+#endif
+            closedVideo = false;
+        }
 
         ul.unlock();
 
@@ -862,14 +849,6 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 cout << "\nProblem with avcodec_send_packet";
                 // exit(1);
             }
-            /*
-            cout << "\npAVCodecContext->width: " << pAVCodecContext->width;
-            cout << "\npAVCodecContext->height: " << pAVCodecContext->height;
-            cout << "\npAVCodecContext->coded_width: " << pAVCodecContext->coded_width;
-            cout << "\npAVCodecContext->coded_height: " << pAVCodecContext->coded_height;
-            cout << "\npAVCodecContext->pix_fmt: " << pAVCodecContext->pix_fmt;
-            cout << "\npAVCodecContext->codec->id: " << pAVCodecContext->codec->id;
-            */
 
             /* avcodec_receive_frame restituisce i dati di output decodificati da un decodificatore.
              *
@@ -1418,19 +1397,26 @@ void ScreenRecorder::captureAudio() {
     }
 
     //while (true) {
-    while (pAVCodecContext->frame_number < magicNumber) { //a --> variabile stop solo per video e funzione !ShouldStopAudio()  
+    while (getAudioBool()) { //a --> variabile stop solo per video e funzione !ShouldStopAudio()  
 
-        if (pauseSC) {
-            cout << "Pause audio" << endl;
-            // avformat_close_input(&inAudioFormatContext); //a
-            // closedAudioRecording = true; //a
+        if (pauseRec) {
+            avformat_close_input(&inAudioFormatContext);
+            closedAudio = true;
         }
 
         std::unique_lock<std::mutex> ul(mu);
-        cv.wait(ul, [this]() { return !pauseSC; });
+        cv.wait(ul, [this]() { return !pauseRec; });
 
-        if (stopSC) {
+        if (getAudioBool()) {
             break;
+        }
+        if (closedAudio) {
+#if _WIN32
+            avformat_open_input(&inAudioFormatContext, "audio=Microphone Array (Realtek(R) Audio)", audioInputFormat, &audioOptions);
+#elif linux
+            avformat_open_input(&inAudioFormatContext, "hw:0", audioInputFormat, &audioOptions);
+#endif
+            closedAudio= false;
         }
 
         /*Se e' entrato in pausa, l'input sara' stato chiuso, quindi viene riaperto*/
@@ -1574,7 +1560,7 @@ void ScreenRecorder::captureAudio() {
                         #endif
 
                         //cout << outPacket << endl;
-                        outFile << "Scrivo AUDIO-PTS_TIME: " << ptsV << "\n" << endl;
+                        outFile << "Scrivo AUDIO-PTS_TIME: " << ptsA << "\n" << endl;
                         cout << "\n Scrivo AUDIO-PTS_TIME: " << ptsA << endl;
                         
                         //cout << outAVFormatContext << " " << outPacket << endl;
@@ -1620,15 +1606,15 @@ void ScreenRecorder::captureAudio() {
 
 /* Creazione thread per video e audio */
 void ScreenRecorder::CreateThreads() {
-    thread t2(&ScreenRecorder::captureVideoFrames, this);
+    thread tV(&ScreenRecorder::captureVideoFrames, this);
     if (isAudioActive) {
-        std::thread t1(&ScreenRecorder::captureAudio, this);
-        t1.join(); //a ---> join() in StopRecording
+        thread tA(&ScreenRecorder::captureAudio, this);
+        //tA.join(); //a ---> join() in StopRecording
     }
-    t2.join();
+    //tV.join();
 }
 
-
+/*
 int ScreenRecorder::stopScreenCapture() {
     if (!stopSC) {
         stopSC = true;
@@ -1639,9 +1625,9 @@ int ScreenRecorder::stopScreenCapture() {
     cout << "\nScreenRecorder is not running" << endl;
     return -1;
     // }
-}
+}*/
 
-
+/*
 int ScreenRecorder::toggleScreenCapture() {
     std::lock_guard<std::mutex> lg(mu);
     if(stopSC){
@@ -1658,7 +1644,7 @@ int ScreenRecorder::toggleScreenCapture() {
     }
     cv.notify_all();
     return 0;
-}
+}*/
 
 
 /*******************************************/
@@ -1666,13 +1652,145 @@ int ScreenRecorder::toggleScreenCapture() {
 /* Altre funzioni accessorie */
 
 /* Funzione che racchiude il setup base */
-void ScreenRecorder::SetUpScreenRecorder() {
-    ScreenRecorder screen_record;
-    screen_record.openVideoDevice();
-    screen_record.openAudioDevice();
-    screen_record.initOutputFile();
-    screen_record.CreateThreads();
+void ScreenRecorder::SetUpScreenRecorder() { 
+    this->openVideoDevice();
+    this->openAudioDevice();
+    this->initOutputFile();
+    this->CreateThreads();
 }
+
+/*Funzione per la chiusura della registrazione*/
+void ScreenRecorder::StopRecorder() {
+    if (isAudioActive) {
+        /*Se stava registrando l'audio, setta la variabile stopCaptureAudio a true*/
+        AudioStop();
+        /*Eseguo il join del thread*/
+        tA.join();
+    }
+    /*Setta la variabile stopCaptureVideo a true*/
+    VideoStop();
+    /*Esegue il join del thread*/
+    tV.join();
+    /*Se era in pausa, ne esce e risveglia le condition variable per consentire la conclusione del thread*/
+    if (pauseRec) {
+        pauseRec = false;
+    }
+    cv.notify_all();
+}
+
+/*Setta la pausa*/
+void ScreenRecorder::PauseRecorder()
+{
+    /*Inverte il valore della variabile pauseCapture e, se era attiva la pausa, sveglia i thread con la notify_all*/
+    pauseRec = !pauseRec;
+    if (!pauseRec) {
+        cv.notify_all();
+    }
+}
+
+/*Funzione per impostare lo stop dell'audio in accesso esclusivo*/
+void ScreenRecorder::AudioStop()
+{
+    unique_lock<mutex> lk(stop_lockA);
+    stopRecAudio = true;
+}
+
+/*Funzione per impostare lo stop del video in accesso esclusivo*/
+void ScreenRecorder::VideoStop()
+{
+    unique_lock<mutex> lk(stop_lockV);
+    stopRecVideo = true;
+}
+
+/*Funzione per leggere la variabile di stop dell'audio in accesso esclusivo*/
+
+bool ScreenRecorder::getAudioBool()
+{
+    bool return_value;
+    unique_lock<mutex> lk(stop_lockA);
+    return_value = stopRecAudio;
+    lk.unlock();
+    return return_value;
+}
+
+/*Funzione per leggere la variabile di stop del video in accesso esclusivo*/
+
+bool ScreenRecorder::getVideoBool()
+{
+    bool return_value;
+    unique_lock<mutex> lk(stop_lockV);
+    return_value = stopRecVideo;
+    lk.unlock();
+    return return_value;
+}
+
+/*Funzione di utilità per la chiusura del recorder che chiude il file (se non chiuso precedentemente) e ripulisce le strutture allocate*/
+/*void ScreenRecorder::CloseRecorder()
+{
+    if (started) {
+        value = av_write_trailer(outAVFormatContext);
+        if (value < 0) {
+            SetError("Error in writing av trailer. Error code n: " + value);
+            exit(-1);
+        }
+    }
+    avformat_close_input(&inAudioFormatContext);
+    if (inAudioFormatContext == nullptr) {
+        cout << "inAudioFormatContext close successfully" << endl;
+    }
+    else {
+        SetError("Error: unable to close the inAudioFormatContext");
+        exit(-1);
+        //throw "Error: unable to close the file";
+    }
+
+    avformat_free_context(inAudioFormatContext);
+    if (inAudioFormatContext == nullptr) {
+        cout << "AudioFormat freed successfully" << endl;
+    }
+    else {
+        SetError("Error: unable to free AudioFormatContext");
+        exit(-1);
+    }
+
+
+    avformat_close_input(&pAVFormatContext);
+    if (pAVFormatContext == nullptr) {
+        cout << "File close successfully" << endl;
+    }
+    else {
+        SetError("Error: unable to close the file");
+        exit(-1);
+    }
+
+    avformat_free_context(pAVFormatContext);
+    if (pAVFormatContext == nullptr) {
+        cout << "VideoFormat freed successfully" << endl;
+    }
+    else {
+        SetError("Error: unable to free VideoFormatContext");
+        exit(-1);
+    }
+
+    avio_closep(&outAVFormatContext->pb);
+}*/
+
+/*Funzione per impostare la stringa col messaggio di errore in accesso esclusivo*/
+/*
+void ScreenRecorder::SetError(std::string error)
+{
+    std::unique_lock lk(error_lock);
+    error_msg = error;
+}*/
+/*Funzione per leggere la stringa col messaggio di errore in accesso esclusivo*/
+/*
+std::string ScreenRecorder::GetErrorString()
+{
+    std::unique_lock lk(error_lock);
+    std::string returnValue = error_msg;
+    return returnValue;
+}*/
+
 
 
 #if _WIN32
@@ -1694,3 +1812,5 @@ void ScreenRecorder::SetCaptureSystemKey(int valueToSet, LPCWSTR keyToSet) {
     RegCloseKey(hKey);
 }
 #endif
+
+/****************** API ******************/

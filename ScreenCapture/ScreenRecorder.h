@@ -118,9 +118,10 @@ private:
 	AVFrame* outAVFrame; //#TODO: questa variabile non viene utilizzata -> sarebbe outFrame?
 
 
-	std::mutex mu; //Nuovo
-	std::mutex write_lock; //Nuovo
-	std::condition_variable cv; //Nuovo
+	std::mutex mu;
+	std::mutex write_lock; 
+	std::mutex stop_lockA, stop_lockV;
+	std::condition_variable cv; 
 	std::condition_variable cvw;
 	const char* dev_name;
 	const char* output_file;
@@ -145,9 +146,7 @@ private:
 	int outVideoStreamIndex;
 	int outAudioStreamIndex;
 	bool threading;
-	std::thread* demux;
-	std::thread* rescale;
-	std::thread* mux;
+	std::thread tV, tA;
 	// std::mutex stop_lockA; //a
 	// std::mutex stop_lockV; //a
 	// std::mutex error_lock; //a
@@ -155,7 +154,9 @@ private:
 	// std::thread videoThread, audioThread; //a
 	
 	bool isAudioActive;
-	bool pauseSC = false; // utile a mettere in pausa la registrazione
+	bool pauseRec; // utile a mettere in pausa la registrazione
+	bool stopRecAudio;// utile a stopppare la registrazione Audio
+	bool stopRecVideo;// utile a stopppare la registrazione Video
 
 	bool stopSC = false; // utile a terminare la registrazione
 	// bool stopCaptureAudio = false; //a
@@ -164,7 +165,8 @@ private:
 	bool started; //utile? utile per deallocare quando ScreenRecoder muore
 	bool activeMenu;
 	bool end = false; //#FIXME: variabile che potrebbe andare in contrasto con stopSC => CONTROLLARE
-
+	bool closedVideo;
+	bool closedAudio;
 	// bool closedAudioRecording = false; //a
 	// bool closedVideoRecording = false; //a
 	int64_t pts = 0;
@@ -225,12 +227,12 @@ public:
 
 	/* Activate and stop the recording process */
 	//#TODO: bisogna capie se sfruttare unique_lock o meccanismi del genere
-	int stopScreenCapture();
+	//int stopScreenCapture();
 
 	/* Temporarily pause and subsequently resume it */
 	//#TODO: bisogna capie se sfruttare unique_lock o meccanismi del genere
 	//#TODO: da testare
-	int toggleScreenCapture();
+	//int toggleScreenCapture();
 
 
 	/* Define the file that will contain the final recording */
@@ -245,17 +247,19 @@ public:
 
 
 	/* Avvia le funzioni principali */
-	static void SetUpScreenRecorder();
+	void SetUpScreenRecorder();
 
-	// void StopRecording(); //a
-	// void PauseRecording(); //a
-	// void CloseRecorder(); //a
-	// bool ShouldStopAudio(); //a  <-- da copiare
-	// bool ShouldStopVideo(); //a  <-- da copiare
-	// void StopVideo(); //a
-	// void StopAudio(); //a
+	void StopRecorder(); 
+	void PauseRecorder();
+	void CloseRecorder(); 
+	bool getAudioBool();
+	bool getVideoBool(); 
+	void VideoStop(); 
+	void AudioStop();
+
 	// void SetError(std::string error); //a
 	// std::string GetErrorString(); //a
+
 	#if _WIN32
 		void SetCaptureSystemKey(int valueToSet, LPCWSTR keyToSet);
 		// std::string RecordingPath = "..\\media\\output.mp4";
