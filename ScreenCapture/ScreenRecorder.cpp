@@ -1623,12 +1623,12 @@ void ScreenRecorder::captureAudio() {
 
 /* Creazione thread per video e audio */
 void ScreenRecorder::CreateThreads() {
-    thread tV(&ScreenRecorder::captureVideoFrames, this);
+    tV = std::thread(&ScreenRecorder::captureVideoFrames, this);
     if (isAudioActive) {
-        thread tA(&ScreenRecorder::captureAudio, this);
-        //tA.join(); //a ---> join() in StopRecording
+        tA = std::thread(&ScreenRecorder::captureAudio, this);
+        tA.join(); //a ---> join() in StopRecording
     }
-    //tV.join();
+    tV.join();
 }
 
 /*
