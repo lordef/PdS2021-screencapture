@@ -120,17 +120,18 @@ private:
 
 	std::mutex mu;
 	std::mutex write_lock; 
-	std::mutex stop_lockA, stop_lockV;
+	std::mutex stop_lockA, stop_lockV, error_lock;
 	std::condition_variable cv; 
 	std::condition_variable cvw;
 	const char* dev_name;
 	const char* output_file;
+	std::string error_msg;
 
 	// double video_pts;
 	int ptsA;
 	int ptsV;
 	
-	int magicNumber; //TODO: eliminare prima di consegna
+	//int magicNumber; //TODO: eliminare prima di consegna
 	int cropX; 
 	int cropY; 
 	int cropH; 
@@ -158,12 +159,12 @@ private:
 	bool stopRecAudio;// utile a stopppare la registrazione Audio
 	bool stopRecVideo;// utile a stopppare la registrazione Video
 
-	bool stopSC = false; // utile a terminare la registrazione
+	
 	// bool stopCaptureAudio = false; //a
 	// bool stopCaptureVideo = false; //a
 
 	bool started; //utile? utile per deallocare quando ScreenRecoder muore
-	bool activeMenu;
+	//bool activeMenu;
 	bool end = false; //#FIXME: variabile che potrebbe andare in contrasto con stopSC => CONTROLLARE
 	bool closedVideo;
 	bool closedAudio;
@@ -257,8 +258,8 @@ public:
 	void VideoStop(); 
 	void AudioStop();
 
-	// void SetError(std::string error); //a
-	// std::string GetErrorString(); //a
+	void SetError(std::string error); //a
+	std::string GetErrorString(); //a
 
 	#if _WIN32
 		void SetCaptureSystemKey(int valueToSet, LPCWSTR keyToSet);

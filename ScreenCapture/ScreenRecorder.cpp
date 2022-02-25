@@ -71,8 +71,8 @@ std::string retrieveTimestamp()
 
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
-ScreenRecorder::ScreenRecorder() : isAudioActive(true), stopSC(false), /* started(true), */ activeMenu(true),
-                                    magicNumber(300), cropX(0), cropY(0), cropH(1080), cropW(1920), frameCount(0), end (false),
+ScreenRecorder::ScreenRecorder() : isAudioActive(false), started(false), /*activeMenu(true),*/
+                                    /*magicNumber(300),*/ cropX(0), cropY(0), cropH(1080), cropW(1920), frameCount(0), end(false),
                                     pauseRec(false), stopRecAudio(false), stopRecVideo(false), closedVideo(false), closedAudio(false)
 
 // TODO: aggiustare codice seguente e sostituirlo a quello sopra                                    
@@ -166,6 +166,7 @@ ScreenRecorder::~ScreenRecorder()
             cerr << "Error: unable to free VideoFormatContext" << endl;
             exit(1);
         }
+        CloseRecorder();
     // } //end - started
 
 }
@@ -241,6 +242,7 @@ int ScreenRecorder::initOutputFile() {
         cerr << "Error in writing the header context" << endl;
         exit(-12);
     }
+    started = true;
     return 0;
 }
 
@@ -1102,8 +1104,11 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
      */
     av_free(video_outbuf);
 
+    started = false;
+    CloseRecorder();
+
     return 0;
-}
+} 
 
 
 /***************************** FINE - VIDEO *****************************/
@@ -1737,7 +1742,7 @@ bool ScreenRecorder::getVideoBool()
 }
 
 /*Funzione di utilità per la chiusura del recorder che chiude il file (se non chiuso precedentemente) e ripulisce le strutture allocate*/
-/*void ScreenRecorder::CloseRecorder()
+void ScreenRecorder::CloseRecorder()
 {
     if (started) {
         value = av_write_trailer(outAVFormatContext);
@@ -1785,23 +1790,23 @@ bool ScreenRecorder::getVideoBool()
     }
 
     avio_closep(&outAVFormatContext->pb);
-}*/
+}
 
 /*Funzione per impostare la stringa col messaggio di errore in accesso esclusivo*/
-/*
+
 void ScreenRecorder::SetError(std::string error)
 {
-    std::unique_lock lk(error_lock);
+    unique_lock<mutex> lk (error_lock);
     error_msg = error;
-}*/
+}
 /*Funzione per leggere la stringa col messaggio di errore in accesso esclusivo*/
-/*
+
 std::string ScreenRecorder::GetErrorString()
 {
-    std::unique_lock lk(error_lock);
+    unique_lock<mutex> lk (error_lock);
     std::string returnValue = error_msg;
     return returnValue;
-}*/
+}
 
 
 
