@@ -802,12 +802,17 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
             break;
         if (closedVideo) {
 #if _WIN32
-            avformat_open_input(&pAVFormatContext, "video=screen-capture-recorder", pAVInputFormat, &options);
+            value = avformat_open_input(&pAVFormatContext, "video=screen-capture-recorder", pAVInputFormat, &options);
 #elif linux
-            dimension = to_string(cropW) + "x" + to_string(cropH);
-            av_dict_set(&options, "video_size", dimension.c_str(), 0);   //option to set the dimension of the screen section to record
-            avformat_open_input(&pAVFormatContext, url.c_str(), pAVInputFormat, &options);
+            string resolutionS = to_string(cropW) + "x" + to_string(cropH);
+            av_dict_set(&options, "video_size", resolutionS.c_str(), 0);   //option to set the dimension of the screen section to record
+            string url = ":0.0+" + to_string(cropX) + "," + to_string(cropY);
+            value = avformat_open_input(&pAVFormatContext, url.c_str(), pAVInputFormat, &options);
 #endif
+            if (value != 0) {
+                cerr << "Error in opening input device (video)" << endl;
+                exit(-1);
+            }
             closedVideo = false;
         }
 
@@ -1412,10 +1417,17 @@ void ScreenRecorder::captureAudio() {
         }
         if (closedAudio) {
 #if _WIN32
-            avformat_open_input(&inAudioFormatContext, "audio=Microphone Array (Realtek(R) Audio)", audioInputFormat, &audioOptions);
+            value = avformat_open_input(&inAudioFormatContext, "audio=Microphone Array (Realtek(R) Audio)", audioInputFormat, &audioOptions);
 #elif linux
-            avformat_open_input(&inAudioFormatContext, "hw:0", audioInputFormat, &audioOptions);
+            
+            deviceName = "default";
+            value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions);
+            
 #endif
+            if (value != 0) {
+                cerr << "Error in opening input device (audio)" << endl;
+                exit(-1);
+            }
             closedAudio= false;
         }
 
