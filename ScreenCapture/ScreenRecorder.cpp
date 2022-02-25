@@ -1630,7 +1630,7 @@ void ScreenRecorder::CreateThreads() {
     }
     tV.join();
 }
-
+ 
 /*
 int ScreenRecorder::stopScreenCapture() {
     if (!stopSC) {
