@@ -23,6 +23,8 @@ void MainWindow::on_cropButton_clicked()
 
 }
 
+
+
 void MainWindow::on_recordButton_clicked()
 {
     /* Settaggi di grafica della finestra */
@@ -43,4 +45,27 @@ void MainWindow::on_recordButton_clicked()
     screenRecorder->SetUpScreenRecorder();
 
     showMinimized(); /* riduce la finestra ad icona */
+}
+
+void MainWindow::on_stopButton_clicked()
+{
+	/*Setta le variabili StopVideo e StopAudio per terminare la registrazione*/
+
+	screenRecorder->StopRecorder();
+
+	/*settaggi di grafica della finestra*/
+	//setWindowIcon(QIcon(":/buttons/unicorn.png"));
+	ui.recordButton->setEnabled(true);
+	ui.pauseButton->setEnabled(false);
+	ui.stopButton->setEnabled(false);
+	//ui.checkBox->setEnabled(true);
+	ui.cropButton->setEnabled(true);
+	ui.fullscreenButton->setEnabled(true);
+	ui.outPathButton->setEnabled(true);
+	ui.outPathLabel->setEnabled(true);
+	/*Chiama il distruttore di screenRecorder e ne crea una nuova istanza
+	per assicurarsi che vengano istanziate strutture dati pulite per FFMPEG*/
+	delete screenRecorder;
+	screenRecorder = new ScreenRecorder(/*pathText->text().toStdString()*/); //TODO
+
 }

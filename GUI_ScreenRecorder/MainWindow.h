@@ -18,8 +18,9 @@ public:
 
 private slots:
 	void on_cropButton_clicked();
-
+	
 	void on_recordButton_clicked();
+	void on_stopButton_clicked();
 
 private:
 	Ui::MainWindow ui;
