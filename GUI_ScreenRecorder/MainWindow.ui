@@ -124,12 +124,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="resumeButton">
+       <widget class="QPushButton" name="pauseButton_2">
         <property name="text">
          <string>Resume</string>
-        </property>
-        <property name="autoExclusive">
-         <bool>false</bool>
         </property>
        </widget>
       </item>
