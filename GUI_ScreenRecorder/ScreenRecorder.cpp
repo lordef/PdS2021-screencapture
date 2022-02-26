@@ -1716,13 +1716,14 @@ void ScreenRecorder::StopRecorder() {
 }
 
 /*Setta la pausa*/
-void ScreenRecorder::PauseRecorder()
+bool ScreenRecorder::PauseRecorder()
 {
     /*Inverte il valore della variabile pauseCapture e, se era attiva la pausa, sveglia i thread con la notify_all*/
     pauseRec = !pauseRec;
     if (!pauseRec) {
         cv.notify_all();
     }
+    return pauseRec;
 }
 
 /*Funzione per impostare lo stop dell'audio in accesso esclusivo*/

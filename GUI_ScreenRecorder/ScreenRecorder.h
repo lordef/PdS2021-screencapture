@@ -217,6 +217,7 @@ public:
 
 	void captureAudio();
 	void CreateThreads();
+
 	
 
 	/*** API ancora da implementare/testare ***/
@@ -258,7 +259,7 @@ public:
 	void SetUpScreenRecorder();
 
 	void StopRecorder();
-	void PauseRecorder();
+	bool PauseRecorder();
 	void CloseRecorder();
 	bool getAudioBool();
 	bool getVideoBool();
