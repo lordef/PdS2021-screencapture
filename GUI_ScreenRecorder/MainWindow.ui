@@ -7,19 +7,19 @@
     <x>0</x>
     <y>0</y>
     <width>310</width>
-    <height>330</height>
+    <height>390</height>
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>310</width>
-    <height>330</height>
+    <height>390</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>310</width>
-    <height>330</height>
+    <height>390</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -31,7 +31,7 @@
      <x>10</x>
      <y>10</y>
      <width>291</width>
-     <height>301</height>
+     <height>362</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -51,7 +51,7 @@
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>C:/Users/kakab/Desktop/Progetto con interfacce/GUI/icons8-crop-90.png</normaloff>C:/Users/kakab/Desktop/Progetto con interfacce/GUI/icons8-crop-90.png</iconset>
+          <normaloff>../../../../../Users/kakab/Desktop/Progetto con interfacce/GUI/icons8-crop-90.png</normaloff>../../../../../Users/kakab/Desktop/Progetto con interfacce/GUI/icons8-crop-90.png</iconset>
         </property>
        </widget>
       </item>
@@ -115,11 +115,25 @@
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="pauseButton">
-      <property name="text">
-       <string>Pause</string>
-      </property>
-     </widget>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <widget class="QPushButton" name="pauseButton">
+        <property name="text">
+         <string>Pause</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="resumeButton">
+        <property name="text">
+         <string>Resume</string>
+        </property>
+        <property name="autoExclusive">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item>
      <widget class="QPushButton" name="stopButton">

@@ -9,6 +9,10 @@ MainWindow::MainWindow(QWidget *parent)
 {
 	ui.setupUi(this);
     screenRecorder = new ScreenRecorder;
+
+    ui.pauseButton->setEnabled(false);
+    ui.resumeButton->setEnabled(false);
+    ui.stopButton->setEnabled(false);
 }
 
 MainWindow::~MainWindow()
@@ -57,6 +61,7 @@ void MainWindow::on_stopButton_clicked()
 	//setWindowIcon(QIcon(":/buttons/unicorn.png"));
 	ui.recordButton->setEnabled(true);
 	ui.pauseButton->setEnabled(false);
+    ui.resumeButton->setEnabled(false);
 	ui.stopButton->setEnabled(false);
 	//ui.checkBox->setEnabled(true);
 	ui.cropButton->setEnabled(true);
@@ -73,14 +78,26 @@ void MainWindow::on_stopButton_clicked()
 void MainWindow::on_pauseButton_clicked() {
     /* Chiama la funzione per settare la variabile di pausa a true */
     bool res = screenRecorder->PauseRecorder();
-    if (!res) { //TODO: forse ha bisogno di un get
+    if (res) 
+    {
+        ui.resumeButton->setEnabled(true);
+
+        /* Setta l'icona iniziale del programma */
+        //setWindowIcon(QIcon(":/buttons/unicorn.png"));
+    }
+    /* Settaggi di grafica della finestra */
+    ui.recordButton->setEnabled(false);
+    ui.stopButton->setEnabled(true);
+}
+
+void MainWindow::on_resumeButton_clicked() {
+    /* Chiama la funzione per settare la variabile di pausa a true */
+    bool res = screenRecorder->PauseRecorder();
+    if(!res) {
         /*in uscita dalla pausa, riduce ad icona la finestra e imposta l'icona di registrazione*/
         this->showMinimized();
         //setWindowIcon(QIcon(":/buttons/rec-icon-png-23.jpg"));
-    }
-    else {
-        /* Setta l'icona iniziale del programma */
-        //setWindowIcon(QIcon(":/buttons/unicorn.png"));
+        ui.pauseButton->setEnabled(true);
     }
     /* Settaggi di grafica della finestra */
     ui.recordButton->setEnabled(false);

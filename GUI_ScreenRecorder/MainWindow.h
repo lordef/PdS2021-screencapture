@@ -21,9 +21,10 @@ private slots:
 	
 	void on_recordButton_clicked();
 	void on_stopButton_clicked();
+	void on_pauseButton_clicked();
 
 	/* TODO: test on win */
-	void on_pauseButton_clicked();
+	void on_resumeButton_clicked();
 
 
 private:
