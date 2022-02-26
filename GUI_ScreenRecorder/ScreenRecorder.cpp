@@ -1698,6 +1698,11 @@ void ScreenRecorder::SetUpScreenRecorder() {
 
 /*Funzione per la chiusura della registrazione*/
 void ScreenRecorder::StopRecorder() {
+    if (pauseRec) {
+        pauseRec = false;
+    }
+    cv.notify_all();
+
     if (isAudioActive) {
         /*Se stava registrando l'audio, setta la variabile stopCaptureAudio a true*/
         AudioStop();
@@ -1827,6 +1832,10 @@ std::string ScreenRecorder::GetErrorString()
     unique_lock<mutex> lk(error_lock);
     std::string returnValue = error_msg;
     return returnValue;
+}
+
+void ScreenRecorder::SetIsAudioActiva(bool check) {
+    isAudioActive = check;
 }
 
 

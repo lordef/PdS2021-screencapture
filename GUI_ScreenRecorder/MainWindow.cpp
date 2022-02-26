@@ -105,6 +105,6 @@ void MainWindow::on_resumeButton_clicked() {
 
 void MainWindow::on_muteButton_toggled(bool checked)
 {
-    screenRecorder->isAudioActive = checked; //TODO: forse un set
+    screenRecorder->SetIsAudioActiva(!checked); //TODO: forse un set
 }
 
