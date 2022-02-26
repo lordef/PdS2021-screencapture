@@ -1,6 +1,6 @@
 #ifndef SCREENRECORDER_H
 #define SCREENRECORDER_H
-#include "ffmpeg.h" // #TODO: potrebbe non servire poichÃ¨ include dopo - riga 17
+#include "ffmpeg.h" // #TODO: potrebbe non servire poichè include dopo - riga 17
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
@@ -8,6 +8,9 @@
 #include <cstring>
 #include <math.h>
 #include <string>
+#include<vector>
+#pragma comment(lib, "Advapi32.lib")
+
 
 #include <thread>
 #include <mutex>
@@ -15,9 +18,9 @@
 
 #include <condition_variable>
 #ifdef _WIN32
-	#include <Windows.h>
-	#include <WinUser.h>
-	#include "ListAVDevices.h" //TODO: NON dovrebbe servire - no a
+#include <Windows.h>
+#include <WinUser.h>
+//#include "ListAVDevices.h" //TODO: NON dovrebbe servire - no a
 #endif
 
 
@@ -42,9 +45,9 @@ extern "C"
 
 #include "libavfilter/avfilter.h"
 #ifdef __linux__
-	//#include "libavfilter/avfiltergraph.h" //#TODO: commentato perchÃ¨ su linux non serve
+	//#include "libavfilter/avfiltergraph.h" //#TODO: commentato perchè su linux non serve
 #elif _WIN32
-	#include "libavfilter/avfiltergraph.h"
+#include "libavfilter/avfiltergraph.h"
 #endif
 #include "libavfilter/buffersink.h"
 #include "libavfilter/buffersrc.h"
@@ -79,9 +82,9 @@ private:
 	AVInputFormat* pAVInputFormat;
 	AVOutputFormat* output_format;
 	AVInputFormat* audioInputFormat;
-	
+
 	AVCodecContext* pAVCodecContext;
-	AVCodecContext* inAudioCodecContext; 
+	AVCodecContext* inAudioCodecContext;
 	AVCodecContext* outAudioCodecContext;
 	AVFormatContext* pAVFormatContext;
 
@@ -119,9 +122,9 @@ private:
 
 
 	std::mutex mu;
-	std::mutex write_lock; 
+	std::mutex write_lock;
 	std::mutex stop_lockA, stop_lockV, error_lock;
-	std::condition_variable cv; 
+	std::condition_variable cv;
 	std::condition_variable cvw;
 	const char* dev_name;
 	const char* output_file;
@@ -130,12 +133,12 @@ private:
 	// double video_pts;
 	int ptsA;
 	int ptsV;
-	
+
 	//int magicNumber; //TODO: eliminare prima di consegna
-	int cropX; 
-	int cropY; 
-	int cropH; 
-	int cropW; 
+	int cropX;
+	int cropY;
+	int cropH;
+	int cropW;
 
 	int out_size;
 	int codec_id;
@@ -153,13 +156,13 @@ private:
 	// std::mutex error_lock; //a
 	// std::string error_msg; //a
 	// std::thread videoThread, audioThread; //a
-	
+
 	bool isAudioActive;
 	bool pauseRec; // utile a mettere in pausa la registrazione
 	bool stopRecAudio;// utile a stopppare la registrazione Audio
 	bool stopRecVideo;// utile a stopppare la registrazione Video
 
-	
+
 	// bool stopCaptureAudio = false; //a
 	// bool stopCaptureVideo = false; //a
 
@@ -196,22 +199,22 @@ public:
 	~ScreenRecorder();
 
 	/* Function to initiate communication with display library */
-	int initOutputFile(); 
+	int initOutputFile();
 	int captureVideoFrames();
 
 	int openVideoDevice();
 	int openAudioDevice();
 
 	void generateVideoStream();
-	void generateAudioStream(); 
+	void generateAudioStream();
 
-	int init_fifo(); 
-	int add_samples_to_fifo(uint8_t** converted_input_samples, const int frame_size); 
+	int init_fifo();
+	int add_samples_to_fifo(uint8_t** converted_input_samples, const int frame_size);
 	int initConvertedSamples(uint8_t*** converted_input_samples, AVCodecContext* output_codec_context, int frame_size);
-	
-	void captureAudio(); 
+
+	void captureAudio();
 	void CreateThreads();
-	
+
 	/*** API ancora da implementare/testare ***/
 
 	/* Define the area to be recorded */
@@ -250,21 +253,21 @@ public:
 	/* Avvia le funzioni principali */
 	void SetUpScreenRecorder();
 
-	void StopRecorder(); 
+	void StopRecorder();
 	void PauseRecorder();
-	void CloseRecorder(); 
+	void CloseRecorder();
 	bool getAudioBool();
-	bool getVideoBool(); 
-	void VideoStop(); 
+	bool getVideoBool();
+	void VideoStop();
 	void AudioStop();
 
 	void SetError(std::string error); //a
 	std::string GetErrorString(); //a
 
-	#if _WIN32
-		void SetCaptureSystemKey(int valueToSet, LPCWSTR keyToSet);
-		// std::string RecordingPath = "..\\media\\output.mp4";
-	#endif
+#if _WIN32
+	void SetCaptureSystemKey(int valueToSet, LPCWSTR keyToSet);
+	// std::string RecordingPath = "..\\media\\output.mp4";
+#endif
 };
 
 #endif
