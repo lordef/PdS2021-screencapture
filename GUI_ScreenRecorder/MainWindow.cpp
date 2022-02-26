@@ -8,6 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
+    screenRecorder = new ScreenRecorder;
 }
 
 MainWindow::~MainWindow()
@@ -38,8 +39,8 @@ void MainWindow::on_recordButton_clicked()
     //	checkBox->setEnabled(false);
 
 
-    //	/* Avvia lo screen recorder, avviando l'audio e video device e creando il file output*/
-    //	sc->SetUpScreenRecorder();
+    	/* Avvia lo screen recorder, avviando l'audio e video device e creando il file output*/
+    screenRecorder->SetUpScreenRecorder();
 
     showMinimized(); /* riduce la finestra ad icona */
 }

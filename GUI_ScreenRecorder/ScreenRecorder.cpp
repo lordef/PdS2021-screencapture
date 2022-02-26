@@ -71,7 +71,7 @@ std::string retrieveTimestamp()
 
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
-ScreenRecorder::ScreenRecorder() : isAudioActive(false), started(false), /*activeMenu(true),*/
+ScreenRecorder::ScreenRecorder() : isAudioActive(true), started(false), /*activeMenu(true),*/
 /*magicNumber(300),*/ cropX(0), cropY(0), cropH(1080), cropW(1920), frameCount(0), end(false),
 pauseRec(false), stopRecAudio(false), stopRecVideo(false), closedVideo(false), closedAudio(false)
 
@@ -1167,7 +1167,7 @@ int ScreenRecorder::openAudioDevice() {
     }
     deviceName = "audio=" + deviceName;*/
     audioInputFormat = av_find_input_format("dshow");
-    value = avformat_open_input(&inAudioFormatContext, "audio=Microfono (Realtek(R) Audio)", audioInputFormat, &audioOptions);
+    value = avformat_open_input(&inAudioFormatContext, "audio=Microphone Array (Realtek(R) Audio)", audioInputFormat, &audioOptions);
     //value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions);
     if (value != 0) {
         cerr << "Error in opening input device (audio)" << endl;
@@ -1628,9 +1628,9 @@ void ScreenRecorder::CreateThreads() {
     tV = std::thread(&ScreenRecorder::captureVideoFrames, this);
     if (isAudioActive) {
         tA = std::thread(&ScreenRecorder::captureAudio, this);
-        tA.join(); //a ---> join() in StopRecording
+//        tA.join(); //a ---> join() in StopRecording
     }
-    tV.join();
+//    tV.join();
 }
 
 /*
@@ -1672,6 +1672,7 @@ int ScreenRecorder::toggleScreenCapture() {
 
 /* Funzione che racchiude il setup base */
 void ScreenRecorder::SetUpScreenRecorder() {
+    
     this->openVideoDevice();
     this->openAudioDevice();
     this->initOutputFile();

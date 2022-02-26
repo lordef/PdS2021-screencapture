@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "ScreenRecorder.h"
 #include <QWidget>
 #include "ui_MainWindow.h"
 #include "CropDialog.h"
@@ -22,6 +23,7 @@ private slots:
 
 private:
 	Ui::MainWindow ui;
+	ScreenRecorder* screenRecorder;
 	CropDialog* cropDlg;
 
 };
