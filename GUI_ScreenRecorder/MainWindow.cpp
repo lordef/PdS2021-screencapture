@@ -18,7 +18,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_cropButton_clicked()
 {
-    cropDlg = new CropDialog(nullptr);
+    cropDlg = new CropDialog(nullptr,screenRecorder);
     cropDlg->show();
 
 }
@@ -69,3 +69,4 @@ void MainWindow::on_stopButton_clicked()
 	screenRecorder = new ScreenRecorder(/*pathText->text().toStdString()*/); //TODO
 
 }
+

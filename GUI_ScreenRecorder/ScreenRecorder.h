@@ -20,6 +20,7 @@
 #ifdef _WIN32
 #include <Windows.h>
 #include <WinUser.h>
+#include <wtypes.h>
 //#include "ListAVDevices.h" //TODO: NON dovrebbe servire - no a
 #endif
 
@@ -199,6 +200,8 @@ public:
 	~ScreenRecorder();
 
 	/* Function to initiate communication with display library */
+	void setCrop(int cX, int cY, int cW, int cH);
+
 	int initOutputFile();
 	int captureVideoFrames();
 
@@ -214,6 +217,7 @@ public:
 
 	void captureAudio();
 	void CreateThreads();
+	
 
 	/*** API ancora da implementare/testare ***/
 

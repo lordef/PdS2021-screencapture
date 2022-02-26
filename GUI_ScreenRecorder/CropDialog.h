@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ScreenRecorder.h"
 #include <QWidget>
 #include "ui_CropDialog.h"
 #include <QtWidgets/qframe.h>
@@ -9,7 +10,7 @@ class CropDialog : public QWidget
 	Q_OBJECT
 
 public:
-	explicit CropDialog(QWidget *parent = Q_NULLPTR);
+	explicit CropDialog(QWidget *parent /*= Q_NULLPTR*/, ScreenRecorder* screenRecorder);
 	~CropDialog();
 	void resizeEvent(QResizeEvent* event);
 
@@ -23,5 +24,5 @@ private:
 	QFrame* vFrameR;
 	QFrame* hFrameU;
 	QFrame* hFrameD;
-	//    ScreenRecorder* sc; //a
+	ScreenRecorder* screenRecorder;
 };

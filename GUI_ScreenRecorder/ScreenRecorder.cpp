@@ -72,7 +72,7 @@ std::string retrieveTimestamp()
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
 ScreenRecorder::ScreenRecorder() : isAudioActive(true), started(false), /*activeMenu(true),*/
-/*magicNumber(300),*/ cropX(0), cropY(0), cropH(1080), cropW(1920), frameCount(0), end(false),
+/*magicNumber(300),*/ cropX(0), cropY(0), cropH(0), cropW(0), frameCount(0), end(false),
 pauseRec(false), stopRecAudio(false), stopRecVideo(false), closedVideo(false), closedAudio(false)
 
 // TODO: aggiustare codice seguente e sostituirlo a quello sopra                                    
@@ -170,6 +170,15 @@ ScreenRecorder::~ScreenRecorder()
     // } //end - started
 
 }
+//Settiamo i parametri di cropping
+void ScreenRecorder::setCrop(int cX, int cY, int cW, int cH) {
+    cropX = cX;
+    cropY = cY;
+    cropW = cW;
+    cropH = cH;
+    
+}
+
 
 /* Inizializzazione file di output e suo risorse */
 int ScreenRecorder::initOutputFile() {
@@ -297,6 +306,14 @@ int ScreenRecorder::openVideoDevice()
      * Con CropW e CropH vado ad indicare quanto deve essere grande questa finestra
      */
 #ifdef _WIN32
+    if (cropW == 0 || cropH == 0) {
+        cropW = 1920;
+        cropH = 1080;
+        //cropW = GetSystemMetrics(SM_CXSCREEN); TODO risolvere
+        //cropH = GetSystemMetrics(SM_CYSCREEN);
+    }
+    
+
     SetCaptureSystemKey(cropX, TEXT("start_x"));
     SetCaptureSystemKey(cropY, TEXT("start_y"));
     SetCaptureSystemKey(cropW, TEXT("capture_width"));

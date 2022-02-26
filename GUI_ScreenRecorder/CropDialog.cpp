@@ -1,10 +1,11 @@
 #include "CropDialog.h"
 //#include "ui_CropDialog.h"
 
-CropDialog::CropDialog(QWidget *parent)
+CropDialog::CropDialog(QWidget *parent, ScreenRecorder *screenRecorder)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
+    this->screenRecorder = screenRecorder;
 }
 
 CropDialog::~CropDialog()
@@ -25,11 +26,7 @@ void CropDialog::resizeEvent(QResizeEvent* event)
 void CropDialog::on_setScreenSizeButton_clicked()
 {
     //TODO: sc stands for ScreenRecorder
-    /*
-    sc->cropX = this->pos().x();
-    sc->croY = this->pos().y();
-    sc->cropW = this->size().width();
-    sc->cropH = this->size().height();
-    */
+    screenRecorder->setCrop(pos().x(), pos().y(), size().width(), size().height());
+    
     hide();
 }
