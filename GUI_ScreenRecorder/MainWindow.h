@@ -22,6 +22,10 @@ private slots:
 	void on_recordButton_clicked();
 	void on_stopButton_clicked();
 
+	/* TODO: test on win */
+	void on_pauseButton_clicked();
+
+
 private:
 	Ui::MainWindow ui;
 	ScreenRecorder* screenRecorder;

@@ -70,3 +70,20 @@ void MainWindow::on_stopButton_clicked()
 
 }
 
+void MainWindow::on_pauseButton_clicked() {
+    /* Chiama la funzione per settare la variabile di pausa a true */
+    screenRecorder->PauseRecorder();
+    if (!screenRecorder->pauseSC) { //TODO: forse ha bisogno di un get
+        /*in uscita dalla pausa, riduce ad icona la finestra e imposta l'icona di registrazione*/
+        this->showMinimized();
+        //setWindowIcon(QIcon(":/buttons/rec-icon-png-23.jpg"));
+    }
+    else {
+        /* Setta l'icona iniziale del programma */
+        //setWindowIcon(QIcon(":/buttons/unicorn.png"));
+    }
+    /* Settaggi di grafica della finestra */
+    recordButton->setEnabled(false);
+    stopButton->setEnabled(true);
+}
+
