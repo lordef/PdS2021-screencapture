@@ -89,19 +89,19 @@ pauseRec(false), stopRecAudio(false), stopRecVideo(false), closedVideo(false), c
              in particolare che tutte le variabili di crop
              ispirarsi a libavdevice/xcbgrab.c -> cerca la stringa 'outside the screen'*/
 {
+    //std::string outputName =/* timestamp +*/ "_output.mp4";
 
 #ifdef __linux__
-    /*****************/
-        // #FIXME: codice temporaneo per debuggare su pc L e I, poiché risoluzioni diverse
-        // int cropH, cropW; //height, width
-        // tie(cropH, cropW) = retrieveDisplayDimention(); //FIXME: commentare perché sovrascrive crop passati
-    /*****************/
+#if RUN == 1
+    outputPath = "media/_output.mp4"; // RUN 
+#else
+    outputPath = "../media/_output.mp4" ; // DEBUG 
+#endif   
 #elif _WIN32
-    //a
-    // TODO: da testare
-    // cropW = GetSystemMetrics(SM_CXSCREEN);
-    // cropH = GetSystemMetrics(SM_CYSCREEN);
+    outputPath = "..\\media\\_output.mp4" ;
 #endif
+
+
 
 // av_register_all(); //Funzione di inizializzazione deprecata. Può essere tranquillamente omessa.
 // avcodec_register_all(); //Funzione di inzizializzazione deprecata. Può essere tranquillamente omessa.

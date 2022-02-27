@@ -180,19 +180,7 @@ private:
 	int width, height; //ancora utile?
 	int w, h; //ancora utile?
 	std::string timestamp;
-
-	std::string outputName =/* timestamp +*/ "_output.mp4";
-	#ifdef __linux__
-	#if RUN == 1
-		std::string outputPath = "media/" + outputName; // RUN 
-	#else
-		std::string outputPath = "../media/" + outputName; // DEBUG 
-	#endif   
-	#elif _WIN32
-		std::string outputPath = "..\\media\\" + outputName;
-	#endif
-
-
+	std::string outputPath;
 
 
 	std::string deviceName;

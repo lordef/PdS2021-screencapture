@@ -55,8 +55,14 @@ void MainWindow::on_outPathButton_clicked() {
     #endif
 
     }
+    
     else {
-        screenRecorder->setOutputPath(outPath.toStdString());
+        std::string mp4 = ".mp4";
+        if(outPath.toStdString().substr(outPath.length() - 4) == mp4.c_str())
+            screenRecorder->setOutputPath(outPath.toStdString());
+        else
+            screenRecorder->setOutputPath(outPath.toStdString() + ".mp4");
+        
     }
 
     /*Aggiorna la visualizzazione del path nella finestra*/
