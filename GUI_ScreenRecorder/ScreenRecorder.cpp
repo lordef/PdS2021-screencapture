@@ -248,9 +248,11 @@ int ScreenRecorder::initOutputFile() {
 
     /* Alloca i dati dello stream e scrive l'header dello stream al file di output. */
     value = avformat_write_header(outAVFormatContext, &options);
+    value = -10;
     if (value < 0) {
-        cerr << "Error in writing the header context" << endl;
-        exit(-12);
+        throw std::runtime_error("Error in writing the header context");
+        //cerr << "Error in writing the header context" << endl;
+        //exit(-12);
     }
     started = true;
     return 0;
