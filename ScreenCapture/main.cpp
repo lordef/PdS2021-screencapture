@@ -7,20 +7,8 @@ using namespace std;
 int main()
 {
 	/*****Registrazione video e audio ******/
-	/*Vedi SetUpScreenRecorder() */
 	ScreenRecorder screen_record;
-
-	screen_record.openVideoDevice();
-	screen_record.openAudioDevice();
-
-	screen_record.initOutputFile();
-
-	screen_record.CreateThreads();
-
-	/*fine SetUpScreenRecorder() */
-
-	// screen_record.start();	// #TODO: implementata?
-	// screen_record.stop();		// #TODO: implementata?
+	screen_record.SetUpScreenRecorder();
 
 	cout << "\nProgram executed successfully\n";
 

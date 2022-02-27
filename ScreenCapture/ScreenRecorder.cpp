@@ -787,7 +787,9 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
          *  In caso di errore, pAVPacket sarà vuoto (come se provenisse da av_packet_alloc()).
          *  NB:pAVPacket verrà inizializzato, quindi potrebbe essere necessario terminarlo anche se non contiene dati.
     */
-    while (!getVideoBool())  
+    
+    while (pAVCodecContext->frame_number < magicNumber) //Sezione di DEBUG
+    //while (!getVideoBool())  
     {
         
         if (pauseRec) {
@@ -1157,16 +1159,17 @@ int ScreenRecorder::openAudioDevice() {
     }
 
 #elif _WIN32
+    /*
     if (deviceName == "") {
         deviceName = DS_GetDefaultDevice("a");
         if (deviceName == "") {
             throw std::runtime_error("Fail to get default audio device, maybe no microphone.");
         }
     }
-    deviceName = "audio=" + deviceName;
+    deviceName = "audio=" + deviceName;*/
     audioInputFormat = av_find_input_format("dshow");
-    //value = avformat_open_input(&inAudioFormatContext, "audio=Microfono (Realtek(R) Audio)", audioInputFormat, &audioOptions);
-    value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions);
+    value = avformat_open_input(&inAudioFormatContext, "audio=Microphone Array (Realtek(R) Audio)", audioInputFormat, &audioOptions);
+    //value = avformat_open_input(&inAudioFormatContext, deviceName.c_str(), audioInputFormat, &audioOptions);
     if (value != 0) {
         cerr << "Error in opening input device (audio)" << endl;
         exit(-1);
@@ -1406,8 +1409,8 @@ void ScreenRecorder::captureAudio() {
         exit(1);
     }
 
-    //while (true) {
-    while (!getAudioBool()) { //a --> variabile stop solo per video e funzione !ShouldStopAudio()  
+    while (pAVCodecContext->frame_number < magicNumber) { //Sezione di DEBUG
+    // while (!getAudioBool()) { //a --> variabile stop solo per video e funzione !ShouldStopAudio()  
 
         if (pauseRec) {
             avformat_close_input(&inAudioFormatContext);

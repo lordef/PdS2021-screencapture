@@ -17,7 +17,6 @@
 #ifdef _WIN32
 	#include <Windows.h>
 	#include <WinUser.h>
-	#include "ListAVDevices.h" //TODO: NON dovrebbe servire - no a
 #endif
 
 
@@ -131,6 +130,7 @@ private:
 	int ptsA;
 	int ptsV;
 	
+	int magicNumber = 100; //Variabile di DEBUG	
 	//int magicNumber; //TODO: eliminare prima di consegna
 	int cropX; 
 	int cropY; 
