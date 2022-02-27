@@ -1,5 +1,0 @@
-//a --> su file andrea
-//i --> interfaccia da andrea
-//TODO
-//FIXME
-//utile?
