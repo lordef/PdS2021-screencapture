@@ -171,13 +171,7 @@ ScreenRecorder::~ScreenRecorder()
 
 }
 //Settiamo i parametri di cropping
-void ScreenRecorder::setCrop(int cX, int cY, int cW, int cH) {
-    cropX = cX;
-    cropY = cY;
-    cropW = cW;
-    cropH = cH;
-    
-}
+
 
 
 /* Inizializzazione file di output e suo risorse */
@@ -1880,6 +1874,14 @@ std::string ScreenRecorder::getOutputPath()
 void ScreenRecorder::setOutputPath(std::string outputPath)
 {
     this->outputPath = outputPath;
+}
+
+void ScreenRecorder::setCrop(int cX, int cY, int cW, int cH) {
+    cropX = cX;
+    cropY = cY;
+    cropW = cW;
+    cropH = cH;
+
 }
 
 /****************** API ******************/
