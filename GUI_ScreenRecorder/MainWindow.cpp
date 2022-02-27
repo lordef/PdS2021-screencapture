@@ -148,13 +148,4 @@ void MainWindow::on_resumeButton_clicked() {
     ui.resumeButton->setEnabled(false);
 }
 
-void MainWindow::popUpErrorMessage() {
-    std::string error_string = screenRecorder->GetErrorString();
-    if (!error_string.empty()) {
-        this->showNormal();
-        QMessageBox messageBox;
-        messageBox.critical(0, "Error", QString::fromStdString(error_string));
-        exit(EXIT_FAILURE);
-    }
-}
 

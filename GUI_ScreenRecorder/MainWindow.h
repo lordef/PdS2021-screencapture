@@ -31,7 +31,6 @@ private slots:
 	void on_pauseButton_clicked();
 	void on_resumeButton_clicked();
 	void on_outPathButton_clicked();
-	void popUpErrorMessage();
 
 
 private:
