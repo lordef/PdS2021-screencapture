@@ -180,6 +180,21 @@ private:
 	int width, height; //ancora utile?
 	int w, h; //ancora utile?
 	std::string timestamp;
+
+	std::string outputName =/* timestamp +*/ "_output.mp4";
+	#ifdef __linux__
+	#if RUN == 1
+		std::string outputPath = "media/" + outputName; // RUN 
+	#else
+		std::string outputPath = "../media/" + outputName; // DEBUG 
+	#endif   
+	#elif _WIN32
+		std::string outputPath = "..\\media\\" + outputName;
+	#endif
+
+
+
+
 	std::string deviceName;
 	uint64_t frameCount = 0;
 	double fps;
@@ -270,10 +285,25 @@ public:
 	void SetError(std::string error); //a
 	std::string GetErrorString(); //a
 
-#if _WIN32
-	void SetCaptureSystemKey(int valueToSet, LPCWSTR keyToSet);
-	// std::string RecordingPath = "..\\media\\output.mp4";
-#endif
+	#if _WIN32
+		void SetCaptureSystemKey(int valueToSet, LPCWSTR keyToSet);
+		// std::string RecordingPath = "..\\media\\output.mp4";
+	#endif
+
+	//timestamp = retrieveTimestamp();
+	//std::string outputName =/* timestamp +*/ "_output.mp4";
+	//#ifdef __linux__
+	//#if RUN == 1
+	//		outputPath = "media/" + outputName; // RUN 
+	//#else
+	//		outputPath = "../media/" + outputName; // DEBUG 
+	//#endif   
+	//#elif _WIN32
+	//		outputPath = "..\\media\\" + outputName;
+	//#endif
+
+
+
 };
 
 #endif

@@ -35,34 +35,34 @@ std::string retrieveTimestamp()
 
     std::string current_time;
 
-#ifdef __linux__
-    //#TODO: dovrebbe tranquillamente funzionare anche per Windows
-    // declaring argument of time()
-    const time_t now = time(nullptr);
+    #ifdef __linux__
+        //#TODO: dovrebbe tranquillamente funzionare anche per Windows
+        // declaring argument of time()
+        const time_t now = time(nullptr);
 
-    /* ctime() used to give the present time */
-    // current_time = ctime(&my_time); //ctime obsoleta per lo standard POSIX
+        /* ctime() used to give the present time */
+        // current_time = ctime(&my_time); //ctime obsoleta per lo standard POSIX
 
-    /* Main source of this solution: https://en.cppreference.com/w/cpp/chrono/c/asctime */
-    char buf[64];
-    if (strftime(buf, sizeof buf, "%c\n", std::localtime(&now)) || strftime(buf, sizeof buf, "%a %b %e %H:%M:%S %Y\n", std::localtime(&now)))
-    {
-        // std::cout << std::setw(40) << "    strftime %c" << buf;
-        // std::cout << std::setw(40) << "    strftime %a %b %e %H:%M:%S %Y" << buf;
-        current_time = buf;
-        current_time.erase(current_time.end() - 1, current_time.end());
-        std::replace(current_time.begin(), current_time.end(), ' ', '_');
-    }
-    // else {
-    //     std::cerr << "Error in retrieving timestamp" << std::endl;
-    //     exit(-1);
-    // }
-#elif _WIN32
-    time_t result = time(nullptr);
-    stringstream ss;
-    ss << time;
-    current_time = ss.str();
-#endif
+        /* Main source of this solution: https://en.cppreference.com/w/cpp/chrono/c/asctime */
+        char buf[64];
+        if (strftime(buf, sizeof buf, "%c\n", std::localtime(&now)) || strftime(buf, sizeof buf, "%a %b %e %H:%M:%S %Y\n", std::localtime(&now)))
+        {
+            // std::cout << std::setw(40) << "    strftime %c" << buf;
+            // std::cout << std::setw(40) << "    strftime %a %b %e %H:%M:%S %Y" << buf;
+            current_time = buf;
+            current_time.erase(current_time.end() - 1, current_time.end());
+            std::replace(current_time.begin(), current_time.end(), ' ', '_');
+        }
+        // else {
+        //     std::cerr << "Error in retrieving timestamp" << std::endl;
+        //     exit(-1);
+        // }
+    #elif _WIN32
+        time_t result = time(nullptr);
+        stringstream ss;
+        ss << time;
+        current_time = ss.str();
+    #endif
 
     return current_time;
 }
@@ -182,27 +182,21 @@ void ScreenRecorder::setCrop(int cX, int cY, int cW, int cH) {
 
 /* Inizializzazione file di output e suo risorse */
 int ScreenRecorder::initOutputFile() {
-    timestamp = retrieveTimestamp();
     value = 0;
-
     outAVFormatContext = nullptr;
-    /* #TODO: vedi funzione retrieceTimestamp */
-    // time_t result = time(nullptr);
-    // stringstream ss;
-    // ss << time;
-    // timestamp = ss.str();
 
-
-    string outputName = timestamp + "_output.mp4";
-    #ifdef __linux__
-    #if RUN == 1
-        string outputPath = "media/" + outputName; // RUN 
-    #else
-        string outputPath = "../media/" + outputName; // DEBUG 
-    #endif   
-    #elif _WIN32
-        string outputPath = "..\\media\\" + outputName;
-    #endif
+    //utile?
+    //timestamp = retrieveTimestamp();
+    //string outputName = timestamp + "_output.mp4";
+    //#ifdef __linux__
+    //#if RUN == 1
+    //    string outputPath = "media/" + outputName; // RUN 
+    //#else
+    //    string outputPath = "../media/" + outputName; // DEBUG 
+    //#endif   
+    //#elif _WIN32
+    //    string outputPath = "..\\media\\" + outputName;
+    //#endif
 
     // Setting formato del file
     outputAVFormat = const_cast<AVOutputFormat*>(av_guess_format(nullptr, outputPath.c_str(), nullptr));
