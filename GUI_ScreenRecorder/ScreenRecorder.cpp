@@ -1012,9 +1012,11 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
                 ptsV = outPacket->pts / video_st->time_base.den;
 
 #ifdef _WIN32
-                /* Per sincronizzare video e audio */
-                cvw.notify_one();
-                cvw.wait(ulw, [this]() {return ((ptsA - 2 >= ptsV) || end); });
+                if (isAudioActive) {
+                    /* Per sincronizzare video e audio */
+                    cvw.notify_one();
+                    cvw.wait(ulw, [this]() {return ((ptsA - 2 >= ptsV) || end); });
+                }
 #endif
 
                 outFile << "Scrivo VIDEO-PTS_TIME: " << ptsV << "\n" << endl;
@@ -1104,9 +1106,11 @@ int ScreenRecorder::captureVideoFrames() //Da sistemare
     }
 
 #ifdef _WIN32
-    /* Notifica la fine della registrazione al thread audio per evitare deadlock */
-    end = true; //FIXME: utilizzare variabile stopSC? - utile e funzionante per linux
-    cvw.notify_one();
+    if (isAudioActive) {
+        /* Notifica la fine della registrazione al thread audio per evitare deadlock */
+        end = true; //FIXME: utilizzare variabile stopSC? - utile e funzionante per linux
+        cvw.notify_one();
+    }
 #endif
 
     outFile.close();
