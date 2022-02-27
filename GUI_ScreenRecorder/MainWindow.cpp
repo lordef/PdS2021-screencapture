@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui.resumeButton->setEnabled(false);
     ui.stopButton->setEnabled(false);
     ui.activeAudioCheckBox->setChecked(true);
+    ui.outPathLabel->setText(QString::fromStdString(screenRecorder->getOutputPath()));
 }
 
 MainWindow::~MainWindow()
@@ -55,7 +56,6 @@ void MainWindow::on_outPathButton_clicked() {
     #endif
 
     }
-    
     else {
         std::string mp4 = ".mp4";
         if(outPath.toStdString().substr(outPath.length() - 4) == mp4.c_str())
@@ -65,7 +65,8 @@ void MainWindow::on_outPathButton_clicked() {
         
     }
 
-    /*Aggiorna la visualizzazione del path nella finestra*/
+    /*Aggiorna la visualizzazione del path nella label della finestra*/
+    ui.outPathLabel->setText(QString::fromStdString(screenRecorder->getOutputPath()));
     //this->pathText->setText(QString::fromStdString(screenRecorder->getOutputPath());
 }
 
