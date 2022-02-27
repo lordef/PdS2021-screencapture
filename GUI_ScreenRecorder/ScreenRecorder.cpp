@@ -237,15 +237,7 @@ int ScreenRecorder::openVideoDevice()
 
 #elif __linux__
 
-     /*****************/
-     /*TODO: WORKING ON cropping del video - capire da ffmpeg: studiare opzioni da qui:*/
-     /*
-     - Link utile: https://ffmpeg.org/ffmpeg-devices.html#x11grab  sezione "3.21.1 Options" utile per il crop video
-     - #TODO: N.B.:
-         sia per linux che per windows
-         controllare che i valori passati rispettino la risoluzione del pc su cui gira il codice
-     */
-     /*****************/
+     
     if (cropW == 0 || cropH == 0) {
         //Set dimensione massima del display
         tie(cropH, cropW) = retrieveDisplayDimention();
@@ -253,11 +245,10 @@ int ScreenRecorder::openVideoDevice()
     string resolutionS = to_string(cropW) + "x" + to_string(cropH);
 
     //option to set the dimension of the screen section to record
-    value = av_dict_set(&options, "video_size", resolutionS.c_str(), 0); // TODO: sezione utile a _WIN32 ?
+    value = av_dict_set(&options, "video_size", resolutionS.c_str(), 0); 
     if (value < 0)
     {
-        cout << "\nError in setting video_size values";
-        exit(1);
+        throw std::runtime_error("Error in setting video_size values");
     }
 
     //custom string to set the start point of the screen section
@@ -268,70 +259,33 @@ int ScreenRecorder::openVideoDevice()
 
     value = avformat_open_input(&pAVFormatContext, url.c_str(), pAVInputFormat, &options);
     if (value != 0) {
-        cerr << "Error in opening input device (video)" << endl;
-        exit(-1);
+        throw std::runtime_error("Error in opening input device (video)");
     }
 #else //utile?
 
     value = av_dict_set(&options, "pixel_format", "0rgb", 0);
     if (value < 0) {
-        cerr << "Error in setting pixel format" << endl;
-        exit(-1);
+        throw std::runtime_error("Error in setting pixel format");
     }
 
     value = av_dict_set(&options, "video_device_index", "1", 0);
 
     if (value < 0) {
-        cerr << "Error in setting video device index" << endl;
-        exit(-1);
+        throw std::runtime_error("Error in setting video device index");
     }
 
     pAVInputFormat = av_find_input_format("avfoundation");
 
-    if (avformat_open_input(&pAVFormatContext, "Capture screen 0:none", pAVInputFormat, &options) != 0) {  //TODO trovare un modo per selezionare sempre lo schermo (forse "Capture screen 0")
-        cerr << "Error in opening input device" << endl;
-        exit(-1);
+    if (avformat_open_input(&pAVFormatContext, "Capture screen 0:none", pAVInputFormat, &options) != 0) {  
+        throw std::runtime_error("Error in opening input device");
     }
 
 #endif
 
-    /*
-     * Con av_dict_set passo determinati parametri a options che mi servirà, dopo, per settare alcuni parametri di
-     * pAVFormatContext con avformat_open_input.
-     * av_dict_set ritorna un valore >=0 in caso di successo,
-     * minore di zero in caso di fallimento.
-     */
-     /*
-
-    //a --> attivata questa sezione
-    /******************************************/ /*
-     value = av_dict_set(&options, "framerate", "15", 0); // inizialmente era fissato a 30 su linux
-     if (value < 0) // Controllo che non ci siano stati errori con av_dict_set
-     {
-         cout << "\nError in setting dictionary value";
-         exit(1);
-     }
-
-     value = av_dict_set(&options, "preset", "medium", 0);
-     if (value < 0)
-     {
-         cout << "\nError in setting preset values";
-         exit(1);
-     }
-
-    */
-    /******************************************/
-
-     //La seuente riga è da utilizzare con dshow
-     //value = avformat_open_input(&pAVFormatContext, "video=screen-capture-recorder", pAVInputFormat, &options);
-
-     // cout << "\Framerate: " << pAVFormatContext;
-
     value = avformat_find_stream_info(pAVFormatContext, &options); // Read packets of a media file to get stream information.
     if (value < 0)
     {
-        cout << "\nUnable to find the stream information";
-        exit(-1);
+        throw std::runtime_error("Unable to find the stream information");
     }
 
     VideoStreamIndx = -1;
@@ -348,8 +302,7 @@ int ScreenRecorder::openVideoDevice()
 
     if (VideoStreamIndx == -1)
     {
-        cout << "\nError: Unable to find the video stream index. (-1)";
-        exit(1);
+        throw std::runtime_error("Error: Unable to find the video stream index.");
     }
 
     pCodecParameters = pAVFormatContext->streams[VideoStreamIndx]->codecpar;
@@ -357,25 +310,8 @@ int ScreenRecorder::openVideoDevice()
     pAVCodec = const_cast<AVCodec*>(avcodec_find_decoder(pAVFormatContext->streams[VideoStreamIndx]->codecpar->codec_id));
     if (pAVCodec == nullptr)
     {
-        cout << "\nUnable to find the decoder";
-        exit(1);
+        throw std::runtime_error("Unable to find the decoder");
     }
-
-    /* #TODO: inutile perchè avcodec_find_decoder fatto all'interno del ciclo a riga 149 circa?
-    pAVCodec = avcodec_find_decoder(pAVCodecContext->codec_id);// avcodec_find_decoder ha un ritorno di tipo const
-    pAVCodec = const_cast<AVCodec *>(avcodec_find_decoder(pAVCodecContext->codec_id));
-    if( pAVCodec == NULL )
-    {
-        cout<<"\nUnable to find the decoder";
-        exit(1);
-    }
-    */
-
-    // Link per capire meglio questa parte: https://awesomeopensource.com/project/leandromoreira/ffmpeg-libav-tutorial
-
-    // assign pAVFormatContext to VideoStreamIndx
-    // pAVCodecContext = pAVFormatContext->streams[VideoStreamIndx]->codec; //Errore perché in streams[VideoStreamIndx] non c'è nessun codec
-
     // Alloca un AVCodecContext e imposta i suoi campi sui valori predefiniti.
     // Ritorna un AVCodecContext riempito con valori predefiniti o NULL in caso di errore.
     pAVCodecContext = avcodec_alloc_context3(pAVCodec);
@@ -385,23 +321,8 @@ int ScreenRecorder::openVideoDevice()
     value = avcodec_parameters_to_context(pAVCodecContext, pCodecParameters);
     if (value < 0)
     {
-        cout << "\nUnable to set the parameters of the codec";
-        exit(1);
+        throw std::runtime_error("Unable to set the parameters of the codec");
     }
-
-    // Initialize the AVCodecContext to use the given AVCodec.
-    //  Prima di utilizzare questa funzione, il contesto deve essere allocato con avcodec_alloc_context3().
-    //Aggiornata la avcodec_open2
-    /*
-    value = avcodec_open2(pAVCodecContext, pAVCodec, NULL);
-
-    if (value < 0)
-    {
-        cout << "\nUnable to open the av codec";
-        exit(1);
-    }*/
-
-    // cout << "\npAVCodecContext->width: "<< pAVCodecContext->width;
 
     return 0;
 }
@@ -414,8 +335,7 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     pLocalCodec = const_cast<AVCodec*>(avcodec_find_encoder(AV_CODEC_ID_MPEG4));
     if (pLocalCodec == nullptr)
     {
-        cout << "\nUnable to find the encoder";
-        exit(-8);
+        throw std::runtime_error("Unable to find the encoder");
     }
 
     // Alloca un AVCodecContext e imposta i suoi campi sui valori predefiniti.
@@ -423,8 +343,7 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     outAVCodecContext = avcodec_alloc_context3(pLocalCodec);
     if (!outAVCodecContext)
     {
-        cout << "\nError in allocating the codec contexts";
-        exit(-7);
+        throw std::runtime_error("Error in allocating the codec contexts");
     }
 
     // Aggiunge un nuovo stream al file media
@@ -432,15 +351,13 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
     video_st = avformat_new_stream(outAVFormatContext, pLocalCodec);
     if (!video_st) // Effettuo un check
     {
-        cout << "\nError in creating a av format new stream";
-        exit(-6);
+        throw std::runtime_error("Error in creating a av format new stream");
     }
 
     value = avcodec_parameters_to_context(outAVCodecContext, video_st->codecpar);
     if (value < 0) // Eseguo check
     {
-        cout << "\nUnable to set the parameter of the codec";
-        exit(1);
+        throw std::runtime_error("Unable to set the parameter of the codec");
     }
 
     outAVCodecContext->codec_id = AV_CODEC_ID_MPEG4; // AV_CODEC_ID_MPEG4; // AV_CODEC_ID_H264 // AV_CODEC_ID_MPEG1VIDEO
