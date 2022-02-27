@@ -24,9 +24,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_cropButton_clicked()
 {
-    cropDlg = new CropDialog(nullptr,screenRecorder);
+    cropDlg = new CropDialog(nullptr, screenRecorder);
     cropDlg->show();
-
 }
 
 void MainWindow::on_fullscreenButton_clicked()
