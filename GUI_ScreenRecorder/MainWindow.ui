@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>310</width>
-    <height>390</height>
+    <height>577</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -19,7 +19,7 @@
   <property name="maximumSize">
    <size>
     <width>310</width>
-    <height>390</height>
+    <height>700</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -117,14 +117,14 @@
         </property>
        </widget>
       </item>
-      <item>
-       <widget class="QLabel" name="outPathLabel">
-        <property name="text">
-         <string>&lt;output path&gt;</string>
-        </property>
-       </widget>
-      </item>
      </layout>
+    </item>
+    <item>
+     <widget class="QLabel" name="outPathLabel">
+      <property name="text">
+       <string>&lt;output path&gt;</string>
+      </property>
+     </widget>
     </item>
     <item>
      <spacer name="verticalSpacer_2">
