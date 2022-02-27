@@ -265,7 +265,7 @@ public:
 	bool getVideoBool();
 	void VideoStop();
 	void AudioStop();
-	void SetIsAudioActiva(bool check);
+	void SetIsAudioActive(bool check);
 
 	void SetError(std::string error); //a
 	std::string GetErrorString(); //a

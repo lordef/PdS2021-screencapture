@@ -40,10 +40,10 @@ void MainWindow::on_recordButton_clicked()
     ui.fullscreenButton->setEnabled(false);
     ui.outPathLabel->setEnabled(false);
     ui.outPathButton->setEnabled(false);
-    ui.muteButton->setEnabled(false);
+    screenRecorder->SetIsAudioActive(ui.activeAudioCheckBox->isChecked());
+    ui.activeAudioCheckBox->setEnabled(false);
 
-
-    	/* Avvia lo screen recorder, avviando l'audio e video device e creando il file output*/
+    /* Avvia lo screen recorder, avviando l'audio e video device e creando il file output*/
     screenRecorder->SetUpScreenRecorder();
 
     showMinimized(); /* riduce la finestra ad icona */
@@ -58,7 +58,7 @@ void MainWindow::on_stopButton_clicked()
 	/*settaggi di grafica della finestra*/
 	//setWindowIcon(QIcon(":/buttons/unicorn.png"));
 	ui.recordButton->setEnabled(true);
-    ui.muteButton->setEnabled(true);
+    ui.activeAudioCheckBox->setEnabled(true);
 	ui.pauseButton->setEnabled(false);
     ui.resumeButton->setEnabled(false);
 	ui.stopButton->setEnabled(false);
@@ -100,11 +100,5 @@ void MainWindow::on_resumeButton_clicked() {
     ui.stopButton->setEnabled(true);
 
     ui.resumeButton->setEnabled(false);
-}
-
-
-void MainWindow::on_muteButton_toggled(bool checked)
-{
-    screenRecorder->SetIsAudioActiva(!checked); //TODO: forse un set
 }
 

@@ -78,21 +78,22 @@
      </spacer>
     </item>
     <item>
-     <widget class="QLabel" name="audioLabel">
-      <property name="text">
-       <string>Audio settings:</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QPushButton" name="muteButton">
-      <property name="text">
-       <string>Mute</string>
-      </property>
-      <property name="checkable">
-       <bool>true</bool>
-      </property>
-     </widget>
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <item>
+       <widget class="QLabel" name="audioLabel">
+        <property name="text">
+         <string>Audio settings:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="activeAudioCheckBox">
+        <property name="text">
+         <string>Active Audio</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item>
      <spacer name="verticalSpacer_2">

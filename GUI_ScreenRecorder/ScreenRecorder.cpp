@@ -1840,7 +1840,7 @@ std::string ScreenRecorder::GetErrorString()
     return returnValue;
 }
 
-void ScreenRecorder::SetIsAudioActiva(bool check) {
+void ScreenRecorder::SetIsAudioActive(bool check) {
     isAudioActive = check;
 }
 

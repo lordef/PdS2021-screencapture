@@ -25,7 +25,6 @@ private slots:
 	void on_resumeButton_clicked();
 
 	/* TODO: test on win */
-	void on_muteButton_toggled(bool checked);
 
 
 
