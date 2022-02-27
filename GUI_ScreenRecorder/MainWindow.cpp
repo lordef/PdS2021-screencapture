@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui.pauseButton->setEnabled(false);
     ui.resumeButton->setEnabled(false);
     ui.stopButton->setEnabled(false);
+    ui.activeAudioCheckBox->setChecked(true);
 }
 
 MainWindow::~MainWindow()
@@ -59,6 +60,7 @@ void MainWindow::on_stopButton_clicked()
 	//setWindowIcon(QIcon(":/buttons/unicorn.png"));
 	ui.recordButton->setEnabled(true);
     ui.activeAudioCheckBox->setEnabled(true);
+    ui.activeAudioCheckBox->setChecked(true);
 	ui.pauseButton->setEnabled(false);
     ui.resumeButton->setEnabled(false);
 	ui.stopButton->setEnabled(false);
