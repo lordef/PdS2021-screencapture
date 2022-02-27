@@ -27,6 +27,5 @@ void CropDialog::on_setScreenSizeButton_clicked()
 {
     //TODO: sc stands for ScreenRecorder
     screenRecorder->setCrop(pos().x(), pos().y(), size().width(), size().height());
-    
     hide();
 }
