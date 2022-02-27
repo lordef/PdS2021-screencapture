@@ -194,15 +194,26 @@ int ScreenRecorder::initOutputFile() {
 
 
     string outputName = timestamp + "_output.mp4";
+    #ifdef __linux__
+    #if RUN == 1
+        string outputPath = "media/" + outputName; // RUN 
+    #else
+        string outputPath = "../media/" + outputName; // DEBUG 
+    #endif   
+    #elif _WIN32
+        string outputPath = "..\\media\\" + outputName;
+    #endif
+
     // Setting formato del file
-    outputAVFormat = const_cast<AVOutputFormat*>(av_guess_format(nullptr, outputName.c_str(), nullptr));
+    outputAVFormat = const_cast<AVOutputFormat*>(av_guess_format(nullptr, outputPath.c_str(), nullptr));
 
     if (outputAVFormat == nullptr) {
         cerr << "Error in guessing the video format, try with correct format" << endl;
         exit(-5);
     }
 
-#ifdef __linux__
+
+//#ifdef __linux__
     /*
         N.B.:   IN DEBUG la cartella di partenza è quella in cui di trova questo file stesso
                 IN RUN la cartella di partenza è quella del progetto in sé
@@ -210,14 +221,14 @@ int ScreenRecorder::initOutputFile() {
     // string outputPath = "../media/" + outputName; // DEBUG
     // string outputPath = "media/output.mp4"; // RUN   
     // string outputPath = "../media/" + outputName; // DEBUG  
-#if RUN == 1
-    string outputPath = "media/" + outputName; // RUN 
-#else
-    string outputPath = "../media/" + outputName; // DEBUG 
-#endif   
-#elif _WIN32
-    string outputPath = "..\\media\\" + outputName;
-#endif
+//#if RUN == 1
+//    string outputPath = "media/" + outputName; // RUN 
+//#else
+//    string outputPath = "../media/" + outputName; // DEBUG 
+//#endif   
+//#elif _WIN32
+//    string outputPath = "..\\media\\" + outputName;
+//#endif
 
     avformat_alloc_output_context2(&outAVFormatContext, outputAVFormat, outputAVFormat->name, outputPath.c_str());
     if (outAVFormatContext == nullptr) {
