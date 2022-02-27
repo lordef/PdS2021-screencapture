@@ -108,7 +108,7 @@ pauseRec(false), stopRecAudio(false), stopRecVideo(false), closedVideo(false), c
     avdevice_register_all(); // Inizializza libavdevice e registra tutti i dispositivi di input e output.
 
     /* Set timestamp */
-    timestamp = retrieveTimestamp();
+    
 
     /* Set output path */
     //TODO: RecordingPath = RecPath; //a -> altro costruttore
@@ -182,6 +182,7 @@ void ScreenRecorder::setCrop(int cX, int cY, int cW, int cH) {
 
 /* Inizializzazione file di output e suo risorse */
 int ScreenRecorder::initOutputFile() {
+    timestamp = retrieveTimestamp();
     value = 0;
 
     outAVFormatContext = nullptr;
@@ -190,6 +191,7 @@ int ScreenRecorder::initOutputFile() {
     // stringstream ss;
     // ss << time;
     // timestamp = ss.str();
+
 
     string outputName = timestamp + "_output.mp4";
     // Setting formato del file
