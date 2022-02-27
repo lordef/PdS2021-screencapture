@@ -5,6 +5,8 @@
 
 #include <QWidget>
 #include <QFileDialog>
+#include <QMessageBox>
+
 
 #include "ui_MainWindow.h"
 #include "CropDialog.h"
@@ -24,15 +26,13 @@ public:
 private slots:
 	void on_cropButton_clicked();
 	void on_fullscreenButton_clicked();
-
-	
 	void on_recordButton_clicked();
 	void on_stopButton_clicked();
 	void on_pauseButton_clicked();
 	void on_resumeButton_clicked();
-
-	/* TODO: test on win */
 	void on_outPathButton_clicked();
+	void popUpErrorMessage();
+
 
 private:
 	Ui::MainWindow ui;
