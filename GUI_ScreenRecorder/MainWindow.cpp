@@ -9,6 +9,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
 	ui.setupUi(this);
     screenRecorder = new ScreenRecorder;
+    setWindowIcon(QIcon("rate.png"));
+
 
     ui.pauseButton->setEnabled(false);
     ui.resumeButton->setEnabled(false);
@@ -98,7 +100,7 @@ void MainWindow::on_stopButton_clicked()
 	screenRecorder->StopRecorder();
 
 	/*settaggi di grafica della finestra*/
-	//setWindowIcon(QIcon(":/buttons/unicorn.png"));
+	setWindowIcon(QIcon("rate.png"));
 	ui.recordButton->setEnabled(true);
     ui.activeAudioCheckBox->setEnabled(true);
     ui.activeAudioCheckBox->setChecked(true);
@@ -122,7 +124,7 @@ void MainWindow::on_pauseButton_clicked() {
     ui.resumeButton->setEnabled(true);
 
     /* Setta l'icona iniziale del programma */
-    //setWindowIcon(QIcon(":/buttons/unicorn.png"));
+    setWindowIcon(QIcon("pause.png"));
 
     /* Settaggi di grafica della finestra */
     ui.recordButton->setEnabled(false);
@@ -136,7 +138,8 @@ void MainWindow::on_resumeButton_clicked() {
     screenRecorder->PauseRecorder();
     /*in uscita dalla pausa, riduce ad icona la finestra e imposta l'icona di registrazione*/
     this->showMinimized();
-    //setWindowIcon(QIcon(":/buttons/rec-icon-png-23.jpg"));
+    setWindowIcon(QIcon("recording.png"));
+
     ui.pauseButton->setEnabled(true);
     /* Settaggi di grafica della finestra */
     ui.recordButton->setEnabled(false);
