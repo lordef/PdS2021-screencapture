@@ -28,6 +28,16 @@ void MainWindow::on_cropButton_clicked()
 
 }
 
+void MainWindow::on_fullscreenButton_clicked()
+{
+    /* 
+        Reset dei valori di crop, 
+        le API si occupano si settare il valore alla dimensione massima del display 
+    */
+    screenRecorder->setCrop(0,0,0,0); 
+
+}
+
 
 
 void MainWindow::on_recordButton_clicked()
