@@ -96,6 +96,37 @@
      </layout>
     </item>
     <item>
+     <spacer name="verticalSpacer_5">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>76</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_3">
+      <item>
+       <widget class="QPushButton" name="outPathButton">
+        <property name="text">
+         <string>select output path</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="outPathLabel">
+        <property name="text">
+         <string>&lt;output path&gt;</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
      <spacer name="verticalSpacer_2">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
@@ -152,24 +183,6 @@
        </size>
       </property>
      </spacer>
-    </item>
-    <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_3">
-      <item>
-       <widget class="QPushButton" name="outPathButton">
-        <property name="text">
-         <string>select output path</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="outPathLabel">
-        <property name="text">
-         <string>&lt;output path&gt;</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
     </item>
    </layout>
   </widget>

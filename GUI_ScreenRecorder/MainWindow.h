@@ -2,11 +2,16 @@
 #define MAINWINDOW_H
 
 #include "ScreenRecorder.h"
+
 #include <QWidget>
+#include <QFileDialog>
+
 #include "ui_MainWindow.h"
 #include "CropDialog.h"
 #include<vector>
 #include <iostream>
+
+
 
 class MainWindow : public QWidget
 {
@@ -27,8 +32,7 @@ private slots:
 	void on_resumeButton_clicked();
 
 	/* TODO: test on win */
-
-
+	void on_outPathButton_clicked();
 
 private:
 	Ui::MainWindow ui;

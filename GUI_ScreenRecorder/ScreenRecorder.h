@@ -282,6 +282,12 @@ public:
 	void AudioStop();
 	void SetIsAudioActive(bool check);
 
+	std::string getOutputPath();
+	void setOutputPath(std::string outputPath);
+
+
+
+
 	void SetError(std::string error); //a
 	std::string GetErrorString(); //a
 

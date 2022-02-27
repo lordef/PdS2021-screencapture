@@ -1871,5 +1871,16 @@ void ScreenRecorder::SetCaptureSystemKey(int valueToSet, LPCWSTR keyToSet) {
 }
 #endif
 
+
+std::string ScreenRecorder::getOutputPath()
+{
+    return outputPath;
+}
+
+void ScreenRecorder::setOutputPath(std::string outputPath)
+{
+    this->outputPath = outputPath;
+}
+
 /****************** API ******************/
 

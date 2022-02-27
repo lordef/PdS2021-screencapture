@@ -38,6 +38,31 @@ void MainWindow::on_fullscreenButton_clicked()
 
 }
 
+/*
+    Pulsante per impostare dove si vuole salvare il file di output
+*/
+void MainWindow::on_outPathButton_clicked() {
+
+    /*Apre un dialog per salvare il file*/
+    QString outPath = QFileDialog::getSaveFileName(this, "Choose save location...", QString::fromStdString(screenRecorder->getOutputPath())/*, ".mp4"*/);
+    
+    if (outPath.isEmpty()) {
+        /*In caso non si scelga nulla, viene settato il path di default*/
+    #if WIN32
+        screenRecorder->setOutputPath("..\\media\\output.mp4");
+    #elif __linux__
+        screenRecorder->setOutputPath("media/output.mp4");
+    #endif
+
+    }
+    else {
+        screenRecorder->setOutputPath(outPath.toStdString());
+    }
+
+    /*Aggiorna la visualizzazione del path nella finestra*/
+    //this->pathText->setText(QString::fromStdString(screenRecorder->getOutputPath());
+}
+
 
 
 void MainWindow::on_recordButton_clicked()
