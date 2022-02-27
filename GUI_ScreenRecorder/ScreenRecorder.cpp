@@ -71,26 +71,10 @@ std::string retrieveTimestamp()
 
 /* Definiamo il COSTRUTTORE */
 /* Initialize the resources*/
-ScreenRecorder::ScreenRecorder() : isAudioActive(true), started(false), /*activeMenu(true),*/
-/*magicNumber(300),*/ cropX(0), cropY(0), cropH(0), cropW(0), frameCount(0), end(false),
+ScreenRecorder::ScreenRecorder() : isAudioActive(true), started(false),
+cropX(0), cropY(0), cropH(0), cropW(0), frameCount(0), end(false),
 pauseRec(false), stopRecAudio(false), stopRecVideo(false), closedVideo(false), closedAudio(false)
-
-// TODO: aggiustare codice seguente e sostituirlo a quello sopra                                    
-// ScreenRecorder::ScreenRecorder( bool isAudioActive = true, 
-//                                 int cropX = 0, int cropY = 0, int cropH = 1080, int cropW = 1920,
-// 					            int magicNumber = 100, bool activeMenu = true) 
-
-                                // : isAudioActive(isAudioActive), 
-                                // cropX(cropX), cropY(cropY), cropH(cropH), cropW(cropW), 
-                                // magicNumber(magicNumber), activeMenu(activeMenu)
-//Aggiornato - magicNumber=3000
-/* #TODO: N.B.: sia per linux che per windows controllare che i valori passati
-             rispettino la risoluzione del pc su cui gira il codice
-             in particolare che tutte le variabili di crop
-             ispirarsi a libavdevice/xcbgrab.c -> cerca la stringa 'outside the screen'*/
 {
-    //std::string outputName =/* timestamp +*/ "_output.mp4";
-
 #ifdef __linux__
 #if RUN == 1
     outputPath = "media/_output.mp4"; // RUN 
@@ -101,18 +85,7 @@ pauseRec(false), stopRecAudio(false), stopRecVideo(false), closedVideo(false), c
     outputPath = "..\\media\\_output.mp4" ;
 #endif
 
-
-
-// av_register_all(); //Funzione di inizializzazione deprecata. Può essere tranquillamente omessa.
-// avcodec_register_all(); //Funzione di inzizializzazione deprecata. Può essere tranquillamente omessa.
     avdevice_register_all(); // Inizializza libavdevice e registra tutti i dispositivi di input e output.
-
-    /* Set timestamp */
-    
-
-    /* Set output path */
-    //TODO: RecordingPath = RecPath; //a -> altro costruttore
-
     cout << "\nAll required functions are registered successfully\n";
 }
 
@@ -120,13 +93,6 @@ pauseRec(false), stopRecAudio(false), stopRecVideo(false), closedVideo(false), c
 /* uninitialize the resources */
 ScreenRecorder::~ScreenRecorder()
 {
-    // if (started) { //utile?
-
-        /*value = av_write_trailer(outAVFormatContext); //a
-        if (value < 0) {
-            cerr << "Error in writing av trailer" << endl;
-            exit(-1);
-        }*/
 
         // ---------------Audio-----------------
     avformat_close_input(&inAudioFormatContext);
@@ -134,17 +100,15 @@ ScreenRecorder::~ScreenRecorder()
         cout << "inAudioFormatContext close successfully" << endl;
     }
     else {
-        cerr << "Error: unable to close the inAudioFormatContext" << endl;
-        exit(-1);
-        //throw "Error: unable to close the file";
+        throw std::runtime_error("Error: unable to close the inAudioFormatContext");
+
     }
     avformat_free_context(inAudioFormatContext);
     if (inAudioFormatContext == nullptr) {
         cout << "AudioFormat freed successfully" << endl;
     }
     else {
-        cerr << "Error: unable to free AudioFormatContext" << endl;
-        exit(-1);
+        throw std::runtime_error("Error: unable to free AudioFormatContext");
     }
 
     // ---------------Video-----------------
@@ -153,9 +117,7 @@ ScreenRecorder::~ScreenRecorder()
         cout << "File close successfully" << endl;
     }
     else {
-        cerr << "Error: unable to close the file" << endl;
-        exit(1);
-        //throw "Error: unable to close the file";
+        throw std::runtime_error("Error: unable to close the file");
     }
 
     avformat_free_context(pAVFormatContext); // Libera pAVFormatContext e tutti i suoi stream.
@@ -163,67 +125,29 @@ ScreenRecorder::~ScreenRecorder()
         cout << "VideoFormat freed successfully" << endl;
     }
     else {
-        cerr << "Error: unable to free VideoFormatContext" << endl;
-        exit(1);
+        throw std::runtime_error("Error: unable to free VideoFormatContext");
     }
     CloseRecorder();
-    // } //end - started
+
 
 }
-//Settiamo i parametri di cropping
-
-
 
 /* Inizializzazione file di output e suo risorse */
 int ScreenRecorder::initOutputFile() {
     value = 0;
     outAVFormatContext = nullptr;
 
-    //utile?
-    //timestamp = retrieveTimestamp();
-    //string outputName = timestamp + "_output.mp4";
-    //#ifdef __linux__
-    //#if RUN == 1
-    //    string outputPath = "media/" + outputName; // RUN 
-    //#else
-    //    string outputPath = "../media/" + outputName; // DEBUG 
-    //#endif   
-    //#elif _WIN32
-    //    string outputPath = "..\\media\\" + outputName;
-    //#endif
-
     // Setting formato del file
     outputAVFormat = const_cast<AVOutputFormat*>(av_guess_format(nullptr, outputPath.c_str(), nullptr));
 
     if (outputAVFormat == nullptr) {
-        cerr << "Error in guessing the video format, try with correct format" << endl;
-        exit(-5);
+        throw std::runtime_error("Error in guessing the video format, try with correct format");
     }
-
-
-//#ifdef __linux__
-    /*
-        N.B.:   IN DEBUG la cartella di partenza è quella in cui di trova questo file stesso
-                IN RUN la cartella di partenza è quella del progetto in sé
-    */
-    // string outputPath = "../media/" + outputName; // DEBUG
-    // string outputPath = "media/output.mp4"; // RUN   
-    // string outputPath = "../media/" + outputName; // DEBUG  
-//#if RUN == 1
-//    string outputPath = "media/" + outputName; // RUN 
-//#else
-//    string outputPath = "../media/" + outputName; // DEBUG 
-//#endif   
-//#elif _WIN32
-//    string outputPath = "..\\media\\" + outputName;
-//#endif
 
     avformat_alloc_output_context2(&outAVFormatContext, outputAVFormat, outputAVFormat->name, outputPath.c_str());
     if (outAVFormatContext == nullptr) {
-        cerr << "Error in allocating outAVFormatContext" << endl;
-        exit(-4);
+        throw std::runtime_error("Error in allocating outAVFormatContext");
     }
-
 
     /*===========================================================================*/
     this->generateVideoStream();
@@ -232,27 +156,23 @@ int ScreenRecorder::initOutputFile() {
 
     //Create an empty video file
     if (!(outAVFormatContext->flags & AVFMT_NOFILE)) {
-        //int ret_avio = avio_open2(&outAVFormatContext->pb, outputPath.c_str(), AVIO_FLAG_WRITE, nullptr, nullptr);
+        
         int ret_avio = avio_open(&outAVFormatContext->pb, outputPath.c_str(), AVIO_FLAG_WRITE);
         if (ret_avio < 0) {
-            cerr << "Error in creating the video file" << endl;
-            exit(-10);
+            throw std::runtime_error("Error in creating the video file");
         }
     }
 
     /* Controlla che il file di output contenga almeno uno stream */
     if (outAVFormatContext->nb_streams == 0) {
-        cerr << "Output file does not contain any stream" << endl;
-        exit(-11);
+        throw std::runtime_error("Output file does not contain any stream");
     }
 
     /* Alloca i dati dello stream e scrive l'header dello stream al file di output. */
     value = avformat_write_header(outAVFormatContext, &options);
-    value = -10;
     if (value < 0) {
         throw std::runtime_error("Error in writing the header context");
-        //cerr << "Error in writing the header context" << endl;
-        //exit(-12);
+
     }
     started = true;
     return 0;
@@ -262,7 +182,6 @@ int ScreenRecorder::initOutputFile() {
 /***************************** VIDEO *****************************/
 
 /* Establishing the connection between camera or screen through its respective folder */
-//int ScreenRecorder::openCamera() throw() //#FIXME
 int ScreenRecorder::openVideoDevice()
 {
 
@@ -273,35 +192,24 @@ int ScreenRecorder::openVideoDevice()
     /* Alloca pAVFormatContext, che è un AVFormatContext */
     pAVFormatContext = avformat_alloc_context();
 
-    /*****/ //utile?
-    //#TODO; sezione utilizzata solo da linux - in Windows si agisce con le funzioni _itoa_s
-    // string dimension = to_string(width) + "x" + to_string(height);
-    //av_dict_set(&options, "video_size", dimension.c_str(), 0);   //option to set the dimension of the screen section to record
-    //av_dict_set(&options, "video_size", "1920x1080", 0);   //option to set the dimension of the screen section to record
-    /*****/
-
     value = av_dict_set(&options, "probesize", "60M", 0);
     if (value < 0) {
-        cerr << "Error in setting probesize value" << endl;
-        exit(-1);
+        throw std::runtime_error("Error in setting probesize value");
     }
 
     value = av_dict_set(&options, "rtbufsize", "2048M", 0);
     if (value < 0) {
-        cerr << "Error in setting probesize value" << endl;
-        exit(-1);
+        throw std::runtime_error("Error in setting rtbufsize value");
     }
 
     value = av_dict_set(&options, "offset_x", "0", 0);
     if (value < 0) {
-        cerr << "Error in setting offset x value" << endl;
-        exit(-1);
+        throw std::runtime_error("Error in setting offset_x value");
     }
 
     value = av_dict_set(&options, "offset_y", "0", 0);
     if (value < 0) {
-        cerr << "Error in setting offset y value" << endl;
-        exit(-1);
+        throw std::runtime_error("Error in setting offset_y value");
     }
 
     /*Questa sezione di codice serve per selezionare la finestra del desktop da registrare. Per fare ciò vado a settare i registri nella maniera più opportuna
@@ -310,10 +218,9 @@ int ScreenRecorder::openVideoDevice()
      */
 #ifdef _WIN32
     if (cropW == 0 || cropH == 0) {
-        cropW = 1920;
-        cropH = 1080;
-        //cropW = GetSystemMetrics(SM_CXSCREEN); TODO risolvere
-        //cropH = GetSystemMetrics(SM_CYSCREEN);
+        cropW = 1920;//cropW = GetSystemMetrics(SM_CXSCREEN); 
+        cropH = 1080;//cropH = GetSystemMetrics(SM_CYSCREEN);
+
     }
     
 
@@ -323,12 +230,9 @@ int ScreenRecorder::openVideoDevice()
     SetCaptureSystemKey(cropH, TEXT("capture_height"));
 
     /*Apertura dello stream di input*/
-    //pAVInputFormat = av_find_input_format("gdigrab"); //utile?
-    pAVInputFormat = av_find_input_format("dshow"); //Uso dshow e non dgrab!!
-    //if (avformat_open_input(&pAVFormatContext, "desktop", pAVInputFormat, &options) != 0) {
+    pAVInputFormat = av_find_input_format("dshow"); 
     if (avformat_open_input(&pAVFormatContext, "video=screen-capture-recorder", pAVInputFormat, &options) != 0) {
-        cerr << "Couldn't open input stream" << endl;
-        exit(-1);
+        throw std::runtime_error("Couldn't open input stream");
     }
 
 #elif __linux__
