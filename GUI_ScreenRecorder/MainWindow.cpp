@@ -74,7 +74,7 @@ void MainWindow::on_outPathButton_clicked() {
 void MainWindow::on_recordButton_clicked()
 {
     /* Settaggi di grafica della finestra */
-    //setWindowIcon(QIcon(":icons/recording.png"));
+    setWindowIcon(QIcon("recording.png"));
     ui.recordButton->setEnabled(false);
     ui.pauseButton->setEnabled(true);
     ui.stopButton->setEnabled(true);
