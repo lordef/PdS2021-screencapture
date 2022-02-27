@@ -372,8 +372,8 @@ void ScreenRecorder::generateVideoStream() //Nome aggiornato
 #elif _WIN32
     outAVCodecContext->bit_rate = 10000000;
 #endif
-    outAVCodecContext->gop_size = 10; //aggiornato -> era 3
-    outAVCodecContext->global_quality = 500; //Nuovo
+    outAVCodecContext->gop_size = 10; 
+    outAVCodecContext->global_quality = 500; 
     outAVCodecContext->max_b_frames = 2;
     outAVCodecContext->time_base.num = 1;
 
