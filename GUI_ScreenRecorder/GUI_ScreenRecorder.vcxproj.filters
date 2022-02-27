@@ -69,5 +69,11 @@
     <Image Include="recording.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="rate.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="pause.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
