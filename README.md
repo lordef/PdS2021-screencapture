@@ -8,6 +8,55 @@ Membri del Team:
 * [lordef](https://github.com/lordef)
 -------------------
 
+# Application Programming Project: Screen capture (CAPTURE)
+## Project’s summary
+The project aims at building a **multiplatform library** capable of **capturing the entire screen**
+(or a portion of it) **and** **storing** it in **mp4 format**, with or without audio. <br>
+In order to show the
+proper behavior of the library, a sample application based on it will be created, as well,
+allowing the user to **record/pause/resume/stop a video** stream. <br>
+Care should be given to
+overall **user experience and usability**, properly handling possible **errors** and propagating
+them in an effective and understandable way **to the user**, **and** providing **easy to learn/use
+commands** to operate it.
+
+## Required Background and Working Environment
+Knowledge of the **C++17** general abstractions **and** of the **C++** Standard Template Library.<br>
+Knowledge of **concurrency, synchronization and background processing**. <br>
+The system will be developed using third party libraries (e.g., ffmpeg) in order to support
+deployment on several platforms.
+## Problem Definition
+The system to be designed consists of a multi-platform library that supports screen
+capturing and recording, and a sample application that demonstrates its usage. <br>
+The library will be properly documented, providing a clear definition of its intended usage,
+as well as of any error condition that can be reported.
+<br>
+<br>
+By using the **sample application**, <br>
+the user will be able to <br>
+* define the area to be recorded
+* select whether the audio should be captured or not
+* activate and stop the recording process
+* temporarily pause and subsequently resume it
+* define the file that will contain the final recording
+
+The application should also take care to properly indicate any failure of the recording
+process, providing meaningful and actionable feedback. <br>
+When the recording process is active, a suitable indication should be provided to the user.
+
+
+## Inspiration Links
+* [screen-recorder-ffmpeg-cpp](https://github.com/abdullahfarwees/screen-recorder-ffmpeg-cpp)
+* [simplest_ffmpeg_device](https://github.com/leixiaohua1020/simplest_ffmpeg_device)
+* [screen-recording-with-ffmpeglib-with-c](https://stackoverflow.com/questions/59929798/screen-recording-with-ffmpeglib-with-c)
+* [screen-capture-recorder-to-video-windows-free](https://github.com/rdp/screen-capture-recorder-to-video-windows-free)
+* [PostShot](https://github.com/mrousavy/PostShot)
+* [screen_capture_lite](https://github.com/smasherprog/screen_capture_lite)
+
+--------------
+-------------------
+----------
+
 # **Documentazione**
 
 	
